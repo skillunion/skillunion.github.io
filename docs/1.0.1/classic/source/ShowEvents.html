@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Project    : Lib Packages Common
+ * File	      : utils/ShowEvents.js
+ * Created on : 09.07.2015 17:47:43
+ *
+ */
+
+// &lt;debug&gt;
+
+<span id='SU-utils-ShowEvents'>/**
+</span> * Выводит в консоль все события генерируемые компонентом.
+ *
+ * __Используется только в режиме отладки__
+ *
+ * @history 13.02.2017
+ * Исправления в связи с неправильной обработкой событий с проверкой результата.
+ *
+ * Ранее не возвращался результат из обработчика.
+ *
+ * @history 09.07.2015
+ * Создание модуля
+ */
+Ext.define(&#39;SU.utils.ShowEvents&#39;, {
+	requires: [&#39;Ext.util.Observable&#39;],
+
+<span id='SU-utils-ShowEvents-property-mixinConfig'>	mixinConfig: {
+</span>		id: &#39;showevents&#39;
+	},
+
+<span id='SU-utils-ShowEvents-property-disabledShowEvents'>	/**
+</span>	 * `true` запрещает вывод сообщений
+	 *
+	 * @property {Boolean}
+	 */
+	disabledShowEvents: false,
+
+<span id='SU-utils-ShowEvents-method-onClassMixedIn'>	//
+</span>	onClassMixedIn: function (cls) {
+		cls.prototype.fireEvent = function () {
+			var me = this;
+			if( !me.disabledShowEvents ){
+				console.log(&#39;[SHOW EVENTS]&#39;, me.$className, arguments[0], arguments);
+			}
+			return Ext.util.Observable.prototype.fireEvent.apply(this, arguments);
+		};
+	}
+});
+
+// &lt;/debug&gt;
+
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-trigger-Base'>/**
+</span> * Base class for form field triggers
+ * @private
+ */
+Ext.define(&#39;Ext.field.trigger.Base&#39;, {
+    extend: &#39;Ext.Widget&#39;,
+    alias: &#39;trigger.base&#39;,
+
+    mixins: [
+        &#39;Ext.mixin.Factoryable&#39;
+    ],
+
+<span id='Ext-field-trigger-Base-property-factoryConfig'>    factoryConfig: {
+</span>        defaultType: &#39;trigger&#39;,
+        aliasPrefix: &#39;trigger.&#39;
+    },
+
+<span id='Ext-field-trigger-Base-property-isTrigger'>    isTrigger: true,
+</span>
+    config: {
+<span id='Ext-field-trigger-Base-cfg-field'>        /**
+</span>         * @cfg {Ext.field.Text}
+         * The text field that created this trigger
+         * @private
+         */
+        field: null,
+
+<span id='Ext-field-trigger-Base-cfg-group'>        /**
+</span>         * @cfg {String} [group]
+         * The name of an optional group trigger that this trigger belongs to.  If no trigger
+         * Exists by that name one will automatically be created.  A group trigger is a
+         * special trigger that contains other triggers.  Those triggers&#39; elements are
+         * appended to the group trigger&#39;s element in the DOM.
+         *
+         * The {@link #weight} of grouped triggers is relative to other triggers in the group.
+         */
+        group: null,
+
+<span id='Ext-field-trigger-Base-cfg-side'>        /**
+</span>         * @cfg {&#39;left&#39;/&#39;right&#39;} [side=&#39;right&#39;]
+         * The side of the text field&#39;s input to render the trigger on.
+         */
+        side: null,
+
+<span id='Ext-field-trigger-Base-cfg-name'>        /**
+</span>         * @cfg {String}
+         * The key used to identify this trigger in the text field&#39;s triggers config.
+         * @private
+         */
+        name: null,
+
+<span id='Ext-field-trigger-Base-cfg-triggers'>        /**
+</span>         * The triggers contained in this trigger (only applicable for trigger groups)
+         * @private
+         */
+        triggers: null
+    },
+
+<span id='Ext-field-trigger-Base-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;trigger&#39;,
+</span><span id='Ext-field-trigger-Base-property-groupedCls'>    groupedCls: Ext.baseCSSPrefix + &#39;grouped&#39;,
+</span>
+<span id='Ext-field-trigger-Base-property-inheritUi'>    inheritUi: true,
+</span>
+    statics: {
+<span id='Ext-field-trigger-Base-static-method-sort'>        /**
+</span>         * Sorts an array of triggers in place by weight
+         * @param {Ext.field.Trigger[]} triggers
+         * @return {Ext.field.Trigger[]}
+         * @private
+         * @static
+         */
+        sort: function (triggers) {
+            Ext.Array.sort(triggers, Ext.weightSortFn);
+            return triggers;
+        }
+    },
+
+<span id='Ext-field-trigger-Base-method-doDestroy'>    doDestroy: function() {
+</span>        var triggers = this.getTriggers(),
+            i, ln;
+
+        if (triggers) {
+            for (i = 0, ln = triggers.length; i &lt; ln; i++) {
+                triggers[i].destroy();
+            }
+        }
+
+        this.setTriggers(null);
+
+        this.callParent();
+    },
+
+<span id='Ext-field-trigger-Base-method-updateField'>    updateField: function (field) {
+</span>        // All Components MUST have an upward link through either parent or ownerCmp
+        this.field = this.ownerCmp = field;
+
+        this.doInheritUi();
+    },
+
+
+<span id='Ext-field-trigger-Base-method-updateGroup'>    updateGroup: function (group) {
+</span>        if (!this.isConfiguring) {
+            this.getField().syncTriggers();
+        }
+    },
+
+<span id='Ext-field-trigger-Base-method-updateSide'>    updateSide: function () {
+</span>        if (!this.isConfiguring) {
+            this.getField().syncTriggers();
+        }
+    },
+
+<span id='Ext-field-trigger-Base-method-updateTriggers'>    updateTriggers: function (triggers) {
+</span>        var me = this,
+            dom = me.element.dom,
+            iconElement = me.iconElement,
+            i, ln;
+
+        me.toggleCls(me.groupedCls, !!(triggers &amp;&amp; triggers.length));
+
+        if (triggers) {
+            for (i = 0, ln = triggers.length; i &lt; ln; i++) {
+                dom.appendChild(triggers[i].element.dom);
+            }
+        }
+    }
+});</pre>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-cell-RowNumberer'>/**
+</span> * This column type displays the record index of the record in the store.
+ */
+Ext.define(&#39;Ext.grid.cell.RowNumberer&#39;, {
+    extend: &#39;Ext.grid.cell.Number&#39;,
+    xtype: &#39;rownumberercell&#39;,
+
+<span id='Ext-grid-cell-RowNumberer-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;rownumberercell&#39;,
+</span>
+<span id='Ext-grid-cell-RowNumberer-cfg-format'>    /**
+</span>     * @cfg {String} format
+     * A format string as used by {@link Ext.util.Format#number} to format values for
+     * this column.
+     */
+    format: &#39;0,000&#39;,
+
+<span id='Ext-grid-cell-RowNumberer-method-refreshValue'>    refreshValue: function (context) {
+</span>        var row = context.row,
+            ret;
+
+        if (context.summary) {
+            ret = &#39;\xA0&#39;;
+        } else {
+            ret = row ? row.$datasetIndex + 1 : null;
+        }
+        return ret;
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-navigator-Navigator'>/**
+</span> * The Navigator component is used to visually set the visible range of the x-axis
+ * of a cartesian chart.
+ *
+ * This component is meant to be used with the Navigator Container
+ * via its {@link Ext.chart.navigator.Container#navigator} config.
+ *
+ * IMPORTANT: even though the Navigator component is a kind of chart, it should not be
+ * treated as such. Correct behavior is not guaranteed when using hidden/private configs.
+ */
+Ext.define(&#39;Ext.chart.navigator.Navigator&#39;, {
+    extend: &#39;Ext.chart.navigator.NavigatorBase&#39;,
+
+<span id='Ext-chart-navigator-Navigator-property-isNavigator'>    isNavigator: true,
+</span>
+    requires: [
+        &#39;Ext.chart.navigator.sprite.RangeMask&#39;
+    ],
+
+    config: {
+<span id='Ext-chart-navigator-Navigator-cfg-docked'>        /**
+</span>         * @cfg {&#39;bottom&#39;/&#39;top&#39;} [docked=&#39;bottom&#39;]
+         */
+        docked: &#39;bottom&#39;,
+
+<span id='Ext-chart-navigator-Navigator-cfg-span'>        /**
+</span>         * @cfg {&#39;series&#39;/&#39;chart&#39;} [span=&#39;series&#39;]
+         * Whether the navigator should span the &#39;series&#39; (default) or the whole &#39;chart&#39;.
+         */
+        span: &#39;series&#39;,
+
+<span id='Ext-chart-navigator-Navigator-cfg-insetPadding'>        insetPadding: 0,
+</span><span id='Ext-chart-navigator-Navigator-cfg-innerPadding'>        innerPadding: 0,
+</span>
+<span id='Ext-chart-navigator-Navigator-cfg-navigatorContainer'>        /**
+</span>         * @cfg {Ext.chart.navigator.Container} navigatorContainer
+         * &#39;parent&#39; is reserved in Modern, &#39;container&#39; is reserved in Classic,
+         * so we use &#39;navigatorContainer&#39; as a config name.
+         * @private
+         */
+        navigatorContainer: null,
+
+<span id='Ext-chart-navigator-Navigator-cfg-axis'>        /**
+</span>         * @cfg {String} axis (required)
+         * The ID of the {@link #chart chart&#39;s} axis to link to.
+         * The axis should be positioned to &#39;bottom&#39; or &#39;top&#39; in the chart.
+         */
+        axis: null,
+
+<span id='Ext-chart-navigator-Navigator-cfg-tolerance'>        /**
+</span>         * @cfg {Number} [tolerance=20]
+         * The maximum horizontal delta between the pointer/finger and the center of a navigator thumb.
+         * Used for hit testing.
+         */
+        tolerance: 20,
+
+<span id='Ext-chart-navigator-Navigator-cfg-minimum'>        /**
+</span>         * @cfg {Number} [minimum=0.8]
+         * The start of the visible range, where the visible range is a [0, 1] interval.
+         */
+        minimum: 0.8,
+
+<span id='Ext-chart-navigator-Navigator-cfg-maximum'>        /**
+</span>         * @cfg {Number} [maximum=1]
+         * The end of the visible range, where the visible range is a [0, 1] interval.
+         */
+        maximum: 1,
+
+<span id='Ext-chart-navigator-Navigator-cfg-thumbGap'>        /**
+</span>         * @cfg {Number} [thumbGap=30]
+         * Minimum gap between navigator thumbs in pixels.
+         */
+        thumbGap: 30,
+
+<span id='Ext-chart-navigator-Navigator-cfg-autoHideThumbs'>        autoHideThumbs: true,
+</span>
+<span id='Ext-chart-navigator-Navigator-cfg-width'>        width: &#39;100%&#39;,
+</span>
+<span id='Ext-chart-navigator-Navigator-cfg-height'>        /**
+</span>         * @cfg {Number} [height=75]
+         * The height of the navigator component.
+         */
+        height: 75
+
+<span id='Ext-chart-navigator-Navigator-cfg-flipXY'>        /**
+</span>         * @cfg flipXY
+         * @hide
+         */
+
+<span id='Ext-chart-navigator-Navigator-cfg-series'>        /**
+</span>         * @cfg series
+         * @hide
+         */
+
+<span id='Ext-chart-navigator-Navigator-cfg-axes'>        /**
+</span>         * @cfg axes
+         * @hide
+         */
+
+<span id='Ext-chart-navigator-Navigator-cfg-store'>        /**
+</span>         * @cfg store
+         * @hide
+         */
+
+<span id='Ext-chart-navigator-Navigator-cfg-legend'>        /**
+</span>         * @cfg legend
+         * @hide
+         */
+
+<span id='Ext-chart-navigator-Navigator-cfg-interactions'>        /**
+</span>         * @cfg interactions
+         * @hide
+         */
+
+<span id='Ext-chart-navigator-Navigator-cfg-highlightItem'>        /**
+</span>         * @cfg highlightItem
+         * @hide
+         */
+
+<span id='Ext-chart-navigator-Navigator-cfg-theme'>        /**
+</span>         * @cfg theme
+         * @hide
+         */
+
+<span id='Ext-chart-navigator-Navigator-cfg-innerPadding'>        /**
+</span>         * @cfg innerPadding
+         * @hide
+         */
+
+<span id='Ext-chart-navigator-Navigator-cfg-insetPadding'>        /**
+</span>         * @cfg insetPadding
+         * @hide
+         */
+    },
+
+<span id='Ext-chart-navigator-Navigator-property-dragType'>    dragType: null,
+</span>
+<span id='Ext-chart-navigator-Navigator-method-constructor'>    constructor: function (config) {
+</span>        config = config || {};
+
+        var me = this,
+            visibleRange = [
+                config.minimum || 0.8,
+                config.maximum || 1
+            ],
+            overlay;
+
+        me.callParent([config]);
+
+        overlay = me.overlaySurface;
+        overlay.element.setStyle({
+            zIndex: 100
+        });
+
+        me.rangeMask = overlay.add({
+            type: &#39;rangemask&#39;,
+            min: visibleRange[0],
+            max: visibleRange[1],
+            fillStyle: &#39;rgba(0, 0, 0, .25)&#39;
+        });
+
+        me.onDragEnd(); // Set &#39;thumbOpacity&#39; of the range mask sprite to 0, if needed,
+        // and apply animation modifier changes after that, so that the attribute is set
+        // instantly.
+        me.rangeMask.setAnimation({
+            duration: 500,
+            customDurations: {
+                min: 0,
+                max: 0,
+                translationX: 0,
+                translationY: 0,
+                scalingX: 0,
+                scalingY: 0,
+                scalingCenterX: 0,
+                scalingCenterY: 0,
+                fillStyle: 0,
+                strokeStyle: 0
+            }
+        });
+
+        me.setVisibleRange(visibleRange);
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-createSurface'>    createSurface: function(id) {
+</span>        var surface = this.callParent([id]);
+        if (id === &#39;overlay&#39;) {
+            this.overlaySurface = surface;
+        }
+        return surface;
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-applyAxis'>    // Note: &#39;applyDock&#39; and &#39;updateDock&#39; won&#39;t ever be called in Classic.
+</span>    // See Classic NavigatorBase.
+
+    applyAxis: function (axis) {
+        return this.getNavigatorContainer().getChart().getAxis(axis);
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-updateAxis'>    updateAxis: function (axis, oldAxis) {
+</span>        var me = this,
+            eventName = &#39;visiblerangechange&#39;,
+            eventHandler = &#39;onAxisVisibleRangeChange&#39;;
+
+        if (oldAxis) {
+            oldAxis.un(eventName, eventHandler, me);
+        }
+
+        if (axis) {
+            axis.on(eventName, eventHandler, me);
+        }
+
+        me.axis = axis;
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-getAxis'>    getAxis: function () {
+</span>        // The superclass doesn&#39;t have the &#39;axis&#39; config, but it has the same method,
+        // which we override here to act as a getter for the config. The user is not
+        // expected to use the original method in this subclass anyway.
+        return this.axis;
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-onAxisVisibleRangeChange'>    onAxisVisibleRangeChange: function (axis, visibleRange) {
+</span>        this.setVisibleRange(visibleRange);
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-updateNavigatorContainer'>    updateNavigatorContainer: function (navigatorContainer) {
+</span>        var me = this,
+            oldChart = me.chart,
+            chart = me.chart = navigatorContainer &amp;&amp; navigatorContainer.getChart(),
+            chartSeriesList = chart &amp;&amp; chart.getSeries(),
+            // &#39;legendStore&#39; already exists in the base class.
+            chartLegendStore = me.chartLegendStore,
+            navigatorSeriesList = [],
+            storeEventName = &#39;update&#39;,
+            // &#39;onLegendStoreUpdate&#39; already exists in the base class.
+            storeEventHandler = &#39;onChartLegendStoreUpdate&#39;,
+            chartSeries, navigatorSeries,
+            seriesConfig, i;
+
+        if (oldChart) {
+            oldChart.un(&#39;layout&#39;, &#39;afterBoundChartLayout&#39;, me);
+            oldChart.un(&#39;themechange&#39;, &#39;onChartThemeChange&#39;, me);
+            oldChart.un(&#39;storechange&#39;, &#39;onChartStoreChange&#39;, me);
+        }
+        chart.on(&#39;layout&#39;,&#39;afterBoundChartLayout&#39;, me);
+
+        for (i = 0; i &lt; chartSeriesList.length; i++) {
+            chartSeries = chartSeriesList[i];
+            seriesConfig = me.getSeriesConfig(chartSeries);
+            navigatorSeries = Ext.create(&#39;series.&#39; + seriesConfig.type, seriesConfig);
+            navigatorSeries.parentSeries = chartSeries;
+            chartSeries.navigatorSeries = navigatorSeries;
+            navigatorSeriesList.push(navigatorSeries);
+        }
+
+        if (chartLegendStore) {
+            chartLegendStore.un(storeEventName, storeEventHandler, me);
+            me.chartLegendStore = null;
+        }
+
+        if (chart) {
+            me.setStore(chart.getStore());
+            me.chartLegendStore = chartLegendStore = chart.getLegendStore();
+            if (chartLegendStore) {
+                chartLegendStore.on(storeEventName, storeEventHandler, me);
+            }
+            chart.on(&#39;themechange&#39;, &#39;onChartThemeChange&#39;, me);
+            chart.on(&#39;storechange&#39;, &#39;onChartStoreChange&#39;, me);
+            me.onChartThemeChange(chart, chart.getTheme());
+        }
+
+        me.setSeries(navigatorSeriesList);
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-onChartThemeChange'>    onChartThemeChange: function (chart, theme) {
+</span>        this.setTheme(theme);
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-onChartStoreChange'>    onChartStoreChange: function (chart, store) {
+</span>        this.setStore(store);
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-addCustomStyle'>    addCustomStyle: function (config, style, subStyle) {
+</span>        var fillStyle, strokeStyle;
+
+        style = style || {};
+        subStyle = subStyle || {};
+
+        config.style = config.style || {};
+        config.subStyle = config.subStyle || {};
+
+
+        fillStyle = style &amp;&amp; (style.fillStyle || style.fill);
+        strokeStyle = style &amp;&amp; (style.strokeStyle || style.stroke);
+
+        if (fillStyle) {
+            config.style.fillStyle = fillStyle;
+        }
+        if (strokeStyle) {
+            config.style.strokeStyle = strokeStyle;
+        }
+
+
+        fillStyle = subStyle &amp;&amp; (subStyle.fillStyle || subStyle.fill);
+        strokeStyle = subStyle &amp;&amp; (subStyle.strokeStyle || subStyle.stroke);
+
+        if (fillStyle) {
+            config.subStyle.fillStyle = fillStyle;
+        }
+        if (strokeStyle) {
+            config.subStyle.strokeStyle = strokeStyle;
+        }
+
+        return config;
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-getSeriesConfig'>    getSeriesConfig: function (chartSeries) {
+</span>        var me = this,
+            style = chartSeries.getStyle(),
+            config;
+
+        if (chartSeries.isLine) {
+            config = me.addCustomStyle({
+                type: &#39;line&#39;,
+                fill: true,
+                xField: chartSeries.getXField(),
+                yField: chartSeries.getYField(),
+                smooth: chartSeries.getSmooth()
+            }, style);
+        } else if (chartSeries.isCandleStick) {
+            config = me.addCustomStyle({
+                type: &#39;line&#39;,
+                fill: true,
+                xField: chartSeries.getXField(),
+                yField: chartSeries.getCloseField()
+            }, style.raiseStyle);
+        } else if (chartSeries.isArea || chartSeries.isBar) {
+            config = me.addCustomStyle({
+                type: &#39;area&#39;,
+                xField: chartSeries.getXField(),
+                yField: chartSeries.getYField()
+            }, style, chartSeries.getSubStyle());
+        } else {
+            Ext.raise(&quot;Navigator only works with &#39;line&#39;, &#39;bar&#39;, &#39;candlestick&#39; and &#39;area&#39; series.&quot;);
+        }
+
+        config.style.fillOpacity = 0.2;
+
+        return config;
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-onChartLegendStoreUpdate'>    onChartLegendStoreUpdate: function (store, record) {
+</span>        var me = this,
+            chart = me.chart,
+            series;
+
+        if (chart &amp;&amp; record) {
+            series = chart.getSeries().map[record.get(&#39;series&#39;)];
+            if (series &amp;&amp; series.navigatorSeries) {
+                series.navigatorSeries.setHiddenByIndex(record.get(&#39;index&#39;), record.get(&#39;disabled&#39;));
+                me.redraw();
+            }
+        }
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-setupEvents'>    setupEvents: function () {
+</span>        // Called from NavigatorBase classes.
+        var me = this,
+            overlayEl = me.overlaySurface.element;
+
+        overlayEl.on({
+            scope: me,
+            drag: &#39;onDrag&#39;,
+            dragstart: &#39;onDragStart&#39;,
+            dragend: &#39;onDragEnd&#39;,
+            dragcancel: &#39;onDragEnd&#39;,
+            mousemove: &#39;onMouseMove&#39;
+        });
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-onMouseMove'>    onMouseMove: function (e) {
+</span>        var me = this,
+            overlayEl = me.overlaySurface.element,
+            style = overlayEl.dom.style,
+            dragType = me.getDragType(e.pageX - overlayEl.getXY()[0]);
+
+        switch (dragType) {
+            case &#39;min&#39;:
+            case &#39;max&#39;:
+                style.cursor = &#39;ew-resize&#39;;
+                break;
+            case &#39;pan&#39;:
+                style.cursor = &#39;move&#39;;
+                break;
+            default:
+                style.cursor = &#39;default&#39;;
+        }
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-getDragType'>    getDragType: function (x) {
+</span>        var me = this,
+            t = me.getTolerance(),
+            width = me.overlaySurface.element.getSize().width,
+            rangeMask = me.rangeMask,
+            min = width * rangeMask.attr.min,
+            max = width * rangeMask.attr.max,
+            dragType;
+
+        if (x &gt; min + t &amp;&amp; x &lt; max - t) {
+            dragType = &#39;pan&#39;;
+        } else if (x &lt;= min + t &amp;&amp; x &gt; min - t) {
+            dragType = &#39;min&#39;;
+        } else if (x &gt;= max - t &amp;&amp; x &lt; max + t) {
+            dragType = &#39;max&#39;;
+        }
+
+        return dragType;
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-onDragStart'>    onDragStart: function (e) {
+</span>        // Limit drags to single touch.
+        if (this.dragType || e &amp;&amp; e.touches &amp;&amp; e.touches.length &gt; 1) {
+            return;
+        }
+
+        var me = this,
+            x = e.touches[0].pageX - me.overlaySurface.element.getXY()[0],
+            dragType = me.getDragType(x);
+
+        me.rangeMask.attr.thumbOpacity = 1;
+
+        if (dragType) {
+            me.dragType = dragType;
+            me.touchId = e.touches[0].identifier;
+            me.dragX = x;
+        }
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-onDrag'>    onDrag: function (e) {
+</span>
+        if (e.touch.identifier !== this.touchId) {
+            return;
+        }
+
+        var me = this,
+            overlayEl = me.overlaySurface.element,
+            width = overlayEl.getSize().width,
+            x = e.touches[0].pageX - overlayEl.getXY()[0],
+            thumbGap = me.getThumbGap() / width,
+            rangeMask = me.rangeMask,
+            min = rangeMask.attr.min,
+            max = rangeMask.attr.max,
+            delta = max - min,
+            dragType = me.dragType,
+            drag = me.dragX,
+            dx = (x - drag) / width;
+
+        if (dragType === &#39;pan&#39;) {
+            min += dx;
+            max += dx;
+            if (min &lt; 0) {
+                min = 0;
+                max = delta;
+            }
+            if (max &gt; 1) {
+                max = 1;
+                min = max - delta;
+            }
+        } else if (dragType === &#39;min&#39;) {
+            min += dx;
+            if (min &lt; 0) {
+                min = 0;
+            }
+            if (min &gt; max - thumbGap) {
+                min = max - thumbGap;
+            }
+        } else if (dragType === &#39;max&#39;) {
+            max += dx;
+            if (max &gt; 1) {
+                max = 1;
+            }
+            if (max &lt; min + thumbGap) {
+                max = min + thumbGap;
+            }
+        } else return;
+
+        me.dragX = x;
+        me.setVisibleRange([min, max]);
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-onDragEnd'>    onDragEnd: function () {
+</span>        var me = this,
+            autoHideThumbs = me.getAutoHideThumbs();
+
+        me.dragType = null;
+
+        if (autoHideThumbs) {
+            me.rangeMask.setAttributes({
+                thumbOpacity: 0
+            });
+        }
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-updateMinimum'>    updateMinimum: function (mininum) {
+</span>        if (!this.isConfiguring) {
+            this.setVisibleRange([mininum, this.getMaximum()]);
+        }
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-updateMaximum'>    updateMaximum: function (maximum) {
+</span>        if (!this.isConfiguring) {
+            this.setVisibleRange([this.getMinimum(), maximum]);
+        }
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-getMinimum'>    getMinimum: function () {
+</span>        return this.rangeMask.attr.min;
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-getMaximum'>    getMaximum: function () {
+</span>        return this.rangeMask.attr.max;
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-setVisibleRange'>    setVisibleRange: function (visibleRange) {
+</span>        var me = this,
+            chart = me.chart;
+
+        me.axis.setVisibleRange(visibleRange);
+        me.rangeMask.setAttributes({
+            min: visibleRange[0],
+            max: visibleRange[1]
+        });
+        me.getSurface(&#39;overlay&#39;).renderFrame();
+
+        chart.suspendAnimation();
+        chart.redraw();
+        chart.resumeAnimation();
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-afterBoundChartLayout'>    afterBoundChartLayout: function () {
+</span>        var me = this,
+            spanSeries = me.getSpan() === &#39;series&#39;,
+            mainRect = me.chart.getMainRect(),
+            size = me.element.getSize();
+
+        if (mainRect &amp;&amp; spanSeries) {
+            me.setInsetPadding({
+                left: mainRect[0],
+                right: size.width - mainRect[2] - mainRect[0],
+                top: 0,
+                bottom: 0
+            });
+            me.performLayout();
+        }
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-afterChartLayout'>    afterChartLayout: function () {
+</span>        var me = this,
+            size = me.overlaySurface.element.getSize();
+
+        me.rangeMask.setAttributes({
+            scalingCenterX: 0,
+            scalingCenterY: 0,
+            scalingX: size.width,
+            scalingY: size.height
+        });
+    },
+
+<span id='Ext-chart-navigator-Navigator-method-doDestroy'>    doDestroy: function () {
+</span>        var chart = this.chart;
+
+        if (chart &amp;&amp; !chart.destroyed) {
+            chart.un(&#39;layout&#39;, &#39;afterBoundChartLayout&#39;, this);
+        }
+
+        this.callParent();
+    }
+
+});
+</pre>
+</body>
+</html>

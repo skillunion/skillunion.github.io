@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-ux-Gauge'>/**
+</span> * Displays a value within the given interval as a gauge. For example:
+ *
+ *     @example
+ *     Ext.create({
+ *         xtype: &#39;panel&#39;,
+ *         renderTo: document.body,
+ *         width: 200,
+ *         height: 200,
+ *         layout: &#39;fit&#39;,
+ *         items: {
+ *             xtype: &#39;gauge&#39;,
+ *             padding: 20,
+ *             value: 55,
+ *             minValue: 40,
+ *             maxValue: 80
+ *         }
+ *     });
+ *
+ * It&#39;s also possible to use gauges to create loading indicators:
+ *
+ *     @example
+ *     Ext.create({
+ *         xtype: &#39;panel&#39;,
+ *         renderTo: document.body,
+ *         width: 200,
+ *         height: 200,
+ *         layout: &#39;fit&#39;,
+ *         items: {
+ *             xtype: &#39;gauge&#39;,
+ *             padding: 20,
+ *             trackStart: 0,
+ *             trackLength: 360,
+ *             value: 20,
+ *             valueStyle: {
+ *                 round: true
+ *             },
+ *             textTpl: &#39;Loading...&#39;,
+ *             animation: {
+ *                 easing: &#39;linear&#39;,
+ *                 duration: 100000
+ *             }
+ *         }
+ *     }).items.first().setAngleOffset(360 * 100);
+ */
+Ext.define(&#39;Ext.ux.Gauge&#39;, {
+    extend: &#39;Ext.Gadget&#39;,
+    xtype: &#39;gauge&#39;,
+
+    requires: [
+        &#39;Ext.util.Region&#39;
+    ],
+
+    config: {
+<span id='Ext-ux-Gauge-cfg-padding'>        /**
+</span>         * @cfg {Number/String} padding Gauge sector padding in pixels or percent of
+         * width/height, whichever is smaller.
+         */
+        padding: 10,
+
+<span id='Ext-ux-Gauge-cfg-trackStart'>        /**
+</span>         * @cfg {Number} trackStart
+         * The angle in the [0, 360) interval at which the gauge&#39;s track sector starts.
+         * E.g. 0 for 3 o-clock, 90 for 6 o-clock, 180 for 9 o-clock, 270 for noon.
+         */
+        trackStart: 135,
+
+<span id='Ext-ux-Gauge-cfg-trackLength'>        /**
+</span>         * @cfg {Number} trackLength
+         * The angle in the (0, 360] interval to add to the {@link #trackStart} angle
+         * to determine the angle at which the track ends.
+         */
+        trackLength: 270,
+
+<span id='Ext-ux-Gauge-cfg-angleOffset'>        /**
+</span>         * @cfg {Number} angleOffset
+         * The angle at which the {@link #minValue} starts in case of a circular gauge.
+         */
+        angleOffset: 0,
+
+<span id='Ext-ux-Gauge-cfg-minValue'>        /**
+</span>         * @cfg {Number} minValue The minimum value that the gauge can represent.
+         */
+        minValue: 0,
+
+<span id='Ext-ux-Gauge-cfg-maxValue'>        /**
+</span>         * @cfg {Number} maxValue The maximum value that the gauge can represent.
+         */
+        maxValue: 100,
+
+<span id='Ext-ux-Gauge-cfg-value'>        /**
+</span>         * @cfg {Number} value The current value of the gauge.
+         */
+        value: 50,
+
+<span id='Ext-ux-Gauge-cfg-clockwise'>        /**
+</span>         * @cfg {Boolean} [clockwise=true]
+         * `true` - {@link #cfg!value} increments in a clockwise fashion
+         * `false` - {@link #cfg!value} increments in an anticlockwise fashion
+         */
+        clockwise: true,
+
+<span id='Ext-ux-Gauge-cfg-textTpl'>        /**
+</span>         * @cfg {Ext.XTemplate} textTpl The template for the text in the center of the gauge.
+         * The available data values are:
+         * - `value` - The {@link #cfg!value} of the gauge.
+         * - `percent` - The value as a percentage between 0 and 100.
+         * - `minValue` - The value of the {@link #cfg!minValue} config.
+         * - `maxValue` - The value of the {@link #cfg!maxValue} config.
+         * - `delta` - The delta between the {@link #cfg!minValue} and {@link #cfg!maxValue}.
+         */
+        textTpl: [&#39;&lt;tpl&gt;{value:number(&quot;0.00&quot;)}%&lt;/tpl&gt;&#39;],
+
+<span id='Ext-ux-Gauge-cfg-textAlign'>        /**
+</span>         * @cfg {String} [textAlign=&#39;c-c&#39;]
+         * If the gauge has a donut hole, the text will be centered inside it.
+         * Otherwise, the text will be centered in the middle of the gauge&#39;s
+         * bounding box. This config allows to alter the position of the text
+         * in the latter case. See the docs for the `align` option to the
+         * {@Ext.util.Region#alignTo} method for possible ways of alignment
+         * of the text to the guage&#39;s bounding box.
+         */
+        textAlign: &#39;c-c&#39;,
+
+<span id='Ext-ux-Gauge-cfg-trackStyle'>        /**
+</span>         * @cfg {Object} trackStyle Track sector styles.
+         * @cfg {String/Object[]} trackStyle.fill Track sector fill color. Defaults to CSS value.
+         * It&#39;s also possible to have a linear gradient fill that starts at the top-left corner
+         * of the gauge and ends at its bottom-right corner, by providing an array of color stop
+         * objects. For example:
+         *
+         *     trackStyle: {
+         *         fill: [{
+         *             offset: 0,
+         *             color: &#39;green&#39;,
+         *             opacity: 0.8
+         *         }, {
+         *             offset: 1,
+         *             color: &#39;gold&#39;
+         *         }]
+         *     }
+         *
+         * @cfg {Number} trackStyle.fillOpacity Track sector fill opacity. Defaults to CSS value.
+         * @cfg {String} trackStyle.stroke Track sector stroke color. Defaults to CSS value.
+         * @cfg {Number} trackStyle.strokeOpacity Track sector stroke opacity. Defaults to CSS value.
+         * @cfg {Number} trackStyle.strokeWidth Track sector stroke width. Defaults to CSS value.
+         * @cfg {Number/String} [trackStyle.outerRadius=&#39;100%&#39;] The outer radius of the track sector.
+         * For example:
+         *
+         *     outerRadius: &#39;90%&#39;,      // 90% of the maximum radius
+         *     outerRadius: 100,        // radius of 100 pixels
+         *     outerRadius: &#39;70% + 5&#39;,  // 70% of the maximum radius plus 5 pixels
+         *     outerRadius: &#39;80% - 10&#39;, // 80% of the maximum radius minus 10 pixels
+         *
+         * @cfg {Number/String} [trackStyle.innerRadius=&#39;50%&#39;] The inner radius of the track sector.
+         * See the `trackStyle.outerRadius` config documentation for more information.
+         * @cfg {Boolean} [trackStyle.round=false] Whether to round the track sector edges or not.
+         */
+        trackStyle: {
+            outerRadius: &#39;100%&#39;,
+            innerRadius: &#39;100% - 20&#39;,
+            round: false
+        },
+
+<span id='Ext-ux-Gauge-cfg-valueStyle'>        /**
+</span>         * @cfg {Object} valueStyle Value sector styles.
+         * @cfg {String/Object[]} valueStyle.fill Value sector fill color. Defaults to CSS value.
+         * See the `trackStyle.fill` config documentation for more information.
+         * @cfg {Number} valueStyle.fillOpacity Value sector fill opacity. Defaults to CSS value.
+         * @cfg {String} valueStyle.stroke Value sector stroke color. Defaults to CSS value.
+         * @cfg {Number} valueStyle.strokeOpacity Value sector stroke opacity. Defaults to CSS value.
+         * @cfg {Number} valueStyle.strokeWidth Value sector stroke width. Defaults to CSS value.
+         * @cfg {Number/String} [valueStyle.outerRadius=&#39;100% - 4&#39;] The outer radius of the value sector.
+         * See the `trackStyle.outerRadius` config documentation for more information.
+         * @cfg {Number/String} [valueStyle.innerRadius=&#39;50% + 4&#39;] The inner radius of the value sector.
+         * See the `trackStyle.outerRadius` config documentation for more information.
+         * @cfg {Boolean} [valueStyle.round=false] Whether to round the value sector edges or not.
+         */
+        valueStyle: {
+            outerRadius: &#39;100% - 2&#39;,
+            innerRadius: &#39;100% - 18&#39;,
+            round: false
+        },
+
+<span id='Ext-ux-Gauge-cfg-animation'>        /**
+</span>         * @cfg {Object/Boolean} [animation=true]
+         * The animation applied to the gauge on changes to the {@link #value}
+         * and the {@link #angleOffset} configs. Defaults to 1 second animation
+         * with the  &#39;out&#39; easing.
+         * @cfg {Number} animation.duration The duraction of the animation.
+         * @cfg {String} animation.easing The easing function to use for the animation.
+         * Possible values are:
+         * - `linear` - no easing, no acceleration
+         * - `in` - accelerating from zero velocity
+         * - `out` - (default) decelerating to zero velocity
+         * - `inOut` - acceleration until halfway, then deceleration
+         */
+        animation: true
+    },
+
+<span id='Ext-ux-Gauge-property-baseCls'>    baseCls: Ext.baseCSSPrefix + &#39;gauge&#39;,
+</span>
+<span id='Ext-ux-Gauge-property-template'>    template: [{
+</span>        reference: &#39;bodyElement&#39;,
+        children: [{
+            reference: &#39;textElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;gauge-text&#39;
+        }]
+    }],
+
+<span id='Ext-ux-Gauge-property-defaultBindProperty'>    defaultBindProperty: &#39;value&#39;,
+</span>
+<span id='Ext-ux-Gauge-property-pathAttributes'>    pathAttributes: {
+</span>        // The properties in the `trackStyle` and `valueStyle` configs
+        // that are path attributes.
+        fill: true,
+        fillOpacity: true,
+        stroke: true,
+        strokeOpacity: true,
+        strokeWidth: true
+    },
+
+<span id='Ext-ux-Gauge-property-easings'>    easings: {
+</span>        linear: Ext.identityFn,
+        // cubic easings
+        &#39;in&#39;: function (t) { return t*t*t; },
+        out: function (t) { return (--t)*t*t+1; },
+        inOut: function (t) { return t&lt;.5 ? 4*t*t*t : (t-1)*(2*t-2)*(2*t-2)+1; }
+    },
+
+<span id='Ext-ux-Gauge-property-resizeTimerId'><span id='Ext-ux-Gauge-property-resizeDelay'>    resizeDelay: 0,   // in milliseconds
+</span></span>    resizeTimerId: 0,
+<span id='Ext-ux-Gauge-property-svgNS'><span id='Ext-ux-Gauge-property-size'>    size: null,       // cached size
+</span></span>    svgNS: &#39;http://www.w3.org/2000/svg&#39;,
+<span id='Ext-ux-Gauge-property-defs'><span id='Ext-ux-Gauge-property-svg'>    svg: null,        // SVG document
+</span></span><span id='Ext-ux-Gauge-property-trackArc'>    defs: null,       // the `defs` section of the SVG document
+</span>    trackArc: null,
+<span id='Ext-ux-Gauge-property-valueArc'>    valueArc: null,
+</span><span id='Ext-ux-Gauge-property-trackGradient'>    trackGradient: null,
+</span><span id='Ext-ux-Gauge-property-valueGradient'>    valueGradient: null,
+</span><span id='Ext-ux-Gauge-property-fxValue'><span id='Ext-ux-Gauge-property-fx'>    fx: null,         // either the `value` or the `angleOffset` animation
+</span></span><span id='Ext-ux-Gauge-property-fxAngleOffset'>    fxValue: 0,       // the actual value rendered/animated
+</span>    fxAngleOffset: 0,
+
+<span id='Ext-ux-Gauge-method-constructor'>    constructor: function (config) {
+</span>        var me = this;
+
+        me.fitSectorInRectCache = {
+            startAngle: null,
+            lengthAngle: null,
+            minX: null,
+            maxX: null,
+            minY: null,
+            maxY: null
+        };
+
+        me.interpolator = me.createInterpolator();
+        me.callParent([config]);
+
+        me.el.on(&#39;resize&#39;, &#39;onElementResize&#39;, me);
+    },
+
+<span id='Ext-ux-Gauge-method-doDestroy'>    doDestroy: function () {
+</span>        var me = this;
+
+        Ext.undefer(me.resizeTimerId);
+        me.el.un(&#39;resize&#39;, &#39;onElementResize&#39;, me);
+        me.stopAnimation();
+        me.svg = Ext.destroy(me.svg);
+        
+        me.callParent();
+    },
+
+<span id='Ext-ux-Gauge-method-afterComponentLayout'>    // &lt;if classic&gt;
+</span>    afterComponentLayout: function(width, height, oldWidth, oldHeight) {
+        this.callParent([width, height, oldWidth, oldHeight]);
+
+        if (Ext.isIE9) {
+            this.handleResize();
+        }
+    },
+<span id='Ext-ux-Gauge-method-onElementResize'>    // &lt;/if&gt;
+</span>
+    onElementResize: function (element, size) {
+        this.handleResize(size);
+    },
+
+<span id='Ext-ux-Gauge-method-handleResize'>    handleResize: function (size, instantly) {
+</span>        var me = this,
+            el = me.element;
+
+        if (!(el &amp;&amp; (size = size || el.getSize()) &amp;&amp; size.width &amp;&amp; size.height)) {
+            return;
+        }
+
+        me.resizeTimerId = Ext.undefer(me.resizeTimerId);
+
+        if (!instantly &amp;&amp; me.resizeDelay) {
+            me.resizeTimerId = Ext.defer(me.handleResize, me.resizeDelay, me, [size, true]);
+            return;
+        }
+
+        me.size = size;
+        me.resizeHandler(size);
+    },
+
+<span id='Ext-ux-Gauge-method-updateMinValue'>    updateMinValue: function (minValue) {
+</span>        var me = this;
+
+        me.interpolator.setDomain(minValue, me.getMaxValue());
+        if (!me.isConfiguring) {
+            me.render();
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-updateMaxValue'>    updateMaxValue: function (maxValue) {
+</span>        var me = this;
+
+        me.interpolator.setDomain(me.getMinValue(), maxValue);
+        if (!me.isConfiguring) {
+            me.render();
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-updateAngleOffset'>    updateAngleOffset: function (angleOffset, oldAngleOffset) {
+</span>        var me = this,
+            animation = me.getAnimation();
+
+        me.fxAngleOffset = angleOffset;
+
+        if (!me.isConfiguring) {
+            if (animation.duration) {
+                me.animate(oldAngleOffset, angleOffset, animation.duration, me.easings[animation.easing], function (angleOffset) {
+                    me.fxAngleOffset = angleOffset;
+                    me.render();
+                });
+            } else {
+                me.render();
+            }
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-applyTrackStart'>    //&lt;debug&gt;
+</span>    applyTrackStart: function (trackStart) {
+        if (trackStart &lt; 0 || trackStart &gt;= 360) {
+            Ext.raise(&quot;&#39;trackStart&#39; should be within [0, 360).&quot;);
+        }
+        return trackStart;
+    },
+
+<span id='Ext-ux-Gauge-method-applyTrackLength'>    applyTrackLength: function (trackLength) {
+</span>        if (trackLength &lt;= 0 || trackLength &gt; 360) {
+            Ext.raise(&quot;&#39;trackLength&#39; should be within (0, 360].&quot;);
+        }
+        return trackLength;
+    },
+<span id='Ext-ux-Gauge-method-updateTrackStart'>    //&lt;/debug&gt;
+</span>
+    updateTrackStart: function (trackStart) {
+        var me = this;
+
+        if (!me.isConfiguring) {
+            me.render();
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-updateTrackLength'>    updateTrackLength: function (trackLength) {
+</span>        var me = this;
+
+        me.interpolator.setRange(0, trackLength);
+        if (!me.isConfiguring) {
+            me.render();
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-applyPadding'>    applyPadding: function (padding) {
+</span>        if (typeof padding === &#39;string&#39;) {
+            var ratio = parseFloat(padding) / 100;
+            return function (x) {
+                return x * ratio;
+            };
+        }
+        return function () {
+            return padding;
+        };
+    },
+
+<span id='Ext-ux-Gauge-method-updatePadding'>    updatePadding: function () {
+</span>        if (!this.isConfiguring) {
+            this.render();
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-applyValue'>    applyValue: function (value) {
+</span>        var minValue = this.getMinValue(),
+            maxValue = this.getMaxValue();
+
+        return Math.min(Math.max(value, minValue), maxValue);
+    },
+
+<span id='Ext-ux-Gauge-method-updateValue'>    updateValue: function (value, oldValue) {
+</span>        var me = this,
+            animation = me.getAnimation();
+
+        me.fxValue = value;
+
+        if (!me.isConfiguring) {
+            me.writeText();
+            if (animation.duration) {
+                me.animate(oldValue, value, animation.duration, me.easings[animation.easing], function (value) {
+                    me.fxValue = value;
+                    me.render();
+                });
+            } else {
+                me.render();
+            }
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-applyTextTpl'>    applyTextTpl: function (textTpl) {
+</span>        if (textTpl &amp;&amp; !textTpl.isTemplate) {
+            textTpl = new Ext.XTemplate(textTpl);
+        }
+        return textTpl;
+    },
+
+<span id='Ext-ux-Gauge-method-updateTextTpl'>    updateTextTpl: function () {
+</span>        this.writeText();
+        if (!this.isConfiguring) {
+            this.centerText(); // text will be centered on first size
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-writeText'>    writeText: function (options) {
+</span>        var me = this,
+            value = me.getValue(),
+            minValue = me.getMinValue(),
+            maxValue = me.getMaxValue(),
+            delta = maxValue - minValue,
+            textTpl = me.getTextTpl();
+
+        textTpl.overwrite(me.textElement, {
+            value: value,
+            percent: (value - minValue) / delta * 100,
+            minValue: minValue,
+            maxValue: maxValue,
+            delta: delta
+        });
+    },
+
+<span id='Ext-ux-Gauge-method-centerText'>    centerText: function (cx, cy, sectorRegion, innerRadius, outerRadius) {
+</span>        var textElement = this.textElement,
+            textAlign = this.getTextAlign(),
+            alignedRegion, textBox;
+
+        if (Ext.Number.isEqual(innerRadius, 0, 0.1) || sectorRegion.isOutOfBound({x: cx, y: cy})) {
+            alignedRegion = textElement.getRegion().alignTo({
+                align: textAlign, // align text region&#39;s center to sector region&#39;s center
+                target: sectorRegion
+            });
+            textElement.setLeft(alignedRegion.left);
+            textElement.setTop(alignedRegion.top);
+        } else {
+            textBox = textElement.getBox();
+            textElement.setLeft(cx - textBox.width / 2);
+            textElement.setTop(cy - textBox.height / 2);
+        }
+    },
+
+<span id='Ext-ux-Gauge-property-camelCaseRe'>    camelCaseRe: /([a-z])([A-Z])/g,
+</span>
+<span id='Ext-ux-Gauge-method-camelToHyphen'>    /**
+</span>     * @private
+     */
+    camelToHyphen: function (name) {
+        return name.replace(this.camelCaseRe, &#39;$1-$2&#39;).toLowerCase();
+    },
+
+<span id='Ext-ux-Gauge-method-applyTrackStyle'>    applyTrackStyle: function (trackStyle) {
+</span>        var me = this,
+            trackGradient;
+
+        trackStyle.innerRadius = me.getRadiusFn(trackStyle.innerRadius);
+        trackStyle.outerRadius = me.getRadiusFn(trackStyle.outerRadius);
+
+        if (Ext.isArray(trackStyle.fill)) {
+            trackGradient = me.getTrackGradient();
+            me.setGradientStops(trackGradient, trackStyle.fill);
+            trackStyle.fill = &#39;url(#&#39; + trackGradient.getAttribute(&#39;id&#39;) + &#39;)&#39;;
+        }
+
+        return trackStyle;
+    },
+
+<span id='Ext-ux-Gauge-method-updateTrackStyle'>    updateTrackStyle: function (trackStyle) {
+</span>        var me = this,
+            trackArc = Ext.fly(me.getTrackArc()),
+            name;
+
+        for (name in trackStyle) {
+            if (name in me.pathAttributes) {
+                trackArc.setStyle(me.camelToHyphen(name), trackStyle[name]);
+            }
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-applyValueStyle'>    applyValueStyle: function (valueStyle) {
+</span>        var me = this,
+            valueGradient;
+
+        valueStyle.innerRadius = me.getRadiusFn(valueStyle.innerRadius);
+        valueStyle.outerRadius = me.getRadiusFn(valueStyle.outerRadius);
+
+        if (Ext.isArray(valueStyle.fill)) {
+            valueGradient = me.getValueGradient();
+            me.setGradientStops(valueGradient, valueStyle.fill);
+            valueStyle.fill = &#39;url(#&#39; + valueGradient.getAttribute(&#39;id&#39;) + &#39;)&#39;;
+        }
+
+        return valueStyle;
+    },
+
+<span id='Ext-ux-Gauge-method-updateValueStyle'>    updateValueStyle: function (valueStyle) {
+</span>        var me = this,
+            valueArc = Ext.fly(me.getValueArc()),
+            name;
+
+        for (name in valueStyle) {
+            if (name in me.pathAttributes) {
+                valueArc.setStyle(me.camelToHyphen(name), valueStyle[name]);
+            }
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-getRadiusFn'>    /**
+</span>     * @private
+     */
+    getRadiusFn: function (radius) {
+        var result, pos, ratio,
+            increment = 0;
+
+        if (Ext.isNumber(radius)) {
+            result = function () {
+                return radius;
+            };
+        } else if (Ext.isString(radius)) {
+            radius = radius.replace(/ /g, &#39;&#39;);
+            ratio = parseFloat(radius) / 100;
+            pos = radius.search(&#39;%&#39;); // E.g. &#39;100% - 4&#39;
+            if (pos &lt; radius.length - 1) {
+                increment = parseFloat(radius.substr(pos + 1));
+            }
+            result = function (radius) {
+                return radius * ratio + increment;
+            };
+            result.ratio = ratio;
+        }
+
+        return result;
+    },
+
+<span id='Ext-ux-Gauge-method-getSvg'>    getSvg: function () {
+</span>        var me = this,
+            svg = me.svg;
+
+        if (!svg) {
+            svg = me.svg = Ext.get(document.createElementNS(me.svgNS, &#39;svg&#39;));
+            me.bodyElement.append(svg);
+        }
+
+        return svg;
+    },
+
+<span id='Ext-ux-Gauge-method-getTrackArc'>    getTrackArc: function () {
+</span>        var me = this,
+            trackArc = me.trackArc;
+        
+        if (!trackArc) {
+            trackArc = me.trackArc = document.createElementNS(me.svgNS, &#39;path&#39;);
+            me.getSvg().append(trackArc, true);
+            // Note: Ext.dom.Element.addCls doesn&#39;t work on SVG elements,
+            // as it simply assigns a class string to el.dom.className,
+            // which in case of SVG is no simple string:
+            // SVGAnimatedString {baseVal: &quot;x-gauge-track&quot;, animVal: &quot;x-gauge-track&quot;}
+            trackArc.setAttribute(&#39;class&#39;, Ext.baseCSSPrefix + &#39;gauge-track&#39;);
+        }
+        
+        return trackArc;
+    },
+
+<span id='Ext-ux-Gauge-method-getValueArc'>    getValueArc: function () {
+</span>        var me = this,
+            valueArc = me.valueArc;
+
+        me.getTrackArc(); // make sure the track arc is created first for proper draw order
+        if (!valueArc) {
+            valueArc = me.valueArc = document.createElementNS(me.svgNS, &#39;path&#39;);
+            me.getSvg().append(valueArc, true);
+            valueArc.setAttribute(&#39;class&#39;, Ext.baseCSSPrefix + &#39;gauge-value&#39;);
+        }
+
+        return valueArc;
+    },
+
+<span id='Ext-ux-Gauge-method-getDefs'>    getDefs: function () {
+</span>        var me = this,
+            defs = me.defs;
+
+        if (!defs) {
+            defs = me.defs = document.createElementNS(me.svgNS, &#39;defs&#39;);
+            me.getSvg().append(defs);
+        }
+
+        return defs;
+    },
+
+<span id='Ext-ux-Gauge-method-setGradientSize'>    /**
+</span>     * @private
+     */
+    setGradientSize: function (gradient, x1, y1, x2, y2) {
+        gradient.setAttribute(&#39;x1&#39;, x1);
+        gradient.setAttribute(&#39;y1&#39;, y1);
+        gradient.setAttribute(&#39;x2&#39;, x2);
+        gradient.setAttribute(&#39;y2&#39;, y2);
+    },
+
+<span id='Ext-ux-Gauge-method-resizeGradients'>    /**
+</span>     * @private
+     */
+    resizeGradients: function (size) {
+        var me = this,
+            trackGradient = me.getTrackGradient(),
+            valueGradient = me.getValueGradient(),
+            x1 = 0,
+            y1 = size.height / 2,
+            x2 = size.width,
+            y2 = size.height / 2;
+
+        me.setGradientSize(trackGradient, x1, y1, x2, y2);
+        me.setGradientSize(valueGradient, x1, y1, x2, y2);
+    },
+
+<span id='Ext-ux-Gauge-method-setGradientStops'>    /**
+</span>     * @private
+     */
+    setGradientStops: function (gradient, stops) {
+        var ln = stops.length,
+            i, stopCfg, stopEl;
+
+        while (gradient.firstChild) {
+            gradient.removeChild(gradient.firstChild);
+        }
+        for (i = 0; i &lt; ln; i++) {
+            stopCfg = stops[i];
+            stopEl = document.createElementNS(this.svgNS, &#39;stop&#39;);
+            gradient.appendChild(stopEl);
+            stopEl.setAttribute(&#39;offset&#39;, stopCfg.offset);
+            stopEl.setAttribute(&#39;stop-color&#39;, stopCfg.color);
+            (&#39;opacity&#39; in stopCfg) &amp;&amp; stopEl.setAttribute(&#39;stop-opacity&#39;, stopCfg.opacity);
+        }
+    },
+
+<span id='Ext-ux-Gauge-method-getTrackGradient'>    getTrackGradient: function () {
+</span>        var me = this,
+            trackGradient = me.trackGradient;
+
+        if (!trackGradient) {
+            trackGradient = me.trackGradient = document.createElementNS(me.svgNS, &#39;linearGradient&#39;);
+            // Using absolute values for x1, y1, x2, y2 attributes.
+            trackGradient.setAttribute(&#39;gradientUnits&#39;, &#39;userSpaceOnUse&#39;);
+            me.getDefs().appendChild(trackGradient);
+            Ext.get(trackGradient); // assign unique ID
+        }
+
+        return trackGradient;
+    },
+
+<span id='Ext-ux-Gauge-method-getValueGradient'>    getValueGradient: function () {
+</span>        var me = this,
+            valueGradient = me.valueGradient;
+
+        if (!valueGradient) {
+            valueGradient = me.valueGradient = document.createElementNS(me.svgNS, &#39;linearGradient&#39;);
+            // Using absolute values for x1, y1, x2, y2 attributes.
+            valueGradient.setAttribute(&#39;gradientUnits&#39;, &#39;userSpaceOnUse&#39;);
+            me.getDefs().appendChild(valueGradient);
+            Ext.get(valueGradient); // assign unique ID
+        }
+
+        return valueGradient;
+    },
+
+<span id='Ext-ux-Gauge-method-getArcPoint'>    getArcPoint: function (centerX, centerY, radius, degrees) {
+</span>        var radians = degrees / 180 * Math.PI;
+
+        return [
+            centerX + radius * Math.cos(radians),
+            centerY + radius * Math.sin(radians)
+        ];
+    },
+
+<span id='Ext-ux-Gauge-method-isCircle'>    isCircle: function (startAngle, endAngle) {
+</span>        return Ext.Number.isEqual(Math.abs(endAngle - startAngle), 360, .001);
+    },
+
+<span id='Ext-ux-Gauge-method-getArcPath'>    getArcPath: function (centerX, centerY, innerRadius, outerRadius, startAngle, endAngle, round) {
+</span>        var me = this,
+            isCircle = me.isCircle(startAngle, endAngle),
+            // It&#39;s not possible to draw a circle using arcs.
+            endAngle = endAngle - 0.01,
+            innerStartPoint = me.getArcPoint(centerX, centerY, innerRadius, startAngle),
+            innerEndPoint = me.getArcPoint(centerX, centerY, innerRadius, endAngle),
+            outerStartPoint = me.getArcPoint(centerX, centerY, outerRadius, startAngle),
+            outerEndPoint = me.getArcPoint(centerX, centerY, outerRadius, endAngle),
+            large = endAngle - startAngle &lt;= 180 ? 0 : 1,
+            path = [
+                &#39;M&#39;, innerStartPoint[0], innerStartPoint[1],
+                &#39;A&#39;, innerRadius, innerRadius, 0, large, 1, innerEndPoint[0], innerEndPoint[1]
+            ],
+            capRadius = (outerRadius - innerRadius) / 2;
+
+        if (isCircle) {
+            path.push(&#39;M&#39;, outerEndPoint[0], outerEndPoint[1]);
+        } else {
+            if (round) {
+                path.push(&#39;A&#39;, capRadius, capRadius, 0, 0, 0, outerEndPoint[0], outerEndPoint[1]);
+            } else {
+                path.push(&#39;L&#39;, outerEndPoint[0], outerEndPoint[1]);
+            }
+        }
+
+        path.push(&#39;A&#39;, outerRadius, outerRadius, 0, large, 0, outerStartPoint[0], outerStartPoint[1]);
+
+        if (round &amp;&amp; !isCircle) {
+            path.push(&#39;A&#39;, capRadius, capRadius, 0, 0, 0, innerStartPoint[0], innerStartPoint[1]);
+        }
+        path.push(&#39;Z&#39;);
+
+        return path.join(&#39; &#39;);
+    },
+
+<span id='Ext-ux-Gauge-method-resizeHandler'>    resizeHandler: function (size) {
+</span>        var me = this,
+            svg = me.getSvg();
+
+        svg.setSize(size);
+        me.resizeGradients(size);
+        me.render();
+    },
+
+<span id='Ext-ux-Gauge-method-createInterpolator'>    /**
+</span>     * @private
+     */
+    createInterpolator: function (rangeCheck) {
+        var domainStart = 0,
+            domainDelta = 1,
+            rangeStart = 0,
+            rangeEnd = 1;
+
+        var interpolator = function (x, invert) {
+            var t = 0;
+
+            if (domainDelta) {
+                t = (x - domainStart) / domainDelta;
+                if (rangeCheck) {
+                    t = Math.max(0, t);
+                    t = Math.min(1, t);
+                }
+                if (invert) {
+                    t = 1 - t;
+                }
+            }
+
+            return (1 - t) * rangeStart + t * rangeEnd;
+        };
+        interpolator.setDomain = function (a, b) {
+            domainStart = a;
+            domainDelta = b - a;
+            return this;
+        };
+        interpolator.setRange = function (a, b) {
+            rangeStart = a;
+            rangeEnd = b;
+            return this;
+        };
+        interpolator.getDomain = function () {
+            return [domainStart, domainStart + domainDelta];
+        };
+        interpolator.getRange = function () {
+            return [rangeStart, rangeEnd];
+        };
+
+        return interpolator;
+    },
+
+<span id='Ext-ux-Gauge-method-applyAnimation'>    applyAnimation: function (animation) {
+</span>        if (true === animation) {
+            animation = {};
+        } else if (false === animation) {
+            animation = {
+                duration: 0
+            };
+        }
+        if (!(&#39;duration&#39; in animation)) {
+            animation.duration = 1000;
+        }
+        if (!(animation.easing in this.easings)) {
+            animation.easing = &#39;out&#39;;
+        }
+        return animation;
+    },
+
+<span id='Ext-ux-Gauge-method-updateAnimation'>    updateAnimation: function () {
+</span>        this.stopAnimation();
+    },
+
+<span id='Ext-ux-Gauge-method-animate'>    /**
+</span>     * @private
+     */
+    animate: function (from, to, duration, easing, fn, scope) {
+        var me = this,
+            start = Ext.now(),
+            interpolator = me.createInterpolator().setRange(from, to);
+
+        function frame() {
+            var now = Ext.AnimationQueue.frameStartTime,
+                t = Math.min(now - start, duration) / duration,
+                value = interpolator(easing(t));
+
+            if (scope) {
+                if (typeof fn === &#39;string&#39;) {
+                    scope[fn].call(scope, value);
+                } else {
+                    fn.call(scope, value);
+                }
+            } else {
+                fn(value);
+            }
+
+            if (t &gt;= 1) {
+                Ext.AnimationQueue.stop(frame, scope);
+                me.fx = null;
+            }
+        }
+        me.stopAnimation();
+        Ext.AnimationQueue.start(frame, scope);
+        me.fx = {
+            frame: frame,
+            scope: scope
+        };
+    },
+
+<span id='Ext-ux-Gauge-method-stopAnimation'>    /**
+</span>     * Stops the current {@link #value} or {@link #angleOffset} animation.
+     */
+    stopAnimation: function () {
+        var me = this;
+
+        if (me.fx) {
+            Ext.AnimationQueue.stop(me.fx.frame, me.fx.scope);
+            me.fx = null;
+        }
+    },
+
+<span id='Ext-ux-Gauge-property-unitCircleExtrema'>    unitCircleExtrema: {
+</span>        0: [1, 0],
+        90: [0, 1],
+        180: [-1, 0],
+        270: [0, -1],
+        360: [1, 0],
+        450: [0, 1],
+        540: [-1, 0],
+        630: [0, -1]
+    },
+
+<span id='Ext-ux-Gauge-method-getUnitSectorExtrema'>    /**
+</span>     * @private
+     */
+    getUnitSectorExtrema: function (startAngle, lengthAngle) {
+        var extrema = this.unitCircleExtrema,
+            points = [],
+            angle;
+
+        for (angle in extrema) {
+            if (angle &gt; startAngle &amp;&amp; angle &lt; startAngle + lengthAngle) {
+                points.push(extrema[angle]);
+            }
+        }
+
+        return points;
+    },
+
+<span id='Ext-ux-Gauge-method-fitSectorInRect'>    /**
+</span>     * @private
+     * Given a rect with a known width and height, find the maximum radius of the donut
+     * sector that can fit into it, as well as the center point of such a sector.
+     * The end and start angles of the sector are also known, as well as the relationship
+     * between the inner and outer radii.
+     */
+    fitSectorInRect: function (width, height, startAngle, lengthAngle, ratio) {
+        if (Ext.Number.isEqual(lengthAngle, 360, 0.001)) {
+            return {
+                cx: width / 2,
+                cy: height / 2,
+                radius: Math.min(width, height) / 2,
+                region: new Ext.util.Region(0, width, height, 0)
+            };
+        }
+
+        var me = this,
+            points, xx, yy, minX, maxX, minY, maxY,
+            cache = me.fitSectorInRectCache,
+            sameAngles = cache.startAngle === startAngle
+                      &amp;&amp; cache.lengthAngle === lengthAngle;
+
+        if (sameAngles) {
+            minX = cache.minX;
+            maxX = cache.maxX;
+            minY = cache.minY;
+            maxY = cache.maxY;
+        } else {
+            points = me.getUnitSectorExtrema(startAngle, lengthAngle).concat([
+                me.getArcPoint(0, 0, 1, startAngle),                  // start angle outer radius point
+                me.getArcPoint(0, 0, ratio, startAngle),              // start angle inner radius point
+                me.getArcPoint(0, 0, 1, startAngle + lengthAngle),    // end angle outer radius point
+                me.getArcPoint(0, 0, ratio, startAngle + lengthAngle) // end angle inner radius point
+            ]);
+            xx = points.map(function (point) { return point[0]; });
+            yy = points.map(function (point) { return point[1]; });
+            // The bounding box of a unit sector with the given properties.
+            minX = Math.min.apply(null, xx);
+            maxX = Math.max.apply(null, xx);
+            minY = Math.min.apply(null, yy);
+            maxY = Math.max.apply(null, yy);
+
+            cache.startAngle = startAngle;
+            cache.lengthAngle = lengthAngle;
+            cache.minX = minX;
+            cache.maxX = maxX;
+            cache.minY = minY;
+            cache.maxY = maxY;
+        }
+
+        var sectorWidth = maxX - minX,
+            sectorHeight = maxY - minY,
+            scaleX = width / sectorWidth,
+            scaleY = height / sectorHeight,
+            scale = Math.min(scaleX, scaleY),
+            // Region constructor takes: top, right, bottom, left.
+            sectorRegion = new Ext.util.Region(minY * scale, maxX * scale, maxY * scale, minX * scale),
+            rectRegion = new Ext.util.Region(0, width, height, 0),
+            alignedRegion = sectorRegion.alignTo({
+                align: &#39;c-c&#39;, // align sector region&#39;s center to rect region&#39;s center
+                target: rectRegion
+            }),
+            dx = alignedRegion.left - minX * scale,
+            dy = alignedRegion.top - minY * scale;
+
+        return {
+            cx: dx,
+            cy: dy,
+            radius: scale,
+            region: alignedRegion
+        };
+    },
+
+<span id='Ext-ux-Gauge-method-fitSectorInPaddedRect'>    /**
+</span>     * @private
+     */
+    fitSectorInPaddedRect: function (width, height, padding, startAngle, lengthAngle, ratio) {
+        var result = this.fitSectorInRect(
+            width - padding * 2,
+            height - padding * 2,
+            startAngle, lengthAngle, ratio
+        );
+
+        result.cx += padding;
+        result.cy += padding;
+        result.region.translateBy(padding, padding);
+
+        return result;
+    },
+
+<span id='Ext-ux-Gauge-method-normalizeAngle'>    /**
+</span>     * @private
+     */
+    normalizeAngle: function (angle) {
+        return (angle % 360 + 360) % 360;
+    },
+
+<span id='Ext-ux-Gauge-method-render'>    render: function () {
+</span>        if (!this.size) {
+            return;
+        }
+
+        var me = this,
+            trackArc = me.getTrackArc(),
+            valueArc = me.getValueArc(),
+            clockwise = me.getClockwise(),
+            value = me.fxValue,
+            angleOffset = me.fxAngleOffset,
+            trackLength = me.getTrackLength(),
+            width = me.size.width,
+            height = me.size.height,
+            paddingFn = me.getPadding(),
+            padding = paddingFn(Math.min(width, height)),
+            trackStart = me.normalizeAngle(me.getTrackStart() + angleOffset), // in the range of [0, 360)
+            trackEnd = trackStart + trackLength,                              // in the range of (0, 720)
+            valueLength = me.interpolator(value),
+            trackStyle = me.getTrackStyle(),
+            valueStyle = me.getValueStyle(),
+            sector = me.fitSectorInPaddedRect(width, height, padding, trackStart, trackLength, trackStyle.innerRadius.ratio),
+            cx = sector.cx,
+            cy = sector.cy,
+            radius = sector.radius,
+            trackInnerRadius = Math.max(0, trackStyle.innerRadius(radius)),
+            trackOuterRadius = Math.max(0, trackStyle.outerRadius(radius)),
+            valueInnerRadius = Math.max(0, valueStyle.innerRadius(radius)),
+            valueOuterRadius = Math.max(0, valueStyle.outerRadius(radius)),
+            trackPath = me.getArcPath(cx, cy, trackInnerRadius, trackOuterRadius, trackStart, trackEnd, trackStyle.round),
+            valuePath = me.getArcPath(cx, cy, valueInnerRadius, valueOuterRadius,
+                clockwise ? trackStart : trackEnd - valueLength,
+                clockwise ? trackStart + valueLength : trackEnd,
+                valueStyle.round
+            );
+
+        me.centerText(cx, cy, sector.region, trackInnerRadius, trackOuterRadius);
+
+        trackArc.setAttribute(&#39;d&#39;, trackPath);
+        valueArc.setAttribute(&#39;d&#39;, valuePath);
+    }
+
+});
+</pre>
+</body>
+</html>

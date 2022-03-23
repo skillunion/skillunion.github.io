@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.x-tagfield {
+    &amp; .x-before-input-el, &amp; .x-after-input-el {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    &amp; .x-tag {
+        display: flex;
+        padding: 4px;
+        margin: 4px;
+        cursor: default;
+        background-color: $base-pressed-color;
+        color: $base-foreground-color;
+        @include border-radius(3px);
+        @include box-shadow(1px 1px 1px $base-dark-color);
+
+        &amp; .x-tag-tool {
+            margin-left: 2px;
+            color: $base-foreground-color;
+            cursor: pointer;
+        }
+    }
+
+    &amp;.x-disabled, &amp;.x-field-readonly {
+        .x-tag .x-tag-tool {
+            display: none;
+        }
+    }
+}
+</pre>
+</body>
+</html>

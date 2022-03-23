@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-draw-sprite-Tick'>/**
+</span> * A veritical line sprite. The x and y configs set the center of the line with the size 
+ * value determining the height of the line (the line will be twice the height of &#39;size&#39; 
+ * since &#39;size&#39; is added to above and below &#39;y&#39; to set the line endpoints).
+ *
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;draw&#39;, 
+ *        renderTo: document.body,
+ *        width: 600,
+ *        height: 400,
+ *        sprites: [{
+ *            type: &#39;tick&#39;,
+ *            x: 20,
+ *            y: 40,
+ *            size: 10,
+ *            strokeStyle: &#39;#388FAD&#39;,
+ *            lineWidth: 2
+ *        }]
+ *     });
+ */
+Ext.define(&#39;Ext.draw.sprite.Tick&#39;, {
+    extend: &#39;Ext.draw.sprite.Line&#39;,
+    alias: &#39;sprite.tick&#39;,
+
+    inheritableStatics: {
+<span id='Ext-draw-sprite-Tick-static-property-def'>        def: {
+</span>            processors: {
+<span id='Ext-draw-sprite-Tick-cfg-x'>                /**
+</span>                 * @cfg {Object} x The position of the center of the sprite on the x-axis.
+                 */
+                x: &#39;number&#39;,
+<span id='Ext-draw-sprite-Tick-cfg-y'>                /**
+</span>                 * @cfg {Object} y The position of the center of the sprite on the y-axis.
+                 */
+                y: &#39;number&#39;,
+<span id='Ext-draw-sprite-Tick-cfg-size'>                /**
+</span>                 * @cfg {Number} [size=4] The size of the sprite.
+                 * Meant to be comparable to the size of a circle sprite with the same radius.
+                 */
+                size: &#39;number&#39;
+            },
+            defaults: {
+                x: 0,
+                y: 0,
+                size: 4
+            },
+            triggers: {
+                x: &#39;tick&#39;,
+                y: &#39;tick&#39;,
+                size: &#39;tick&#39;
+            },
+            updaters: {
+                tick: function (attr) {
+                    var size = attr.size * 1.5,
+                        halfLineWidth = attr.lineWidth / 2,
+                        x = attr.x,
+                        y = attr.y;
+                    this.setAttributes({
+                        fromX: x - halfLineWidth,
+                        fromY: y - size,
+                        toX: x - halfLineWidth,
+                        toY: y + size
+                    });
+                }
+            }
+        }
+    }
+
+});</pre>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Progress'>/**
+</span> * @class Ext.Progress
+ *
+ *     @example
+ *     Ext.create({
+ *         xtype: &#39;grid&#39;,
+ *         title: &#39;Simpsons&#39;,
+ *         store: {
+ *             data: [
+ *                 { name: &#39;Lisa&#39;, progress: .159 },
+ *                 { name: &#39;Bart&#39;, progress: .216 },
+ *                 { name: &#39;Homer&#39;, progress: .55 },
+ *                 { name: &#39;Maggie&#39;, progress: .167 },
+ *                 { name: &#39;Marge&#39;, progress: .145 }
+ *             ]
+ *         },
+ *         columns: [
+ *             { text: &#39;Name&#39;,  dataIndex: &#39;name&#39; },
+ *             {
+ *                 text: &#39;Progress&#39;,
+ *                 xtype: &#39;widgetcolumn&#39;,
+ *                 width: 120,
+ *                 dataIndex: &#39;progress&#39;,
+ *                 widget: {
+ *                     xtype: &#39;progress&#39;
+ *                 }
+ *             }
+ *         ],
+ *         height: 200,
+ *         width: 400,
+ *         renderTo: Ext.getBody()
+ *     });
+ */
+
+Ext.define(&#39;Ext.overrides.Progress&#39;, {
+    override: &#39;Ext.Progress&#39;,
+
+    config: {
+<span id='Ext-Progress-cfg-ui'>        ui: &#39;default&#39;
+</span>    },
+
+<span id='Ext-Progress-method-updateWidth'>    updateWidth: function (width, oldWidth) {
+</span>        var me = this;
+
+        me.callParent([width, oldWidth]);
+        width -= me.element.getBorderWidth(&#39;lr&#39;);
+        me.backgroundEl.setWidth(width);
+        me.textEl.setWidth(width);
+    },
+
+<span id='Ext-Progress-property-privates'>    privates: {
+</span>        startBarAnimation: function(o) {
+            this.barEl.animate(o);
+        },
+
+        stopBarAnimation: function() {
+            this.barEl.stopAnimation();
+        }
+    }
+});
+</pre>
+</body>
+</html>

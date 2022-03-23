@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-data-field-Json'>/**
+</span> * Поле данных автоматически преобразующее значение JSON-строки в Object.
+ *
+ */
+Ext.define(&#39;SU.data.field.Json&#39;, {
+    extend: &#39;Ext.data.field.Field&#39;,
+    alternateClassName: [&#39;Ext.data.field.Json&#39;],
+
+    alias: &#39;data.field.json&#39;,
+
+<span id='SU-data-field-Json-property-isJsonField'>    isJsonField: true,
+</span>
+<span id='SU-data-field-Json-cfg-serialized'>    /**
+</span>     * @cfg {Boolean} serialized=true
+     * true - значение поля преобразуется в строку
+     */
+    serialized: true,
+
+<span id='SU-data-field-Json-method-convert'>    /**
+</span>     * @inheritdoc
+     * @localdoc
+     * Преобразование JSON-строки в Object.
+     * 
+     * При неудачном преобразовании возвращает null или пустой массив
+     * в зависимости от #allowNull.
+     * 
+     * @param {Mixed} v -
+     * @return {Mixed} -
+     */
+    convert: function (v) {
+        var me = this;
+        
+        if (v === undefined || v === null || v === &#39;&#39;) {
+            return me.allowNull ? null : [];
+        }
+
+        if (typeof v === &#39;string&#39;) {
+            try {
+                v = JSON.parse(v || &#39;[]&#39;);
+            } catch (e) {
+                //&lt;debug&gt;
+                // eslint-disable-next-line no-console
+                console.log(e);
+                //&lt;/debug&gt;
+                return me.allowNull ? null : [];
+            }
+        } else if(Ext.isArray(v)){
+            v = Ext.Array.clone(v);
+        } else {
+            v = Ext.Object.chain(v);
+        }
+
+        //me.rawValue = JSON.stringify(v);
+        return v;
+    },
+
+<span id='SU-data-field-Json-method-serialize'>    serialize: function (v, record) {
+</span>        var me = this;
+
+        if (me.allowNull &amp;&amp; (v === undefined || v === null)) {
+            //me.rawValue = this.allowNull ? null : JSON.stringify([]);
+            return null;
+        }
+
+        if (v) {
+            //me.rawValue === JSON.stringify(v);
+            return me.serialized ? JSON.stringify(v) : v;
+        } else {
+            //me.rawValue = me.allowNull ? null : JSON.stringify([]);
+            return null;
+        }
+    },
+
+<span id='SU-data-field-Json-method-isEqual'>    isEqual: function (value1, value2) {
+</span>        var me = this;
+
+        try {
+            if (value1 === value2) {
+                return (value1 ? JSON.stringify(value1) : me.allowNull ? null : JSON.stringify([])) === (value2 ? JSON.stringify(value2) : me.allowNull ? null : JSON.stringify([]));
+
+            }
+            return false;
+        } catch (e) {
+            //&lt;debug&gt;
+            // eslint-disable-next-line no-console
+            console.log(e);
+            //&lt;/debug&gt;
+            return false;
+        }
+    },
+
+<span id='SU-data-field-Json-method-getType'>    getType: function () {
+</span>        return &quot;json&quot;;
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-XmlStore'>/**
+</span> * Small helper class to make creating {@link Ext.data.Store}s from XML data easier.
+ * An XmlStore will be automatically configured with a {@link Ext.data.reader.Xml}.
+ *
+ * A store configuration would be something like:
+ *
+ *     var store = new Ext.data.XmlStore({
+ *         // store configs
+ *         storeId: &#39;myStore&#39;,
+ *         url: &#39;sheldon.xml&#39;, // automatically configures a HttpProxy
+ *
+ *         // reader configs
+ *         record: &#39;Item&#39;, // records will have an &quot;Item&quot; tag
+ *         idPath: &#39;ASIN&#39;,
+ *         totalRecords: &#39;@TotalResults&#39;
+ *
+ *         fields: [
+ *             // set up the fields mapping into the xml doc
+ *             // The first needs mapping, the others are very basic
+ *             {name: &#39;Author&#39;, mapping: &#39;ItemAttributes &gt; Author&#39;},
+ *             &#39;Title&#39;, &#39;Manufacturer&#39;, &#39;ProductGroup&#39;
+ *         ]
+ *     });
+ *
+ * This store is configured to consume a returned object of the form:
+ *
+ *      &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+ *      &lt;ItemSearchResponse xmlns=&quot;http://webservices.amazon.com/AWSECommerceService/2009-05-15&quot;&gt;
+ *          &lt;Items&gt;
+ *              &lt;Request&gt;
+ *                  &lt;IsValid&gt;True&lt;/IsValid&gt;
+ *                  &lt;ItemSearchRequest&gt;
+ *                      &lt;Author&gt;Sidney Sheldon&lt;/Author&gt;
+ *                      &lt;SearchIndex&gt;Books&lt;/SearchIndex&gt;
+ *                  &lt;/ItemSearchRequest&gt;
+ *              &lt;/Request&gt;
+ *              &lt;TotalResults&gt;203&lt;/TotalResults&gt;
+ *              &lt;TotalPages&gt;21&lt;/TotalPages&gt;
+ *              &lt;Item&gt;
+ *                  &lt;ASIN&gt;0446355453&lt;/ASIN&gt;
+ *                  &lt;DetailPageURL&gt;
+ *                      http://www.amazon.com/
+ *                  &lt;/DetailPageURL&gt;
+ *                  &lt;ItemAttributes&gt;
+ *                      &lt;Author&gt;Sidney Sheldon&lt;/Author&gt;
+ *                      &lt;Manufacturer&gt;Warner Books&lt;/Manufacturer&gt;
+ *                      &lt;ProductGroup&gt;Book&lt;/ProductGroup&gt;
+ *                      &lt;Title&gt;Master of the Game&lt;/Title&gt;
+ *                  &lt;/ItemAttributes&gt;
+ *              &lt;/Item&gt;
+ *          &lt;/Items&gt;
+ *      &lt;/ItemSearchResponse&gt;
+ *
+ * An object literal of this form could also be used as the {@link #cfg-data} config option.
+ * **Note:** This class accepts all of the configuration options of {@link Ext.data.reader.Xml XmlReader}.
+ */
+Ext.define(&#39;Ext.data.XmlStore&#39;, {
+    extend: &#39;Ext.data.Store&#39;,
+    alias: &#39;store.xml&#39;,
+
+    requires: [
+        &#39;Ext.data.proxy.Ajax&#39;,
+        &#39;Ext.data.reader.Xml&#39;,
+        &#39;Ext.data.writer.Xml&#39;
+    ],
+    
+<span id='Ext-data-XmlStore-method-constructor'>    constructor: function(config){
+</span>        config = Ext.apply({
+            proxy: {
+                type: &#39;ajax&#39;,
+                reader: &#39;xml&#39;,
+                writer: &#39;xml&#39;
+            }
+        }, config);
+
+        this.callParent([config]);
+    }
+});</pre>
+</body>
+</html>

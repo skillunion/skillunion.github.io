@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-plugin-Editable'>/**
+</span> * The `editable` plugin enables form-based, grid row editing. Editing begins by double-tapping
+ * a row. This can be set to any event, which we&#39;ll discuss below. The editor consists of a form
+ * positioned on the right side of the viewport.
+ *
+ * There is a button to save or cancel all changes for the edit in the toolbar, and the
+ * row is deletable by default.
+ *
+ * The default editable grid can be defined like so:
+ *
+ *     @example
+ *     Ext.create({
+ *         xtype: &#39;grid&#39;,
+ *         fullscreen: true,
+ *         plugins: {
+ *             grideditable: true
+ *         },
+ *         store: {
+ *             fields: [],
+ *             data: [{
+ *                 name: &#39;Jake&#39;
+ *             }, {
+ *                 name: &#39;Finn&#39;
+ *             }]
+ *         },
+ *         columns: [{
+ *             text: &#39;Name&#39;,
+ *             dataIndex: &#39;name&#39;,
+ *             flex: 1,
+ *             editable: true
+ *         }]
+ *     });
+ *
+ * By opening up the plugins type as an object (or an array of objects), you can modify your
+ * editor more significantly.  You can see the changeable bits below:
+ *
+ *     @example
+ *     Ext.create({
+ *         xtype: &#39;grid&#39;,
+ *         fullscreen: true,
+ *         plugins: {
+ *             grideditable: {
+ *                 triggerEvent: &#39;childdoubletap&#39;,
+ *                 enableDeleteButton: true,
+ *                 formConfig: null, // See more below
+ *
+ *                 defaultFormConfig: {
+ *                     xtype: &#39;formpanel&#39;,
+ *                     scrollable: true,
+ *                     items: [{
+ *                         xtype: &#39;fieldset&#39;
+ *                     }]
+ *                 },
+ *
+ *                 toolbarConfig: {
+ *                     xtype: &#39;titlebar&#39;,
+ *                     docked: &#39;top&#39;,
+ *                     items: [{
+ *                         xtype: &#39;button&#39;,
+ *                         ui: &#39;decline&#39;,
+ *                         text: &#39;Cancel&#39;,
+ *                         align: &#39;left&#39;,
+ *                         action: &#39;cancel&#39;
+ *                     }, {
+ *                         xtype: &#39;button&#39;,
+ *                         ui: &#39;confirm&#39;,
+ *                         text: &#39;Submit&#39;,
+ *                         align: &#39;right&#39;,
+ *                         action: &#39;submit&#39;
+ *                     }]
+ *                 },
+ *             }
+ *         },
+ *         store: {
+ *             fields: [],
+ *             data: [{
+ *                 name: &#39;Jake&#39;
+ *             }, {
+ *                 name: &#39;Finn&#39;
+ *             }]
+ *         },
+ *         columns: [{
+ *             text: &#39;Name&#39;,
+ *             dataIndex: &#39;name&#39;,
+ *             flex: 1,
+ *             editable: true
+ *         }]
+ *     });
+ *
+ *  As you can see, you can easily modify nearly every bit of the editor window.  As mentioned
+ *  above, the toolbar and delete button are the only components included by default.  That&#39;s
+ *  where formConfig comes into play.
+ *
+ *  By adding formConfig, you can hardcode the form that gets created when editing a row.
+ *  There are no fields set on the form initially, so you will need to define them
+ *  yourself.  For example, if you had a &quot;name&quot; column, and you wanted it to be editable,
+ *  you would do something like this in your plugins object:
+ *
+ *     formConfig: {
+ *        items: [{
+ *           xtype: &#39;textfield&#39;,
+ *           name: &#39;name&#39;,
+ *           label: &#39;Name&#39;
+ *        }]
+ *     }
+ *
+ *  Now, upon opening the editor, you would see a textfield populated with the editable value from
+ *  its corresponding record.
+ *
+ *  If you want to alter certain form configurations, but still have the default editor fields applied, use
+ *  the defaultFormConfig instead.
+ */
+Ext.define(&#39;Ext.grid.plugin.Editable&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: &#39;plugin.grideditable&#39;,
+
+    requires: [
+        &#39;Ext.form.FieldSet&#39;,
+        &#39;Ext.form.Panel&#39;,
+        &#39;Ext.Sheet&#39;,
+        &#39;Ext.TitleBar&#39;
+    ],
+
+    config: {
+<span id='Ext-grid-plugin-Editable-cfg-grid'>        /**
+</span>         * @private
+         */
+        grid: null,
+
+<span id='Ext-grid-plugin-Editable-cfg-triggerEvent'>        /**
+</span>         * @cfg {String} triggerEvent
+         * The event used to trigger the showing of the editor form. This event should
+         * be an event that is fired by the grid.
+         */
+        triggerEvent: &#39;childdoubletap&#39;,
+
+<span id='Ext-grid-plugin-Editable-cfg-formConfig'>        /**
+</span>         * @cfg {Object} formConfig
+         * By changing the formConfig you can hardcode the form that gets created when editing a row.
+         * Note that the fields are not set on this form, so you will have to define them yourself in this config.
+         * If you want to alter certain form configurations, but still have the default editor fields applied, use
+         * the defaultFormConfig instead.
+         */
+        formConfig: null,
+
+<span id='Ext-grid-plugin-Editable-cfg-defaultFormConfig'>        /**
+</span>         * @cfg {Object} defaultFormConfig
+         * Configures the default form appended to the editable panel.
+         */
+        defaultFormConfig: {
+            xtype: &#39;formpanel&#39;,
+            scrollable: true,
+            items: [{
+                xtype: &#39;fieldset&#39;
+            }]
+        },
+
+<span id='Ext-grid-plugin-Editable-cfg-toolbarConfig'>        /**
+</span>         * @cfg {Object} toolbarConfig
+         * Configures the toolbar appended to the editable panel.
+         */
+        toolbarConfig: {
+            xtype: &#39;titlebar&#39;,
+            docked: &#39;top&#39;,
+            items: [{
+                xtype: &#39;button&#39;,
+                ui: &#39;alt&#39;,
+                text: &#39;Cancel&#39;,
+                align: &#39;left&#39;,
+                action: &#39;cancel&#39;
+            }, {
+                xtype: &#39;button&#39;,
+                ui: &#39;alt&#39;,
+                text: &#39;Submit&#39;,
+                align: &#39;right&#39;,
+                action: &#39;submit&#39;
+            }]
+        },
+
+<span id='Ext-grid-plugin-Editable-cfg-enableDeleteButton'>        /**
+</span>         * @cfg {Boolean} enableDeleteButton
+         * Creates a delete button, which allows the user to delete the selected row.
+         */
+        enableDeleteButton: true
+    },
+
+<span id='Ext-grid-plugin-Editable-method-init'>    init: function(grid) {
+</span>        this.setGrid(grid);
+
+        grid.setTouchAction({
+            doubleTapZoom: false
+        });
+    },
+
+<span id='Ext-grid-plugin-Editable-method-destroy'>    destroy: function() {
+</span>        this.cleanup();
+        this.callParent();
+    },
+
+<span id='Ext-grid-plugin-Editable-method-updateGrid'>    updateGrid: function(grid, oldGrid) {
+</span>        var triggerEvent = this.getTriggerEvent();
+        if (oldGrid) {
+            oldGrid.un(triggerEvent, &#39;onTrigger&#39;, this);
+        }
+
+        if (grid) {
+            grid.on(triggerEvent, &#39;onTrigger&#39;, this);
+        }
+    },
+
+<span id='Ext-grid-plugin-Editable-method-onCancelTap'>    onCancelTap: function() {
+</span>        this.sheet.hide();
+    },
+
+<span id='Ext-grid-plugin-Editable-method-onSubmitTap'>    onSubmitTap: function() {
+</span>        this.form.getRecord().set(this.form.getValues());
+        this.sheet.hide();
+    },
+
+<span id='Ext-grid-plugin-Editable-method-onSheetHide'>    onSheetHide: function() {
+</span>        this.cleanup();
+    },
+
+<span id='Ext-grid-plugin-Editable-method-getEditorFields'>    getEditorFields: function(columns) {
+</span>        var fields = [],
+            ln = columns.length,
+            // &lt;debug&gt;
+            map = {},
+            // &lt;/debug&gt;
+            i, column, editor, editable, cfg;
+
+        for (i = 0; i &lt; ln; i++) {
+            column = columns[i];
+            editable = column.getEditable();
+            editor = editable !== false &amp;&amp; column.getEditor();
+
+            if (!editor &amp;&amp; editable) {
+                cfg = column.getDefaultEditor();
+                editor = Ext.create(cfg);
+                column.setEditor(editor);
+            }
+
+            if (editor) {
+                // &lt;debug&gt;
+                if (map[column.getDataIndex()]) {
+                    Ext.raise(&#39;An editable column with the same dataIndex &quot;&#39; + 
+                        column.getDataIndex() + &#39;&quot; already exists.&#39;);
+                }
+                map[column.getDataIndex()] = true;
+                // &lt;/debug&gt;
+
+                if (editor.isEditor) {
+                    editor = editor.getField();
+                }
+                editor.setLabel(column.getText());
+                editor.setName(column.getDataIndex());
+                fields.push(editor);
+            }
+        }
+
+        return fields;
+    },
+
+<span id='Ext-grid-plugin-Editable-method-onTrigger'>    onTrigger: function(grid, location) {
+</span>        var me = this,
+            record = location.record,
+            formConfig = me.getFormConfig(),
+            toolbarConfig = me.getToolbarConfig(),
+            fields, form, sheet, toolbar;
+
+        // Don&#39;t want to react to grid headers etc
+        if (!record || !location.row) {
+            return;
+        }
+
+        if (formConfig) {
+            me.form = form = Ext.factory(formConfig, Ext.form.Panel);
+        } else {
+            me.form = form = Ext.factory(me.getDefaultFormConfig());
+
+            fields = me.getEditorFields(grid.getColumns());
+            form.down(&#39;fieldset&#39;).setItems(fields);
+            form.clearFields = true;
+        }
+
+        toolbar = Ext.factory(toolbarConfig, Ext.form.TitleBar);
+        me.submitButton = toolbar.down(&#39;button[action=submit]&#39;);
+        toolbar.down(&#39;button[action=cancel]&#39;).on(&#39;tap&#39;, &#39;onCancelTap&#39;, me);
+        me.submitButton.on(&#39;tap&#39;, &#39;onSubmitTap&#39;, me);
+
+        // We sync the enabled state of the submit button with form validity
+        form.on({
+            change: &#39;onFieldChange&#39;,
+            delegate: &#39;field&#39;,
+            scope: me
+        });
+
+        form.setRecord(record);
+
+        me.sheet = sheet = grid.add({
+            xtype: &#39;sheet&#39;,
+            items: [toolbar, form],
+            hideOnMaskTap: true,
+            enter: &#39;right&#39;,
+            exit: &#39;right&#39;,
+            right: 0,
+            width: 320,
+            layout: &#39;fit&#39;,
+            stretchY: true,
+            hidden: true
+        });
+
+        if (me.getEnableDeleteButton()) {
+            form.add({
+                xtype: &#39;button&#39;,
+                text: &#39;Delete&#39;,
+                ui: &#39;decline&#39;,
+                margin: 10,
+                handler: function() {
+                    grid.getStore().remove(record);
+                    sheet.hide();
+                }
+            });
+        }
+
+        sheet.on(&#39;hide&#39;, &#39;onSheetHide&#39;, me);
+
+        sheet.show();
+    },
+
+<span id='Ext-grid-plugin-Editable-property-privates'>    privates: {
+</span>        onFieldChange: function() {
+            this.submitButton.setDisabled(!this.form.isValid());
+        },
+
+        cleanup: function() {
+            var me = this,
+                form = me.form;
+
+            if (form &amp;&amp; !form.destroyed &amp;&amp; form.clearFields) {
+                form.removeAll(false);
+            }
+
+            me.form = me.sheet = Ext.destroy(me.sheet);
+        }
+    }
+});
+</pre>
+</body>
+</html>

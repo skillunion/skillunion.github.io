@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-data-odata-Proxy'>/**
+</span> * Rest proxy для работы с данными SharePoint по протоколам
+ * - OData
+ * - SOAP
+ */
+Ext.define(&#39;SU.data.odata.Proxy&#39;, {
+    extend: &#39;Ext.data.RestProxy&#39;,
+    alternateClassName: [&#39;SU.data.ODataProxy&#39;, &#39;Ext.data.ODataProxy&#39;],
+    alias: &#39;proxy.odata&#39;,
+
+    requires: [
+        &#39;SU.data.odata.Reader&#39;,
+        &#39;SU.data.odata.Writer&#39;
+    ],
+
+    config: {
+
+<span id='SU-data-odata-Proxy-cfg-asRestAPI'>        /**
+</span>         * @cfg {Boolean} asRestAPI=false
+         * true - использовать запросы RestAPI
+         */
+        asRestAPI: false,
+
+<span id='SU-data-odata-Proxy-cfg-site'>        /**
+</span>         * @cfg {String} site
+         * Адрес сайта SharePoint
+         */
+        site: null,
+
+<span id='SU-data-odata-Proxy-cfg-list'>        /**
+</span>         * @cfg {String} list (reqired)
+         * Имя списка
+         */
+        list: null
+
+    },
+
+<span id='SU-data-odata-Proxy-property-actionMethods'>    /**
+</span>     * @inheritdoc
+     * @localdoc
+     * 
+     * Для `update` вместо PUT используется MERGE.
+     * 
+     * PUT ожидает, что все поля будут предоставлены, сбрасывая необязательные поля в значения по умолчанию.
+     * 
+     * MERGE обновит только указанные поля
+     */
+    actionMethods: {
+        create: &#39;POST&#39;,
+        read: &#39;GET&#39;,
+        update: &#39;MERGE&#39;,
+        destroy: &#39;DELETE&#39;
+    },
+
+<span id='SU-data-odata-Proxy-cfg-headers'>    /**
+</span>     * @cfg {Object} [headers]
+     * @inheritdoc
+     * @localdoc
+     * Требуем ответа в формате JSON
+     */
+    headers: {
+        &#39;Accept&#39;: &#39;application/json; odata=verbose&#39;
+    },
+
+<span id='SU-data-odata-Proxy-cfg-appendId'>    appendId: false,
+</span>
+<span id='SU-data-odata-Proxy-cfg-noCache'>    noCache: false,
+</span>
+<span id='SU-data-odata-Proxy-cfg-limitParam'>    limitParam: &#39;$top&#39;,
+</span>
+<span id='SU-data-odata-Proxy-cfg-startParam'>    startParam: &#39;$skip&#39;,
+</span>
+<span id='SU-data-odata-Proxy-cfg-sortParam'>    sortParam: &#39;$orderby&#39;,
+</span>
+<span id='SU-data-odata-Proxy-cfg-filterParam'>    filterParam: &#39;$filter&#39;,
+</span>
+<span id='SU-data-odata-Proxy-method-encodeSorters'>    /**
+</span>     * encode $orderby value for remote sorting
+     * 
+     * @param {Ext.util.Sorter[]} sorters -
+     * @return {String} -
+     */
+    encodeSorters: function (sorters) {
+        var sort = [],
+            length = sorters.length,
+            i;
+
+        for (i = 0; i &lt; length; i++) {
+            sort[i] = sorters[i].getProperty() +
+                (sorters[i].getDirection() === &#39;DESC&#39; ? &#39; desc&#39; : &#39;&#39;);
+        }
+
+        return sort.join(&#39;,&#39;);
+    },
+
+<span id='SU-data-odata-Proxy-method-encodeFilters'>    /**
+</span>     * encode $filter value for remote filtering
+     * 
+     * @param {Ext.util.Filter[]} filters -
+     * @return {String} -
+     */
+    encodeFilters: function (filters) {
+        var filter = [],
+            length = filters.length,
+            sq, i;
+
+        for (i = 0; i &lt; length; i++) {
+            sq = typeof filters[i].getValue() === &#39;string&#39; ? &#39;\&#39;&#39; : &#39;&#39;;
+
+            if (filters[i].getOperator() === &#39;in&#39;) {
+                filter[i] = filters[i].getValue().map(function (value) {
+                    sq = typeof value === &#39;string&#39; ? &#39;\&#39;&#39; : &#39;&#39;;
+                    return filters[i].getProperty() + &#39; eq &#39; + sq + value + sq;
+                }).join(&#39; or &#39;);
+
+            } else if (filters[i].getOperator() === &#39;like&#39;) {
+
+                    filter[i] = &#39;indexof(&#39; + filters[i].getProperty() + &#39;, &#39; + sq + filters[i].getValue() + sq + &#39;) ne -1&#39;;
+
+                } else {
+
+                    filter[i] = filters[i].getProperty() + &#39; &#39; + filters[i].getOperator() + &#39; &#39; + sq + filters[i].getValue() + sq;
+            }
+        }
+        
+        return filter.join(&#39; and &#39;);
+    },
+
+<span id='SU-data-odata-Proxy-method-buildUrl'>    // provide odata style urls
+</span>    // .../resouce(id) instead of ../resource/id 
+    buildUrl: function (request) {
+        var me = this,
+            operation = request.getOperation(),
+            records = operation.getRecords() || [],
+            record = records[0],
+            site = me.getSite(),
+            url = site
+                ? Ext.String.format(me.getAsRestAPI() ? &#39;{0}/_api/web/lists/getbytitle(\&#39;{1}\&#39;)/items&#39; : &#39;{0}/_vti_bin/listdata.svc/{1}&#39;, site, me.getList())
+                : me.getUrl(request),
+            id;
+
+        if (record &amp;&amp; !record.phantom) {
+            id = record.getId();
+        }
+
+        if (id) {
+            url += &#39;(&#39; + id + &#39;)&#39;;
+        }
+
+        // for now always hardcoded, removing this causes a different format of the response, 
+        // which don&#39;t match with the reader root config
+        url += &#39;?$inlinecount=allpages&#39;;
+        request.setUrl(url);
+
+        return me.callParent(arguments);
+    },
+
+<span id='SU-data-odata-Proxy-cfg-reader'>    reader: {
+</span>        type: &#39;odata&#39;,
+        rootProperty: &#39;d.results&#39;,
+        totalProperty: &#39;d.__count&#39;
+    },
+
+<span id='SU-data-odata-Proxy-cfg-writer'>    writer: {
+</span>        type: &#39;odata&#39;
+    }
+});
+</pre>
+</body>
+</html>

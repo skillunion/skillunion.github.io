@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-Button'>/**
+</span> * Добавлена обработка toggleGroup
+ */
+Ext.define(&#39;SU.Button&#39;, {
+    override: &#39;Ext.Button&#39;,
+
+    config: {
+<span id='Ext-Button-cfg-toggleGroup'>        toggleGroup: null
+</span>    },
+
+<span id='Ext-Button-method-updateToggleGroup'>    updateToggleGroup: function (value, old) {
+</span>        var me = this;
+
+        if (old) {
+            me.un({
+                pressedchange: me.onPressedChange,
+                scope: me
+            });
+        }
+
+        if (value) {
+            me.on({
+                pressedchange: me.onPressedChange,
+                scope: me
+            });
+        }
+    },
+
+<span id='Ext-Button-method-onPressedChange'>    onPressedChange: function (button, pressed) {
+</span>        var me = this,
+            group = me.getToggleGroup(),
+            //toggele = me.getEnableToggle(),
+            //depressed = me.getAllowDepress(),
+            CQ = Ext.ComponentQuery;
+
+        if (!pressed) return;
+
+        if (group) {
+            CQ.query(&#39;button[toggleGroup=&#39; + group + &#39;][pressed]&#39;).forEach(function (btn) {
+                if (btn === button) return;
+                btn.suspendEvents();
+                btn.setPressed &amp;&amp; btn.setPressed(false);
+                btn.resumeEvents(true);
+            });
+        }
+    }
+
+});
+</pre>
+</body>
+</html>

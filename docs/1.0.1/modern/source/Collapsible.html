@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Panel'>/**
+</span> * @class Ext.Panel
+ */
+
+Ext.define(&#39;Ext.panel.Collapsible&#39;, {
+    override: &#39;Ext.Panel&#39;,
+
+    config: {
+<span id='Ext-Panel-cfg-collapsed'>        /**
+</span>         * @cfg {Boolean} collapsed
+         * `true` to start collapsed.
+         */
+        collapsed: null,
+
+<span id='Ext-Panel-cfg-collapsible'>        /**
+</span>         * @cfg {&#39;top&#39;/&#39;right&#39;/&#39;bottom&#39;/&#39;left&#39;/Boolean/Object} collapsible
+         * A configuration for a {@link Ext.panel.Collapser Collapser}.
+         *
+         * True to make the panel collapsible and have an expand/collapse toggle Tool added into the header tool button
+         * area.
+         *
+         * You can also set `top`/`right`/`bottom`/`left` to directly specify the collapse direction.
+         *
+         * @since 6.5.0
+         */
+        collapsible: null
+    },
+
+<span id='Ext-Panel-event-beforecollapse'>    /**
+</span>     * @event beforecollapse
+     * Fires before collapse starts. Return `false` to cancel collapse.
+     * @param {Ext.panel.Panel} this
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-Panel-event-beforeexpand'>    /**
+</span>     * @event beforeexpand
+     * Fires before expand starts. Return `false` to cancel expand.
+     * @param {Ext.panel.Panel} this
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-Panel-event-collapse'>    /**
+</span>     * @event collapse
+     * Fires when the collapse starts.
+     * @param {Ext.panel.Panel} this
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-Panel-event-drawerhide'>    /**
+</span>     * @event drawerhide
+     * Fires then the {@link Ext.panel.Collapser#cfg-drawer drawer} hides.
+     *
+     * @param {Ext.panel.Panel} this
+     * @since 6.5.0
+     */
+
+<span id='Ext-Panel-event-drawershow'>    /**
+</span>     * @event drawershow
+     * Fires then the {@link Ext.panel.Collapser#cfg-drawer drawer} shows.
+     *
+     * @param {Ext.panel.Panel} this
+     * @since 6.5.0
+     */
+
+<span id='Ext-Panel-event-expand'>    /**
+</span>     * @event expand
+     * Fires when the expand starts.
+     * @param {Ext.panel.Panel} this
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-Panel-property-hasCollapsible'>    /**
+</span>     * @property {Boolean} hasCollapsible
+     * `true` if this panel has the collapsible override added.
+     *
+     * @since 6.5.0
+     */
+    hasCollapsible: true,
+
+<span id='Ext-Panel-property-defaultCollapserCls'>    defaultCollapserCls: &#39;Ext.panel.Collapser&#39;,
+</span>
+<span id='Ext-Panel-method-doDestroy'>    doDestroy: function() {
+</span>        this.setCollapsible(null);
+        this.callParent();
+    },
+
+<span id='Ext-Panel-method-collapse'>    /**
+</span>     * @method collapse
+     * @inheritdoc Ext.panel.Collapser#method-collapse
+     */
+    collapse: function(animation) {
+        return this.getCollapsible().collapse(animation);
+    },
+
+<span id='Ext-Panel-method-expand'>    /**
+</span>     * @method expand
+     * @inheritdoc Ext.panel.Collapser#method-expand
+     */
+    expand: function(animation) {
+        return this.getCollapsible().expand(animation);
+    },
+
+<span id='Ext-Panel-method-toggleCollapsed'>    /**
+</span>     * @method toggleCollapsed
+     * @inheritdoc Ext.panel.Collapser#method-toggleCollapsed
+     */
+    toggleCollapsed: function(collapsed, animation) {
+        return this.getCollapsible().toggleCollapsed(collapsed, animation);
+    },
+
+<span id='Ext-Panel-method-getCollapsed'>    getCollapsed: function() {
+</span>        // The collapsed state should always be governed by the collapsible
+        var collapsible = this.getCollapsible();
+        return collapsible ? collapsible.getCollapsed() : false;
+    },
+
+<span id='Ext-Panel-method-updateCollapsed'>    updateCollapsed: function(collapsed) {
+</span>        var collapsible = this.getCollapsible();
+        if (collapsible) {
+            collapsible.setCollapsed(collapsed);
+        }
+    },
+
+<span id='Ext-Panel-method-applyCollapsible'>    applyCollapsible: function (collapsible, collapser) {
+</span>        if (collapsible === true) {
+            collapsible = { direction: this.getHeaderPosition() };
+        } else if (typeof collapsible === &#39;string&#39;) {
+            collapsible = { direction: collapsible };
+        } else if (!collapsible) {
+            return null;
+        }
+
+        if (collapser) {
+            collapser.setConfig(collapsible);
+        } else {
+            collapsible = Ext.apply({
+                xclass: this.defaultCollapserCls,
+                target: this
+            }, collapsible);
+            collapser = Ext.create(collapsible);
+        }
+
+        return collapser;
+    },
+
+<span id='Ext-Panel-method-updateCollapsible'>    updateCollapsible: function(collapsible, oldCollapsible) {
+</span>        if (oldCollapsible) {
+            // before making the panel uncollapsible let&#39;s expand it without animations
+            if (!this.destroying) {
+                oldCollapsible.doExpandCollapse(false);
+            }
+            oldCollapsible.destroy();
+        }
+
+        if (collapsible &amp;&amp; this.rendered) {
+            this.initCollapsible(collapsible);
+        }
+    },
+
+<span id='Ext-Panel-method-updateHeader'>    updateHeader: function(header, oldHeader) {
+</span>        var collapsible = this.getCollapsible();
+
+        this.callParent([header, oldHeader]);
+
+        if (this.isConfiguring &amp;&amp; collapsible) {
+            collapsible.toggleCollapsed(collapsible.getCollapsed(), false);
+        }
+    },
+
+<span id='Ext-Panel-method-updateHeaderPosition'>    updateHeaderPosition: function(headerPosition, oldHeaderPosition) {
+</span>        var collapsible = this.getCollapsible();
+
+        if (collapsible &amp;&amp; collapsible.getCollapsed()) {
+            headerPosition = collapsible.getDirection();
+        }
+        this.moveHeaderPosition(headerPosition, oldHeaderPosition);
+    },
+
+<span id='Ext-Panel-property-privates'>    privates: {
+</span>        initCollapsible: function(collapsible) {
+            this.ensureHeader();
+            collapsible.initialize();
+        },
+
+        onCollapsibleRendered: function() {
+            var collapsible = this.getCollapsible();
+            if (collapsible) {
+                this.initCollapsible(collapsible);
+            }
+        },
+
+        reattachBodyWrap: function() {
+            var me = this,
+                header = me._header,
+                el = me.maxHeightElement || me.element,
+                bodyWrap = me.bodyWrapElement;
+
+            if (bodyWrap.parent() !== el) {
+
+                 // We need to make sure the collapser node
+                 // is after the header in case the resizer
+                 // node is present. The resizer node needs
+                 // to be on top to function.
+                if (header) {
+                    bodyWrap.insertAfter(header.element);
+                } else {
+                    el.insertFirst(bodyWrap);
+                }
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

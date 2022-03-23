@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}menu-body-el {
+    &amp;.#{$prefix}has-separator:before {
+        content: &#39;&#39;;
+        position: absolute;
+        height: 100%;
+        top: 0;
+        left: 0;
+    }
+}
+
+// CTRL modifier
+.#{$prefix}ctrl-key:before {
+    content: &quot;\2303&quot;;
+}
+// ALT modifier
+.#{$prefix}alt-key:before {
+    content: &quot;\2325&quot;;
+}
+// SHIFT modifier
+.#{$prefix}shift-key:before {
+    content: &quot;\21E7&quot;;
+}
+// META modifier
+.#{$prefix}meta-key:before {
+    content: &quot;\229e&quot;;
+}
+// Mac META modifier
+.#{$prefix}mac .#{$prefix}meta-key:before {
+    content: &quot;\2318&quot;;
+}
+// CTRL+ALT modifier
+.#{$prefix}ctrl-key.#{$prefix}alt-key:before {
+    content: &quot;\2303\2325&quot;;
+}
+// CTRL+SHIFT modifier
+.#{$prefix}ctrl-key.#{$prefix}shift-key:before {
+    content: &quot;\2303\21E7&quot;;
+}
+// CTRL+META modifier
+.#{$prefix}ctrl-key.#{$prefix}meta-key:before {
+    content: &quot;\2303\229e&quot;;
+}
+// Mac CTRL+META modifier
+.#{$prefix}mac .#{$prefix}ctrl-key.#{$prefix}meta-key:before {
+    content: &quot;\2303\2318&quot;;
+}
+// ALT+SHIFT modifier
+.#{$prefix}alt-key.#{$prefix}shift-key:before {
+    content: &quot;\2325\21E7&quot;;
+}
+// ALT+META modifier
+.#{$prefix}alt-key.#{$prefix}meta-key:before {
+    content: &quot;\2325\229e&quot;;
+}
+// Mac ALT+META modifier
+.#{$prefix}mac .#{$prefix}alt-key.#{$prefix}meta-key:before {
+    content: &quot;\2325\2318&quot;;
+}
+// SHIFT+META modifier
+.#{$prefix}shift-key.#{$prefix}meta-key:before {
+    content: &quot;\21E7\229e&quot;;
+}
+// Mac SHIFT+META modifier
+.#{$prefix}mac .#{$prefix}shift-key.#{$prefix}meta-key:before {
+    content: &quot;\21E7\2318&quot;;
+}
+.#{$prefix}ctrl-key.#{$prefix}alt-key.#{$prefix}shift-key:before {
+    content: &quot;\2303\2325\21E7&quot;;
+}
+// CTRL+SHIFT+META modifier
+.#{$prefix}ctrl-key.#{$prefix}shift-key.#{$prefix}meta-key:before {
+    content: &quot;\2303\21E7\229e&quot;;
+}
+// Mac CTRL+SHIFT+META modifier
+.#{$prefix}mac .#{$prefix}ctrl-key.#{$prefix}shift-key.#{$prefix}meta-key:before {
+    content: &quot;\2303\21E7\2318&quot;;
+}
+// ALT+SHIFT+META modifier
+.#{$prefix}alt-key.#{$prefix}shift-key.#{$prefix}meta-key:before {
+    content: &quot;\2325\21E7\229e&quot;;
+}
+// Mac ALT+SHIFT+META modifier
+.#{$prefix}mac .#{$prefix}alt-key.#{$prefix}shift-key.#{$prefix}meta-key:before {
+    content: &quot;\2325\21E7\2318&quot;;
+}
+</pre>
+</body>
+</html>

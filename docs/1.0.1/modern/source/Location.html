@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-Location'>/**
+</span> * Instances of this class encapsulate a focusable item in a DataView.
+ *
+ * DataView addresses are configured using the owning {@link #property!item}.
+ *
+ * Be careful not to make `Location` objects persistent. If the associated record
+ * is removed or filtered out, or is scrolled out of the rendered range in an infinite
+ * list, the reference will be stale. Its referenced item may be used by a different record.
+ *
+ * Freshly created Location objects, such as those exposed by events from the
+ * {@link Ext.dataview.selection.Model selection model} are safe to use until your
+ * application mutates the store, changes the column set (for grids), or scrolls
+ * the referenced item out of the rendered block (for infinite lists).
+ *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.dataview.Location&#39;, {
+<span id='Ext-dataview-Location-property-isDataViewLocation'>    /**
+</span>     * @property {Boolean} isDataViewLocation
+     * @readonly
+     * `true` in this class to identify an object as an instantiated dataview Location, or subclass thereof.
+     */
+    isDataViewLocation: true,
+
+<span id='Ext-dataview-Location-property-child'>    /**
+</span>     * @property {Ext.Component/Ext.dom.Element} child
+     * @readonly
+     * The child in the view.
+     */
+    child: null,
+
+<span id='Ext-dataview-Location-property-event'>    /**
+</span>     * @property {Ext.event.Event} [event]
+     * @readonly
+     * The event that led to the creation of this event. This may be null.
+     */
+    event: null,
+
+<span id='Ext-dataview-Location-property-item'>    /**
+</span>     * @property {Ext.Component/Ext.dom.Element} item
+     * @readonly
+     * The item in the view, if it backed by a record.
+     */
+    item: null,
+
+<span id='Ext-dataview-Location-property-record'>    /**
+</span>     * @property {Ext.data.Model} [record]
+     * @readonly
+     * The record.
+     */
+    record: null,
+
+<span id='Ext-dataview-Location-property-recordIndex'>    /**
+</span>     * @property {Number} [recordIndex]
+     * @readonly
+     * The record index.
+     */
+    recordIndex: -1,
+
+<span id='Ext-dataview-Location-property-sourceElement'>    /**
+</span>     * @private
+     */
+    sourceElement: null,
+
+<span id='Ext-dataview-Location-property-view'>    /**
+</span>     * @property {Ext.dataview.Abstract} view
+     * @readonly
+     * The view.
+     */
+    view: null,
+
+<span id='Ext-dataview-Location-property-viewIndex'>    /**
+</span>     * @property {Number} viewIndex
+     * @readonly
+     * The index of the {@link #child} in the view.
+     */
+    viewIndex: -1,
+
+<span id='Ext-dataview-Location-method-constructor'>    /**
+</span>     * Create a new Location
+     * @param {Ext.dataview.Abstract} view The view.
+     * @param {Object} source The source for the location. It can be:
+     *
+     * - `Ext.event.Event` - An event from the view.
+     * - `Ext.dom.Element/HTMLElement` - An element from the view.
+     * - `Ext.Widget` - A child component from the view.
+     * - `Ext.data.Model` - A record from the view.
+     * - `Number` - The record index.
+     */
+    constructor: function(view, source) {
+        this.view = view;
+
+        if (source != null) {
+            this.attach(source);
+        }
+    },
+
+<span id='Ext-dataview-Location-method-attach'>    attach: function(source) {
+</span>        var me = this,
+            view = me.view,
+            store = view.store,
+            record, child, sourceElement;
+
+        //&lt;debug&gt;
+        if (me.source) {
+            Ext.raise(&#39;DataView Locations cannot be modified&#39;);
+        }
+        //&lt;/debug&gt;
+        if (source.isEvent) {
+            me.event = source;
+            sourceElement = source.target;
+        }
+        if (source.isElement || source.nodeType === 1) {
+            sourceElement = source;
+        }
+
+        me.source = source;
+        if (source.isWidget) {
+            sourceElement = source.getFocusEl();
+            source = source.element;
+        }
+
+        if (typeof source === &#39;number&#39;) {
+            child = view.itemFromRecord(source);
+            me.recordIndex = source;
+
+            // If the view is not yet bound to a store, we cannot find the record
+            record = store &amp;&amp; store.getAt(source);
+        } else {
+            if (source.isModel) {
+                record = source;
+            } else {
+                record = view.mapToRecord(source);
+            }
+            child = view.mapToItem(source);
+
+            // If the view is not yet bound to a store, we cannot find the record
+            me.recordIndex = store ? store.indexOf(record) : -1;
+        }
+
+        if (child &amp;&amp; !sourceElement) {
+            sourceElement = child.isWidget ? child.getFocusEl() : child;
+        }
+
+        me.child = child;
+        me.record = record;
+
+        // Item property only present if the child firing the event is a record-based item.
+        if (record &amp;&amp; child) {
+            me.item = child;
+        }
+
+        if (child) {
+            me.viewIndex = view.mapToViewIndex(child);
+        }
+
+        me.sourceElement = Ext.getDom(sourceElement);
+    },
+
+<span id='Ext-dataview-Location-method-clone'>    /**
+</span>     * Creates a clone of this Location.
+     * @return {Ext.dataview.Location} A clone of this Location.
+     */
+    clone: function() {
+        var me = this,
+            ret = new this.self(me.view);
+
+        ret.event = me.event;
+        ret.sourceElement = me.sourceElement;
+        ret.item = me.item;
+        ret.record = me.record;
+        ret.recordIndex = me.recordIndex;
+        ret.viewIndex = me.viewIndex;
+
+        return ret;
+    },
+
+<span id='Ext-dataview-Location-method-equals'>    equals: function(other) {
+</span>        // There will never be unrendered locations at this level.
+        // Location will always be able to resolve a sourceElement, so
+        // Locations are only equal if their sourceElements are equal.
+        return other &amp;&amp;
+               other.view === this.view &amp;&amp;
+               other.isDataViewLocation &amp;&amp;
+               other.sourceElement === this.sourceElement;
+    },
+
+<span id='Ext-dataview-Location-method-getFocusEl'>    /**
+</span>     * Returns the location&#39;s referenced `focusEl` *at the time of calling*.
+     *
+     * @param {&quot;dom&quot;/&quot;el&quot;} [as=el] Pass `&quot;dom&quot;` to always return the item&#39;s `HTMLElement`.
+     * Pass `&quot;el&quot;` to return the item&#39;s `Ext.dom.Element`.
+     * @return {HTMLElement/Ext.dom.Element} The item focusable *element* referenced by this location.
+     */
+    getFocusEl: function(as) {
+        var item = this.get(),
+            ret = null;
+
+        if (item &amp;&amp; item.isWidget) {
+            item = item.element;
+        }
+
+        if (item) {
+            ret = (as === &#39;dom&#39; || as === true) ? Ext.getDom(item) : Ext.get(item);
+        }
+
+        return ret;
+    },
+
+<span id='Ext-dataview-Location-method-get'>    /**
+</span>     * Returns the focusable element/component which this location represents.
+     *
+     * An {@link Ext.dataview.Location} will return the view&#39;s item element (or Component if an
+     * {@link Ext.dataview.Component Component Dataview} or {@link Ext.dataview.List List) is used).
+     *
+     * An {@link Ext.grid.Location} will return the {@link Ext.grid.cell.Cell cell} component or
+     * an focusable element if navigation has moved with a cell, or into non-record view items.
+     * @returns {Ext.Element|Ext.Component}
+     *
+     * Contrast with {@link #getItem} which slways returns the DataView item, even in a Grid.
+     */
+    get: function() {
+        return this.child;
+    },
+
+<span id='Ext-dataview-Location-method-isFirstDataItem'>    isFirstDataItem: function() {
+</span>        return this.recordIndex === 0;
+    },
+
+<span id='Ext-dataview-Location-method-isFirstViewItem'>    isFirstViewItem: function() {
+</span>        var view = this.view;
+
+        if (view.infinite) {
+            return view.previous(this.child == null);
+        }
+
+        return this.viewIndex === 0;
+    },
+
+<span id='Ext-dataview-Location-method-isLastDataItem'>    isLastDataItem: function() {
+</span>        return this.recordIndex === this.view.store.getCount() - 1;
+    },
+
+<span id='Ext-dataview-Location-method-isLastViewItem'>    isLastViewItem: function() {
+</span>        var view = this.view;
+
+        if (view.infinite) {
+            return view.next(this.child == null);
+        }
+
+        return this.viewIndex === view.innerItems.length - 1;
+    },
+
+<span id='Ext-dataview-Location-method-refresh'>    /**
+</span>     * Re-orientates this Location according to the existing settings. If for example
+     * a row has been deleted, or moved by a sort, this will
+     * resync internal values with reality.
+     */
+    refresh: function() {
+        var me = this,
+            view = me.view,
+            item = me.child,
+
+            // The most important anchor is the record. Try to access its corresponding
+            // item first. Failing that, try our item directly, and if that has gone,
+            // fall back to our recorded viewIndex.
+            newSource = view.mapToItem(me.record) ||
+                (view.items.contains(item) ? item
+                    : view.mapToItem(Math.min(me.viewIndex, view.dataItems.length - 1)));
+
+        return new this.self(view, newSource);
+    },
+
+<span id='Ext-dataview-Location-method-isFirst'>    isFirst: function() {
+</span>        return this.view.isFirstItem(this.child);
+    },
+
+<span id='Ext-dataview-Location-method-isLast'>    isLast: function() {
+</span>        return this.view.isLastItem(this.child);
+    },
+
+<span id='Ext-dataview-Location-method-next'>    /**
+</span>     * Navigates to the next navigable Location.
+     * @param {Boolean/Object} [options] An options object or a boolean flag meaning wrap
+     * @param {Boolean} [options.wrap] `true` to wrap from the last to the first Location.
+     * @param {Number} [options.column] The column to move to if not the current column.
+     * @returns {Ext.dataview.Location} A *new* Location object representing the new location.
+     */
+    next: function(options) {
+        var me = this,
+            candidate = me.nextItem(options),
+            item = candidate &amp;&amp; candidate.get();
+
+        while (candidate &amp;&amp; (!item || !item.el.isFocusable())) {
+            // Wrapped round. Give up.
+            if (candidate.equals(me)) {
+                return me;
+            }
+
+            candidate = candidate.nextItem(options);
+            item = candidate &amp;&amp; candidate.get();
+        }
+
+        return candidate || me;
+    },
+
+<span id='Ext-dataview-Location-method-previous'>    /**
+</span>     * Navigates to the previous visible Location.
+     * @param {Boolean/Object} [options] An options object or a boolean flag meaning wrap
+     * @param {Boolean} [options.wrap] `true` to wrap from the first to the last Location.
+     * @param {Number} [options.column] The column to move to if not the current column.
+     * @returns {Ext.dataview.Location} A *new* Location object representing the new location.
+     */
+    previous: function(options) {
+        var me = this,
+            candidate = me.previousItem(options),
+            item = candidate &amp;&amp; candidate.get();
+
+        while (candidate &amp;&amp; (!item || !item.el.isFocusable())) {
+            // Wrapped round. Give up.
+            if (candidate.equals(me)) {
+                return me;
+            }
+
+            candidate = candidate.previousItem(options);
+            item = candidate &amp;&amp; candidate.get();
+        }
+
+        return candidate || me;
+    },
+
+<span id='Ext-dataview-Location-method-nextItem'>    /**
+</span>     * Returns a new Location object encapsulating the next item in the DataView.
+     * @param {Boolean/Object} [options] An options object or a boolean flag meaning wrap
+     * @param {Boolean} [options.wrap] `true` to wrap from the last to the first Location.
+     * @returns {Ext.dataview.Location} A *new* Location object representing the new location.
+     */
+    nextItem: function(options) {
+        var view = this.view,
+            item = this.child,
+            wrap = (typeof options === &#39;boolean&#39;) ? options : !!(options &amp;&amp; options.wrap),
+            nextItem;
+
+        if (view.isLastItem(item)) {
+            if (wrap) {
+                nextItem = view.getFirstItem();
+            } else {
+                return null;
+            }
+        } else {
+            nextItem = view.nextItem(item);
+        }
+
+        return new this.self(view, nextItem);
+    },
+
+<span id='Ext-dataview-Location-method-previousItem'>    /**
+</span>     * Returns a new Location object encapsulating the previous item in the DataView.
+     * @param {Boolean/Object} [options] An options object or a boolean flag meaning wrap
+     * @param {Boolean} [options.wrap] `true` to wrap from the first to the last Location.
+     * @returns {Ext.dataview.Location} A *new* Location object representing the new location.
+     */
+    previousItem: function(options) {
+        var view = this.view,
+            item = this.child,
+            wrap = (typeof options === &#39;boolean&#39;) ? options : !!(options &amp;&amp; options.wrap),
+            prevItem;
+
+        if (view.isFirstItem(item)) {
+            if (wrap) {
+                prevItem = view.getLastItem();
+            } else {
+                return null;
+            }
+        } else {
+            prevItem = view.previousItem(item);
+        }
+
+        return new this.self(view, prevItem);
+    }
+});
+</pre>
+</body>
+</html>

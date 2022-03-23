@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-axis-layout-CombineByIndex'>/**
+</span> * Discrete layout that combines duplicate data points only if they have the same index.
+ * For example:
+ *
+ *     @example
+ *     Ext.create({
+ *         xtype: &#39;cartesian&#39;,
+ *         title: &#39;Weight vs Calories&#39;,
+ *
+ *         renderTo: document.body,
+ *         width: 400,
+ *         height: 400,
+ *
+ *         store: {
+ *              fields: [&#39;month&#39;, &#39;weight&#39;, &#39;calories&#39;],
+ *              data: [
+ *                  {
+ *                      month: &#39;Jan&#39;,
+ *                      weight: 185,
+ *                      calories: 2650
+ *                  },
+ *                  {
+ *                      month: &#39;Jan&#39;,
+ *                      weight: 188,
+ *                      calories: 2800
+ *                  },
+ *                  {
+ *                      month: &#39;Feb&#39;,
+ *                      weight: 188,
+ *                      calories: 2800
+ *                  },
+ *                  {
+ *                      month: &#39;Mar&#39;,
+ *                      weight: 191,
+ *                      calories: 2800
+ *                  },
+ *                  {
+ *                      month: &#39;Apr&#39;,
+ *                      weight: 189,
+ *                      calories: 1500
+ *                  },
+ *                  {
+ *                      month: &#39;May&#39;,
+ *                      weight: 187,
+ *                      calories: 1350
+ *                  }
+ *              ]
+ *         },
+ *
+ *         axes: [{
+ *             type: &#39;numeric&#39;,
+ *             position: &#39;left&#39;,
+ *             fields: [&#39;weight&#39;],
+ *             minimum: 140
+ *         }, {
+ *             type: &#39;numeric&#39;,
+ *             position: &#39;right&#39;,
+ *             fields: [&#39;calories&#39;],
+ *             minimum: 500,
+ *             maximum: 3500
+ *         }, {
+ *             type: &#39;category&#39;,
+ *             grid: true,
+ *             layout: &#39;combineByIndex&#39;,
+ *             fields: &#39;month&#39;,
+ *             position: &#39;bottom&#39;,
+ *             label: {
+ *                 rotate: {
+ *                     degrees: -45
+ *                 }
+ *             }
+ *         }],
+ *
+ *         series: [{
+ *             type: &#39;line&#39;,
+ *             title: &#39;Weight&#39;,
+ *             xField: &#39;month&#39;,
+ *             yField: &#39;weight&#39;,
+ *             smooth: true,
+ *             marker: true
+ *         }, {
+ *             type: &#39;line&#39;,
+ *             title: &#39;Calories&#39;,
+ *             xField: &#39;month&#39;,
+ *             yField: &#39;calories&#39;,
+ *             smooth: true,
+ *             marker: true
+ *         }],
+ *
+ *         legend: {
+ *             docked: &#39;bottom&#39;
+ *         }
+ *
+ *     });
+ *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.chart.axis.layout.CombineByIndex&#39;, {
+    extend: &#39;Ext.chart.axis.layout.Discrete&#39;,
+    alias: &#39;axisLayout.combineByIndex&#39;,
+
+<span id='Ext-chart-axis-layout-CombineByIndex-method-getCoordFor'>    getCoordFor: function (value, field, idx, items) {
+</span>        var labels = this.labels,
+            result = idx;
+
+        if (labels[idx] !== value) {
+            result = labels.push(value) - 1;
+        }
+        return result;
+    }
+});</pre>
+</body>
+</html>

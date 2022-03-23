@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-Spinner'>/**
+</span> * Wraps a Ext.form.Number field to provide a number input field with up/down spinner button and
+ * optional step value for each spin up/down increment/decrement.
+ *
+ * Example usage:
+ *
+ *     @example
+ *     var spinner = Ext.create(&#39;Ext.field.Spinner&#39;, {
+ *         label: &#39;Spinner Field&#39;,
+ *         minValue: 0,
+ *         maxValue: 100,
+ *         stepValue: 2,
+ *         cycle: true
+ *     });
+ *     Ext.Viewport.add({ xtype: &#39;container&#39;, items: [spinner] });
+ *
+ */
+Ext.define(&#39;Ext.field.Spinner&#39;, {
+    extend: &#39;Ext.field.Number&#39;,
+    xtype: &#39;spinnerfield&#39;,
+    alternateClassName: &#39;Ext.form.Spinner&#39;,
+
+    requires: [
+        &#39;Ext.field.trigger.SpinDown&#39;,
+        &#39;Ext.field.trigger.SpinUp&#39;
+    ],
+
+<span id='Ext-field-Spinner-event-spin'>    /**
+</span>     * @event spin
+     * Fires when the value is changed via either spinner buttons.
+     * @param {Ext.field.Spinner} this
+     * @param {Number} value
+     * @param {String} direction &#39;up&#39; or &#39;down&#39;.
+     */
+
+<span id='Ext-field-Spinner-event-spindown'>    /**
+</span>     * @event spindown
+     * Fires when the value is changed via the spinner down button.
+     * @param {Ext.field.Spinner} this
+     * @param {Number} value
+     */
+
+<span id='Ext-field-Spinner-event-spinup'>    /**
+</span>     * @event spinup
+     * Fires when the value is changed via the spinner up button.
+     * @param {Ext.field.Spinner} this
+     * @param {Number} value
+     */
+
+<span id='Ext-field-Spinner-event-updatedata'>    /**
+</span>     * @event updatedata
+     * @hide
+     */
+
+<span id='Ext-field-Spinner-event-action'>    /**
+</span>     * @event action
+     * @hide
+     */
+
+    config: {
+<span id='Ext-field-Spinner-cfg-stepValue'>        /**
+</span>         * @cfg {Number} stepValue
+         * Value that is added or subtracted from the current value when a spinner
+         * is tapped.
+         */
+        stepValue: 1,
+
+<span id='Ext-field-Spinner-cfg-accelerateOnTapHold'>        /**
+</span>         * @cfg {Boolean} accelerateOnTapHold
+         * `true` if autorepeating should start slowly and accelerate.
+         */
+        accelerateOnTapHold: true,
+        
+
+<span id='Ext-field-Spinner-cfg-cycle'>        /**
+</span>         * @cfg {Boolean} cycle
+         * When set to `true`, it will loop the values of a minimum or maximum is
+         * reached. If the maximum value is reached, the value will be set to the
+         * minimum.
+         */
+        cycle: false,
+
+<span id='Ext-field-Spinner-cfg-clearable'>        /**
+</span>         * @cfg clearable
+         * @inheritdoc
+         */
+        clearable: false,
+
+<span id='Ext-field-Spinner-cfg-groupButtons'>        /**
+</span>         * @cfg {Boolean} groupButtons
+         * `true` if you want to group the buttons to the right of the fields. `false` if
+         * you want the buttons to be at either side of the field.
+         * @deprecated 6.2.0 This concern should be handled by the theme.
+         */
+        groupButtons: true
+    },
+
+<span id='Ext-field-Spinner-cfg-triggers'>    triggers: {
+</span>        spindown: {
+            type: &#39;spindown&#39;,
+            group: &#39;spin&#39;,
+            repeat: true
+        },
+        spinup: {
+            type: &#39;spinup&#39;,
+            group: &#39;spin&#39;,
+            repeat: true
+        }
+    },
+
+<span id='Ext-field-Spinner-cfg-value'>    /**
+</span>     * @cfg value
+     * @inheritdoc
+     */
+    value: 0,
+
+<span id='Ext-field-Spinner-cfg-decimals'>    /**
+</span>     * @cfg decimals
+     * @inheritdoc
+     */
+    decimals: 0,
+
+<span id='Ext-field-Spinner-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;spinnerfield&#39;,
+<span id='Ext-field-Spinner-property-groupedButtonsCls'>    groupedButtonsCls: Ext.baseCSSPrefix + &#39;grouped-buttons&#39;,
+</span>    
+<span id='Ext-field-Spinner-method-initElement'>    initElement: function() {
+</span>        this.callParent();
+        
+        this.inputElement.dom.readOnly = true;
+    },
+
+<span id='Ext-field-Spinner-method-updateGroupButtons'>    updateGroupButtons: function(groupButtons) {
+</span>        var downTrigger = this.getTriggers().spindown;
+
+        downTrigger.setGroup(groupButtons ? &#39;spin&#39; : null);
+        downTrigger.setSide(groupButtons ? null : &#39;left&#39;);
+    },
+
+<span id='Ext-field-Spinner-method-applyTriggers'>    applyTriggers: function(triggers, oldTriggers) {
+</span>        var accelerate = this.getAccelerateOnTapHold(),
+            upTrigger, downTrigger, upRepeat, downRepeat;
+
+        if (triggers &amp;&amp; accelerate) {
+            upTrigger = triggers.spinup;
+            downTrigger = triggers.spindown;
+            upRepeat = upTrigger.repeat;
+
+            if (upRepeat) {
+                upTrigger.repeat = Ext.apply({
+                    accelerate: accelerate
+                }, upRepeat);
+            }
+
+            downRepeat = downTrigger.repeat;
+
+            if (downRepeat) {
+                downTrigger.repeat = Ext.apply({
+                    accelerate: accelerate
+                }, downRepeat);
+            }
+        }
+
+        return this.callParent([triggers, oldTriggers]);
+    },
+
+<span id='Ext-field-Spinner-method-onKeyDown'>    onKeyDown: function(e) {
+</span>        var limit;
+        
+        if (this.getInputType() !== &#39;number&#39;) {
+            switch (e.getKey()) {
+                case e.UP:
+                    e.stopEvent();
+                    this.spin(false);
+                    break;
+                
+                case e.DOWN:
+                    e.stopEvent();
+                    this.spin(true);
+                    break;
+                
+                // Home and End keys: https://www.w3.org/TR/wai-aria-practices-1.1/#spinbutton
+                case e.HOME:
+                    limit = this.getMinValue();
+                    
+                    if (limit != null) {
+                        e.stopEvent();
+                        this.setValue(limit);
+                    }
+                    
+                    break;
+                
+                case e.END:
+                    limit = this.getMaxValue();
+                    
+                    if (limit != null) {
+                        e.stopEvent();
+                        this.setValue(limit);
+                    }
+                    
+                    break;
+            }
+        }
+        
+        this.callParent([e]);
+    },
+
+<span id='Ext-field-Spinner-method-onSpinDown'>    /**
+</span>     * @private
+     */
+    onSpinDown: function() {
+        if (!this.getDisabled() &amp;&amp; !this.getReadOnly()) {
+            this.spin(true);
+        }
+    },
+
+<span id='Ext-field-Spinner-method-onSpinUp'>    /**
+</span>     * @private
+     */
+    onSpinUp: function() {
+        if (!this.getDisabled() &amp;&amp; !this.getReadOnly()) {
+            this.spin(false);
+        }
+    },
+
+<span id='Ext-field-Spinner-method-spin'>    /**
+</span>     * @private
+     */
+    spin: function(down) {
+        var me = this,
+            originalValue = me.getValue(),
+            stepValue = me.getStepValue(),
+            direction = down ? &#39;down&#39; : &#39;up&#39;,
+            minValue = me.getMinValue(),
+            maxValue = me.getMaxValue(),
+            value;
+
+        if (down) {
+            value = originalValue - stepValue;
+        }
+        else {
+            value = originalValue + stepValue;
+        }
+
+        //if cycle is true, then we need to check fi the value hasn&#39;t changed and we cycle the value
+        if (me.getCycle()) {
+            if (originalValue == minValue &amp;&amp; value &lt; minValue) {
+                value = maxValue;
+            }
+
+            if (originalValue == maxValue &amp;&amp; value &gt; maxValue) {
+                value = minValue;
+            }
+        }
+        else if (minValue != null &amp;&amp; value &lt; minValue) {
+            value = minValue;
+        }
+        else if (maxValue != null &amp;&amp; value &gt; maxValue) {
+            value = maxValue;
+        }
+
+        me.spinning = true;
+        me.setValue(value);
+        me.spinning = false;
+        value = me.getValue();
+
+        me.fireEvent(&#39;spin&#39;, me, value, direction);
+        me.fireEvent(&#39;spin&#39; + direction, me, value);
+    },
+
+<span id='Ext-field-Spinner-property-privates'>    privates: {
+</span>        spinning: false,
+
+        canSetInputValue: function() {
+            return this.spinning || this.callParent();
+        }
+    }
+});
+</pre>
+</body>
+</html>

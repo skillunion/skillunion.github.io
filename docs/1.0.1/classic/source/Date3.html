@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-validator-Date'>/**
+</span> * Validates that the value is a valid date.
+ */
+Ext.define(&#39;Ext.data.validator.Date&#39;, {
+    extend: &#39;Ext.data.validator.AbstractDate&#39;,
+    alias: &#39;data.validator.date&#39;,
+
+<span id='Ext-data-validator-Date-property-type'>    type: &#39;date&#39;,
+</span>
+<span id='Ext-data-validator-Date-property-isDateValidator'>    isDateValidator: true,
+</span>
+<span id='Ext-data-validator-Date-cfg-message'>    /**
+</span>     * @cfg {String} message
+     * The error message to return when the value is not a valid date.
+     * @locale
+     */
+    message: &#39;Is not a valid date&#39;,
+
+<span id='Ext-data-validator-Date-cfg-format'>    /**
+</span>     * @cfg {String/String[]} format
+     * The format(s) to allow. See {@link Ext.Date}. Defaults to {@link Ext.Date#defaultFormat}
+     * @locale
+     */
+
+    privates: {
+        getDefaultFormat: function() {
+            return [
+                Ext.Date.defaultFormat,
+                &#39;m/d/Y&#39;,
+                &#39;n/j/Y&#39;,
+                &#39;n/j/y&#39;,
+                &#39;m/j/y&#39;,
+                &#39;n/d/y&#39;,
+                &#39;m/j/Y&#39;,
+                &#39;n/d/Y&#39;,
+                &#39;m-d-y&#39;,
+                &#39;n-d-y&#39;,
+                &#39;m-d-Y&#39;,
+                &#39;mdy&#39;,
+                &#39;mdY&#39;,
+                &#39;Y-m-d&#39;
+            ];
+        }
+    }
+});
+</pre>
+</body>
+</html>

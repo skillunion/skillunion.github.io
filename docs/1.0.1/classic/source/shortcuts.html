@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * This file defines the core framework &quot;shortcuts&quot;. These are the modes and states of the
+ * various components keyed by their xtype.
+ * 
+ * To add more shortcuts for an xtype to a derived theme, call Ext.theme.addShortcuts in
+ * a theme-specific file and script tag that file in to that theme&#39;s &#39;theme.html&#39; file.
+ */
+Ext.theme.addShortcuts({
+    &#39;tooltip&#39;: [{
+        setup: function(component, ct) {
+            component.render(ct);
+            component.showBy(ct);
+            ct.setHeight(component.getHeight());
+            ct.el.dom.appendChild(component.el.dom);
+            component.el.setLeft(0);
+            component.el.setTop(0);
+        },
+        config: {
+            width: 100,
+            height: 40,
+            hide: function(){}
+        }
+    }],
+
+    &#39;widget.buttongroup&#39;: [
+        {
+            folder: &#39;btn-group&#39;,
+            filename: &#39;btn-group-{ui}-framed-notitle&#39;,
+            config: {
+                columns: 2,
+                defaults: {
+                    scale: &#39;small&#39;
+                },
+                items: [{
+                    xtype:&#39;splitbutton&#39;,
+                    text: &#39;Menu Button&#39;,
+                    iconCls: &#39;add16&#39;,
+                    menu: [{text: &#39;Menu Item 1&#39;}]
+                },{
+                    xtype:&#39;splitbutton&#39;,
+                    text: &#39;Cut&#39;,
+                    iconCls: &#39;add16&#39;,
+                    menu: [{text: &#39;Cut Menu Item&#39;}]
+                },{
+                    text: &#39;Copy&#39;,
+                    iconCls: &#39;add16&#39;
+                },{
+                    text: &#39;Paste&#39;,
+                    iconCls: &#39;add16&#39;,
+                    menu: [{text: &#39;Paste Menu Item&#39;}]
+                },{
+                    text: &#39;Format&#39;,
+                    iconCls: &#39;add16&#39;
+                }]
+            }
+        },
+        {
+            folder: &#39;btn-group&#39;,
+            filename: &#39;btn-group-{ui}-framed&#39;,
+            config: {
+                columns: 2,
+                title: &#39;Manifest&#39;,
+                defaults: {
+                    scale: &#39;small&#39;
+                },
+                items: [{
+                    xtype:&#39;splitbutton&#39;,
+                    text: &#39;Menu Button&#39;,
+                    iconCls: &#39;add16&#39;,
+                    menu: [{text: &#39;Menu Item 1&#39;}]
+                },{
+                    xtype:&#39;splitbutton&#39;,
+                    text: &#39;Cut&#39;,
+                    iconCls: &#39;add16&#39;,
+                    menu: [{text: &#39;Cut Menu Item&#39;}]
+                },{
+                    text: &#39;Copy&#39;,
+                    iconCls: &#39;add16&#39;
+                },{
+                    text: &#39;Paste&#39;,
+                    iconCls: &#39;add16&#39;,
+                    menu: [{text: &#39;Paste Menu Item&#39;}]
+                },{
+                    text: &#39;Format&#39;,
+                    iconCls: &#39;add16&#39;
+                }]
+            }
+        }
+    ],
+
+    &#39;widget.progressbar&#39;: [
+        {
+            xtype: &#39;widget.progressbar&#39;,
+            folder: &#39;progress&#39;,
+            filename: &#39;progress-{ui}&#39;,
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;progress-bar&#39;,
+            config: {
+                width: 100,
+                value: 1,
+                animate: false
+            }
+        }
+    ],
+
+    &#39;widget.tabbar&#39;: [
+        {
+            xtype: &#39;widget.tabbar&#39;,
+            filename: &#39;tab-bar-{ui}&#39;,
+            folder: &#39;tab-bar&#39;,
+            config: {
+                orientation: &#39;horizontal&#39;,
+                dock: &#39;top&#39;,
+                width: 100,
+                listeners: {
+                    render: function(tabbar) {
+                        tabbar.strip.hide();
+                    }
+                }
+            }
+        },
+        {
+            xtype: &#39;widget.tabbar&#39;,
+            filename: &#39;tab-bar-{ui}&#39;,
+            folder: &#39;tab-bar&#39;,
+            config: {
+                orientation: &#39;vertical&#39;,
+                dock: &#39;right&#39;,
+                height: 100,
+                listeners: {
+                    render: function(tabbar) {
+                        tabbar.strip.hide();
+                    }
+                }
+            }
+        },
+        {
+            xtype: &#39;widget.tabbar&#39;,
+            filename: &#39;tab-bar-{ui}&#39;,
+            folder: &#39;tab-bar&#39;,
+            config: {
+                orientation: &#39;horizontal&#39;,
+                dock: &#39;bottom&#39;,
+                width: 100,
+                listeners: {
+                    render: function(tabbar) {
+                        tabbar.strip.hide();
+                    }
+                }
+            }
+        },
+        {
+            xtype: &#39;widget.tabbar&#39;,
+            filename: &#39;tab-bar-{ui}&#39;,
+            folder: &#39;tab-bar&#39;,
+            config: {
+                orientation: &#39;vertical&#39;,
+                dock: &#39;left&#39;,
+                height: 100,
+                listeners: {
+                    render: function(tabbar) {
+                        tabbar.strip.hide();
+                    }
+                }
+            }
+        }
+    ],
+
+    &#39;widget.tab&#39;: [
+        {
+            filename: &#39;tab-{ui}-top&#39;,
+            config: {
+                text: &#39;Normal Top Tab&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-top-focus&#39;,
+            config: {
+                text: &#39;Focused Top Tab&#39;,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-top-active&#39;,
+            config: {
+                text: &#39;Active Top Tab&#39;,
+                active: true,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-top-over&#39;,
+            over: true,
+            config: {
+                text: &#39;Over Top Tab&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-top-focus-active&#39;,
+            config: {
+                text: &#39;Focused Active Top Tab&#39;,
+                active: true,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-top-focus-over&#39;,
+            over: true,
+            config: {
+                text: &#39;Focused Over Top Tab&#39;,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-top-disabled&#39;,
+            config: {
+                text: &#39;Disabled Top Tab&#39;,
+                closable: false,
+                disabled: true
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-right&#39;,
+            config: {
+                text: &#39;Normal Right Tab&#39;,
+                tabPosition: &#39;right&#39;,
+                rotation: 0,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-right-focus&#39;,
+            config: {
+                text: &#39;Focused Right Tab&#39;,
+                tabPosition: &#39;right&#39;,
+                rotation: 0,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-right-active&#39;,
+            config: {
+                text: &#39;Active Right Tab&#39;,
+                tabPosition: &#39;right&#39;,
+                rotation: 0,
+                active: true,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-right-over&#39;,
+            over: true,
+            config: {
+                text: &#39;Over Right Tab&#39;,
+                tabPosition: &#39;right&#39;,
+                rotation: 0,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-right-focus-active&#39;,
+            config: {
+                text: &#39;Focused Active Right Tab&#39;,
+                tabPosition: &#39;right&#39;,
+                rotation: 0,
+                active: true,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-right-focus-over&#39;,
+            over: true,
+            config: {
+                text: &#39;Focused Over Right Tab&#39;,
+                tabPosition: &#39;right&#39;,
+                rotation: 0,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-right-disabled&#39;,
+            config: {
+                text: &#39;Disabled Right Tab&#39;,
+                tabPosition: &#39;right&#39;,
+                rotation: 0,
+                closable: false,
+                disabled: true
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-bottom&#39;,
+            config: {
+                text: &#39;Normal Bottom Tab&#39;,
+                tabPosition: &#39;bottom&#39;,
+                rotation: 0,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-bottom-focus&#39;,
+            config: {
+                text: &#39;Focused Bottom Tab&#39;,
+                tabPosition: &#39;bottom&#39;,
+                rotation: 0,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-bottom-active&#39;,
+            config: {
+                text: &#39;Active Bottom Tab&#39;,
+                tabPosition: &#39;bottom&#39;,
+                rotation: 0,
+                active: true,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-bottom-over&#39;,
+            over: true,
+            config: {
+                text: &#39;Over Bottom Tab&#39;,
+                tabPosition: &#39;bottom&#39;,
+                rotation: 0,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-bottom-focus-active&#39;,
+            config: {
+                text: &#39;Focused Active Bottom Tab&#39;,
+                tabPosition: &#39;bottom&#39;,
+                rotation: 0,
+                active: true,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-bottom-focus-over&#39;,
+            over: true,
+            config: {
+                text: &#39;Focused Over Bottom Tab&#39;,
+                tabPosition: &#39;bottom&#39;,
+                rotation: 0,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-bottom-disabled&#39;,
+            config: {
+                text: &#39;Disabled Bottom Tab&#39;,
+                tabPosition: &#39;bottom&#39;,
+                rotation: 0,
+                closable: false,
+                disabled: true
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-left&#39;,
+            config: {
+                text: &#39;Normal left Tab&#39;,
+                tabPosition: &#39;left&#39;,
+                rotation: 0,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-left-focus&#39;,
+            config: {
+                text: &#39;Focused Left Tab&#39;,
+                tabPosition: &#39;left&#39;,
+                rotation: 0,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-left-active&#39;,
+            config: {
+                text: &#39;Active left Tab&#39;,
+                tabPosition: &#39;left&#39;,
+                rotation: 0,
+                active: true,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-left-over&#39;,
+            over: true,
+            config: {
+                text: &#39;Over left Tab&#39;,
+                tabPosition: &#39;left&#39;,
+                rotation: 0,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-left-focus-active&#39;,
+            config: {
+                text: &#39;Focused Active Left Tab&#39;,
+                tabPosition: &#39;left&#39;,
+                rotation: 0,
+                active: true,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-left-focus-over&#39;,
+            over: true,
+            config: {
+                text: &#39;Focused Over Left Tab&#39;,
+                tabPosition: &#39;left&#39;,
+                rotation: 0,
+                cls: Ext.baseCSSPrefix + &#39;tab-focus&#39;,
+                closable: false
+            }
+        },
+        {
+            filename: &#39;tab-{ui}-left-disabled&#39;,
+            config: {
+                text: &#39;Disabled left Tab&#39;,
+                tabPosition: &#39;left&#39;,
+                rotation: 0,
+                closable: false,
+                disabled: true
+            }
+        }
+    ],
+
+    &#39;widget.window&#39;: [
+        // Floating
+        {
+            filename: &#39;window-{ui}&#39;,
+            config: {
+                header: false,
+                resizable: false,
+                height: 200,
+                width: 200
+            }
+        },
+        // window w/header
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;window-header&#39;,
+            config: {
+                title: &#39;Top Window&#39;,
+                closable: false,
+                width: 200,
+                html: &#39;&amp;#160;&#39;,
+                headerPosition: &#39;top&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;window-header&#39;,
+            config: {
+                title: &#39;Bottom Window&#39;,
+                closable: false,
+                width: 200,
+                html: &#39;&amp;#160;&#39;,
+                headerPosition: &#39;bottom&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;window-header&#39;,
+            config: {
+                title: &#39;Left Window&#39;,
+                closable: false,
+                height: 200,
+                width: 200,
+                headerPosition: &#39;left&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;window-header&#39;,
+            config: {
+                title: &#39;Right Window&#39;,
+                closable: false,
+                height: 200,
+                width: 200,
+                headerPosition: &#39;right&#39;
+            }
+        },
+        // collapsed window w/header
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;window-header&#39;,
+            config: {
+                title: &#39;Top Collapsed&#39;,
+                collapsed: true,
+                closable: false,
+                expandOnShow: false,
+                width: 200,
+                headerPosition: &#39;top&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;window-header&#39;,
+            config: {
+                title: &#39;Bottom Collapsed&#39;,
+                collapsed: true,
+                closable: false,
+                expandOnShow: false,
+                width: 200,
+                headerPosition: &#39;bottom&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;window-header&#39;,
+            config: {
+                title: &#39;Left Collapsed&#39;,
+                collapsed: true,
+                closable: false,
+                expandOnShow: false,
+                height: 200,
+                width: 200,
+                headerPosition: &#39;left&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;window-header&#39;,
+            config: {
+                title: &#39;Right Collapsed&#39;,
+                collapsed: true,
+                closable: false,
+                expandOnShow: false,
+                height: 200,
+                width: 200,
+                headerPosition: &#39;right&#39;
+            }
+        }
+    ], // window
+
+    &#39;widget.panel&#39;: [
+        {
+            config: {
+                width: 200,
+                height: 200,
+                frame: true,
+                bodyPadding: 20,
+                html: &#39;Framed panel&#39;
+            }
+        },
+        // panel w/header
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Top&#39;,
+                width: 200,
+                html: &#39;&amp;#160;&#39;,
+                headerPosition: &#39;top&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Bottom&#39;,
+                width: 200,
+                html: &#39;&amp;#160;&#39;,
+                headerPosition: &#39;bottom&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Left&#39;,
+                height: 200,
+                width: 200,
+                headerPosition: &#39;left&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Right&#39;,
+                height: 200,
+                width: 200,
+                headerPosition: &#39;right&#39;
+            }
+        },
+        // framed panel w/header
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Top Framed&#39;,
+                width: 200,
+                frame: true,
+                html: &#39;&amp;#160;&#39;,
+                headerPosition: &#39;top&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Bottom Framed&#39;,
+                width: 200,
+                frame: true,
+                html: &#39;&amp;#160;&#39;,
+                headerPosition: &#39;bottom&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Left Framed&#39;,
+                height: 200,
+                width: 200,
+                frame: true,
+                headerPosition: &#39;left&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Right Framed&#39;,
+                height: 200,
+                width: 200,
+                frame: true,
+                headerPosition: &#39;right&#39;
+            }
+        },
+        // collapsed framed panel w/header
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Top Framed/Collapsed&#39;,
+                collapsed: true,
+                width: 200,
+                frame: true,
+                headerPosition: &#39;top&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Bottom Framed/Collapsed&#39;,
+                collapsed: true,
+                width: 200,
+                frame: true,
+                headerPosition: &#39;bottom&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Left Framed/Collapsed&#39;,
+                collapsed: true,
+                height: 200,
+                width: 200,
+                frame: true,
+                headerPosition: &#39;left&#39;
+            }
+        },
+        {
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;panel-header&#39;,
+            config: {
+                title: &#39;Right Framed/Collapsed&#39;,
+                collapsed: true,
+                height: 200,
+                width: 200,
+                frame: true,
+                headerPosition: &#39;right&#39;
+            }
+        }
+    ],
+
+    &#39;widget.toolbar&#39;: [
+        {
+            filename: &#39;toolbar-{ui}&#39;,
+            config: {
+                width: 200,
+                items: [{
+                    text: &#39;test&#39;
+                }]
+            }
+        }
+    ],
+
+    &#39;widget.button&#39;: [
+        //small button
+        {
+            filename: &#39;btn-{ui}-small&#39;,
+            config: {
+                scale: &#39;small&#39;,
+                text: &#39;&amp;#160;&#39;, 
+                width: 100
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-small-over&#39;,
+            over: true,
+            config: {
+                scale: &#39;small&#39;,
+                text: &#39;&amp;#160;&#39;,
+                width: 100
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-small-focus&#39;,
+            config: {
+                scale: &#39;small&#39;,
+                text: &#39;&amp;#160;&#39;,
+                width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-focus&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-small-pressed&#39;,
+            config: {
+                scale: &#39;small&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-pressed&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-small-focus-over&#39;,
+            config: {
+                scale: &#39;small&#39;,
+                text: &#39;&amp;#160;&#39;,
+                width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-focus &#39; + Ext.baseCSSPrefix + &#39;btn-over&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-small-focus-pressed&#39;,
+            config: {
+                scale: &#39;small&#39;,
+                text: &#39;&amp;#160;&#39;,
+                width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-focus &#39; + Ext.baseCSSPrefix + &#39;btn-pressed&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-small-disabled&#39;,
+            config: {
+                scale: &#39;small&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100,
+                disabled: true
+            }
+        },
+
+        //medium button
+        {
+            filename: &#39;btn-{ui}-medium&#39;,
+            config: {
+                scale: &#39;medium&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-medium-over&#39;,
+            over: true,
+            config: {
+                scale: &#39;medium&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-medium-focus&#39;,
+            config: {
+                scale: &#39;medium&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-focus&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-medium-pressed&#39;,
+            config: {
+                scale: &#39;medium&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-pressed&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-medium-focus-over&#39;,
+            config: {
+                scale: &#39;medium&#39;,
+                text: &#39;&amp;#160;&#39;,
+                width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-focus &#39; + Ext.baseCSSPrefix + &#39;btn-over&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-medium-focus-pressed&#39;,
+            config: {
+                scale: &#39;medium&#39;,
+                text: &#39;&amp;#160;&#39;,
+                width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-focus &#39; + Ext.baseCSSPrefix + &#39;btn-pressed&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-medium-disabled&#39;,
+            config: {
+                scale: &#39;medium&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100,
+                disabled: true
+            }
+        },
+
+        //large button
+        {
+            filename: &#39;btn-{ui}-large&#39;,
+            config: {
+                scale: &#39;large&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-large-over&#39;,
+            over: true,
+            config: {
+                scale: &#39;large&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-large-focus&#39;,
+            config: {
+                scale: &#39;large&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-focus&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-large-pressed&#39;,
+            config: {
+                scale: &#39;large&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-pressed&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-large-focus-over&#39;,
+            config: {
+                scale: &#39;large&#39;,
+                text: &#39;&amp;#160;&#39;,
+                width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-focus &#39; + Ext.baseCSSPrefix + &#39;btn-over&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-large-focus-pressed&#39;,
+            config: {
+                scale: &#39;large&#39;,
+                text: &#39;&amp;#160;&#39;,
+                width: 100,
+                cls: Ext.baseCSSPrefix + &#39;btn-focus &#39; + Ext.baseCSSPrefix + &#39;btn-pressed&#39;
+            }
+        },
+        {
+            filename: &#39;btn-{ui}-large-disabled&#39;,
+            config: {
+                scale: &#39;large&#39;,
+                text: &#39;&amp;#160;&#39;,
+				width: 100,
+                disabled: true
+            }
+        }
+    ],
+
+    &#39;widget.roweditorbuttons&#39;: [
+        {
+            config: {
+                position: &#39;bottom&#39;,
+                style: &#39;position:static&#39;,
+                rowEditor: {
+                    buttonUI: &#39;default-toolbar&#39;,
+                    saveBtnText: &#39;Update&#39;,
+                    cancelBtnText: &#39;Cancel&#39;,
+                    editingPlugin: {
+                        completeEdit: Ext.emptyFn,
+                        cancelEdit: Ext.emptyFn
+                    }
+                }
+            }
+        },
+        {
+            config: {
+                position: &#39;top&#39;,
+                style: &#39;position:static&#39;,
+                rowEditor: {
+                    buttonUI: &#39;default-toolbar&#39;,
+                    saveBtnText: &#39;Update&#39;,
+                    cancelBtnText: &#39;Cancel&#39;,
+                    editingPlugin: {
+                        completeEdit: Ext.emptyFn,
+                        cancelEdit: Ext.emptyFn
+                    }
+                }
+            }
+        }
+    ]
+});
+</pre>
+</body>
+</html>

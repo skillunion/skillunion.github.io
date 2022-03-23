@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-TextArea'>/**
+</span> * Creates an HTML textarea field on the page. This is useful whenever you need the user to enter large amounts of text
+ * (i.e. more than a few words). Typically, text entry on mobile devices is not a pleasant experience for the user so
+ * it&#39;s good to limit your use of text areas to only those occasions when free form text is required or alternative
+ * input methods like select boxes or radio buttons are not possible. Text Areas are usually created inside forms, like
+ * this:
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         fullscreen: true,
+ *         items: [
+ *             {
+ *                 xtype: &#39;fieldset&#39;,
+ *                 title: &#39;About you&#39;,
+ *                 items: [
+ *                     {
+ *                         xtype: &#39;textfield&#39;,
+ *                         label: &#39;Name&#39;,
+ *                         name: &#39;name&#39;
+ *                     },
+ *                     {
+ *                         xtype: &#39;textareafield&#39;,
+ *                         label: &#39;Bio&#39;,
+ *                         maxRows: 4,
+ *                         name: &#39;bio&#39;
+ *                     }
+ *                 ]
+ *             }
+ *         ]
+ *     });
+ *
+ * In the example above we&#39;re creating a form with a {@link Ext.field.Text text field} for the user&#39;s name and a text
+ * area for their bio. We used the {@link #maxRows} configuration on the text area to tell it to grow to a maximum of 4
+ * rows of text before it starts using a scroll bar inside the text area to scroll the text.
+ *
+ * We can also create a text area outside the context of a form, like this:
+ *
+ * This creates two text fields inside a form. Text Fields can also be created outside of a Form, like this:
+ *
+ *     Ext.create(&#39;Ext.field.TextArea&#39;, {
+ *         label: &#39;About You&#39;,
+ *         placeHolder: &#39;Tell us about yourself...&#39;
+ *     });
+ */
+Ext.define(&#39;Ext.field.TextArea&#39;, {
+    extend: &#39;Ext.field.Text&#39;,
+    xtype: &#39;textareafield&#39;,
+    
+    alternateClassName: &#39;Ext.form.TextArea&#39;,
+
+    config: {
+<span id='Ext-field-TextArea-cfg-autoCapitalize'>        /**
+</span>         * @cfg autoCapitalize
+         * @inheritdoc
+         */
+        autoCapitalize: false,
+
+<span id='Ext-field-TextArea-cfg-maxRows'>        /**
+</span>         * @cfg {Number} maxRows
+         * The maximum number of lines made visible by the input.
+         */
+        maxRows: null,
+
+<span id='Ext-field-TextArea-cfg-clearable'>        /**
+</span>         * @cfg clearable
+         * @inheritdoc
+         */
+        clearable: false
+    },
+
+<span id='Ext-field-TextArea-property-tag'>    /**
+</span>     * @property tag
+     * @inheritdoc
+     */
+    tag: &#39;textarea&#39;,
+
+<span id='Ext-field-TextArea-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;textareafield&#39;,
+
+<span id='Ext-field-TextArea-method-applyMaxRows'>    //&lt;debug&gt;
+</span>    applyMaxRows: function(maxRows) {
+        if (maxRows !== null &amp;&amp; typeof maxRows !== &#39;number&#39;) {
+            throw new Error(&quot;Ext.field.TextArea: [applyMaxRows] trying to pass a value which is not a number&quot;);
+        }
+
+        return maxRows;
+    },
+<span id='Ext-field-TextArea-method-updateMaxRows'>    //&lt;/debug&gt;
+</span>
+    updateMaxRows: function(newRows) {
+        this.setInputAttribute(&#39;rows&#39;, newRows);
+    },
+
+<span id='Ext-field-TextArea-method-doKeyUp'>    doKeyUp: function(me) {
+</span>        // Do not call parent - we don&#39;t want to fire action on enter key press
+        this.syncEmptyState();
+    }
+});
+</pre>
+</body>
+</html>

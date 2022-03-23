@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}float-wrap {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    overflow: visible;
+
+    &gt; .#{$prefix}floated {
+        position: absolute;
+        pointer-events: all;
+    }
+}
+
+// All floatWraps must be above inline components which may have z-indices assigned, so
+// elevate the root float wrap..
+#ext-global-floatWrap {
+    z-index: 999999;
+}
+
+// 100vh works on chromeios, 100% causes the body to be able
+// to be scrolled out of view.
+body.#{$prefix}chromeios {
+    height: 100vh !important;
+    .#{$prefix}float-wrap {
+        height: 100vh;
+    }
+}
+</pre>
+</body>
+</html>

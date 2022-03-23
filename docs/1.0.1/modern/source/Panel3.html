@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Panel'>/**
+</span> * Panels are {@link Ext.Container containers} with an optional 
+ * {@link Ext.panel.Header header} that can be positioned using the 
+ * {@link #cfg-headerPosition headerPosition} config option.
+ * 
+ * Panels add extra functionality by providing various options for configuring a header
+ * that is docked inside the panel.  Setting any of the following panel config options 
+ * will automatically create a header:
+ * - {@link #cfg-title title}
+ * - {@link #cfg-iconCls iconCls}
+ * - {@link #cfg-icon icon}
+ * - {@link #cfg-tools tools}
+ * - {@link #cfg-closable closable}
+ *
+ * It is also possible to configure the header directly using the {@link #header}
+ * configuration. See {@link Ext.panel.Header} for more information.
+ * 
+ * ### Simple Panel Example (with body text / html)
+ * 
+ * Usually, Panels are used as constituents within an
+ * {@link Ext.app.Application application}, in which case, they
+ * would be used as child items of {@link Ext.Container Containers}, and would themselves
+ * use {@link Ext.Component Ext.Components} as child {@link #cfg-items items}. However,
+ * to illustrate simply rendering a Panel into the document, here&#39;s how to do it:
+ * 
+ *     @example
+ *     Ext.create({
+ *         xtype: &#39;panel&#39;,
+ *         title: &#39;Panel Title&#39;,
+ *         iconCls: &#39;x-fa fa-html5&#39;,
+ *         height: 400,
+ *         width: 400,
+ *         bodyPadding: 12,
+ *         html: &#39;Sample HTML text&#39;,
+ *         renderTo: Ext.getBody()
+ *     });
+ * 
+ * ### Panel Example (with child items)
+ * 
+ * Panels are, by virtue of their inheritance from {@link Ext.Container}, capable of 
+ * being configured with a {@link Ext.Container#layout layout}, and containing child
+ * {@link Ext.Component Components}.
+ *
+ *     @example
+ *     Ext.create({
+ *         xtype: &#39;panel&#39;,
+ *         bodyPadding: true, // don&#39;t want content to crunch against the borders
+ *         width: 300,
+ *         title: &#39;Filters&#39;,
+ *         items: [{
+ *             xtype: &#39;datefield&#39;,
+ *             label: &#39;Start date&#39;
+ *         }, {
+ *             xtype: &#39;datefield&#39;,
+ *             label: &#39;End date&#39;
+ *         }],
+ *         renderTo: Ext.getBody()
+ *     });
+ * 
+ * Panel also provides built-in {@link #cfg-collapsible collapsible, expandable}, and
+ * {@link #cfg-closable closable} behavior. Panels can be easily dropped into any 
+ * {@link Ext.Container Container} or layout, and the layout and rendering pipeline
+ * is {@link Ext.Container#method-add completely managed by the framework}.
+ *
+ * ### Floating Panels
+ * 
+ * Panels are also useful as Overlays - containers that float over your application.
+ * If configured with `{@link #cfg-anchor anchor}` set to `true`, when you
+ * {@link #method-showBy showBy} another component, there will be an anchor arrow
+ * pointing to the reference component.
+ * 
+ *     @example
+ *     var panel = Ext.create({
+ *         xtype: &#39;panel&#39;,
+ *         title: &#39;Floated&#39;,
+ *         bodyPadding: true,
+ *         html: &#39;context panel text&#39;,
+ *         // the panel will be hidden until shown
+ *         floated: true,
+ *         // adds the close tool in the panel header
+ *         closable: true,
+ *         // hides, rather than destroys the closed panel
+ *         closeAction: &#39;hide&#39;,
+ *         anchor: true
+ *     });
+ *     
+ *     Ext.create({
+ *         xtype: &#39;button&#39;,
+ *         text: &#39;Show Popup&#39;,
+ *         margin: 20,
+ *         // shows the floated panel next to the button
+ *         handler: function () {
+ *             panel.showBy(this, &#39;tl-bl&#39;);
+ *         },
+ *         renderTo: Ext.getBody()
+ *     });
+ * 
+ * **Note:** By default, the `{@link #cfg-closable close}` header tool _destroys_ the 
+ * Panel resulting in removal of the Panel and the destruction of any descendant
+ * Components. This makes the Panel object, and all its descendants **unusable**. To 
+ * enable the close tool to simply _hide_ a Panel for later re-use, configure the Panel
+ * with `{@link #closeAction closeAction}: &#39;hide&#39;`.
+ */
+Ext.define(&#39;Ext.Panel&#39;, function (Panel) {
+    var mac = Ext.platformTags.ios || Ext.platformTags.mac;
+
+return { // do not indent :)
+    extend: &#39;Ext.Container&#39;,
+    xtype: &#39;panel&#39;,
+
+    mixins: [
+        &#39;Ext.mixin.Toolable&#39;
+    ],
+
+    requires: [
+        &#39;Ext.layout.Box&#39;,
+        &#39;Ext.Toolbar&#39;
+    ],
+
+    alternateClassName: &#39;Ext.panel.Panel&#39;,
+
+<span id='Ext-Panel-property-defaultBindProperty'>    /**
+</span>     * @property defaultBindProperty
+     * @inheritdoc
+     */
+    defaultBindProperty: &#39;title&#39;,
+
+<span id='Ext-Panel-property-isPanel'>    isPanel: true,
+</span>
+    config: {
+<span id='Ext-Panel-cfg-headerPosition'>        /**
+</span>         * @cfg {&#39;top&#39;/&#39;right&#39;/&#39;bottom&#39;/&#39;left&#39;} headerPosition
+         * The position of the header. Ignored if no {@link #cfg-header} is created.
+         *
+         * @since 6.5.0
+         */
+        headerPosition: &#39;top&#39;,
+
+<span id='Ext-Panel-cfg-header'>        /**
+</span>         * @cfg {Boolean/Object} header
+         * Pass as `false` to prevent a header from being created.
+         *
+         * You may also assign a header with a config object (optionally containing an
+         * `xtype`) to custom-configure your panel&#39;s header.
+         *
+         * See {@link Ext.panel.Header} for all the options that may be specified here.
+         */
+        header: null,
+
+<span id='Ext-Panel-cfg-icon'>        /**
+</span>         * @cfg icon
+         * @inheritdoc Ext.panel.Header#cfg-icon
+         */
+        icon: null,
+
+<span id='Ext-Panel-cfg-iconCls'>        /**
+</span>         * @cfg iconCls
+         * @inheritdoc Ext.panel.Header#cfg-iconCls
+         */
+        iconCls: null,
+
+<span id='Ext-Panel-cfg-iconAlign'>        /**
+</span>         * @cfg [iconAlign=&#39;left&#39;]
+         * @inheritdoc Ext.panel.Header#cfg-iconAlign
+         */
+        iconAlign: null,
+
+<span id='Ext-Panel-cfg-title'>        /**
+</span>         * @cfg title
+         * @inheritdoc Ext.panel.Header#cfg-title
+         */
+        title: null,
+
+<span id='Ext-Panel-cfg-titleAlign'>        /**
+</span>         * @cfg [titleAlign=&#39;left&#39;]
+         * @inheritdoc Ext.panel.Header#cfg-titleAlign
+         */
+        titleAlign: null,
+
+<span id='Ext-Panel-cfg-anchor'>        /**
+</span>         * @cfg {Boolean} [anchor=false]
+         * Configure `true` to show an anchor element pointing to the target component
+         * when this Panel is floating and {@link #showBy shown by} another component.
+         */
+        anchor: null,
+
+<span id='Ext-Panel-cfg-anchorPosition'>        /**
+</span>         * @cfg {String} anchorPosition
+         * Set the anchor position.
+         *
+         * @private
+         */
+        anchorPosition: null,
+
+<span id='Ext-Panel-cfg-closable'>        /**
+</span>         * @cfg {Boolean} closable
+         * True to display the &#39;close&#39; tool button and allow the user to close the panel
+         * or false to hide the button and disallow closing the window.
+         *
+         * By default, when close is requested by clicking the close button in the
+         * header, the {@link #method-close} method will be called. This will 
+         * _{@link Ext.Component#method-destroy destroy}_ the Panel and its content 
+         * meaning that it may not be reused.
+         *
+         * To make closing a Panel _hide_ the Panel so that it may be reused, set 
+         * {@link #closeAction} to &#39;hide&#39;.
+         */
+        closable: null,
+
+<span id='Ext-Panel-cfg-buttonAlign'>        /**
+</span>         * @cfg {String} [buttonAlign=&#39;center&#39;]
+         * The alignment of any buttons added to this panel. Valid values are &#39;right&#39;,
+         * &#39;left&#39; and &#39;center&#39;
+         * @since 6.5.0
+         */
+        buttonAlign: null,
+
+<span id='Ext-Panel-cfg-buttonDefaults'>        buttonDefaults: null,
+</span>
+<span id='Ext-Panel-cfg-standardButtons'>        /**
+</span>         * @cfg {Object} standardButtons
+         * This object contains config objects for the standard `buttons` (such as `OK`
+         * and `Cancel`). This object is keyed by the `itemId` for the button and
+         * contains the `text` and a default `weight` for
+         * {@link Ext.Container#cfg!weighted weighted} containers to use. These default
+         * weights vary by OS to provide the user with a button order that is consistent
+         * for their platform. In particular, Windows and Linux (or rather all platforms
+         * other then Mac OS and iOS) present the `OK` button followed by `Cancel` while
+         * Mac OS and iOS present them in reverse order of &#39;Cancel` followed by `OK`.
+         *
+         * The standard buttons, in weight order, are as follows:
+         *
+         *  - `ok`
+         *  - `abort`
+         *  - `retry`
+         *  - `ignore`
+         *  - `yes`
+         *  - `no`
+         *  - `cancel`
+         *  - `apply`
+         *  - `save`
+         *  - `submit`
+         *  - `help`
+         *  - `close`
+         *
+         * On Mac OS and iOS this order is reversed with the exception of `help` which
+         * is the first button. The buttons are assigned weights from `10` to `200`.
+         *
+         * @locale
+         * @since 6.5.0
+         */
+        standardButtons: {
+            ok: {
+                text: &#39;OK&#39;,
+                weight: mac ? 120 : 10
+            },
+            abort: {
+                text: &#39;Abort&#39;,
+                weight: mac ? 110 : 20
+            },
+            retry: {
+                text: &#39;Retry&#39;,
+                weight: mac ? 100 : 30
+            },
+            ignore: {
+                text: &#39;Ignore&#39;,
+                weight: mac ? 90 : 40
+            },
+            yes: {
+                text: &#39;Yes&#39;,
+                weight: mac ? 80 : 50
+            },
+            no: {
+                text: &#39;No&#39;,
+                weight: mac ? 70 : 60
+            },
+            cancel: {
+                text: &#39;Cancel&#39;,
+                weight: mac ? 60 : 70
+            },
+            apply: {
+                text: &#39;Apply&#39;,
+                weight: mac ? 50 : 80
+            },
+            save: {
+                text: &#39;Save&#39;,
+                weight: mac ? 40 : 90
+            },
+            submit: {
+                text: &#39;Submit&#39;,
+                weight: mac ? 30 : 100
+            },
+            help: {
+                text: &#39;Help&#39;,
+                weight: mac ? 10 : 110
+            },
+            close: {
+                text: &#39;Close&#39;,
+                weight: mac ? 20 : 120
+            }
+        },
+
+<span id='Ext-Panel-cfg-minButtonWidth'>        /**
+</span>         * @cfg {Number} minButtonWidth
+         * Minimum width of all {@link #cfg-buttonToolbar buttonToolbar} buttons in 
+         * pixels. If set, this will be used as the default value for the 
+         * {@link Ext.Button#minWidth} config of each {@link Ext.Button Button} added to
+         * the `buttonToolbar via the {@link #cfg-buttons buttons} toolbar.
+         *
+         * It will be ignored for buttons that have a `minWidth` configured some other
+         * way, e.g. in their own config object or via the 
+         * {@link Ext.Container#defaults defaults} of their parent container.
+         * @since 6.5.0
+         */
+        minButtonWidth: 75,
+
+<span id='Ext-Panel-cfg-buttons'>        /**
+</span>         * @cfg {Object/Ext.Button[]} buttons
+         * The buttons for this panel to be displayed in the `buttonToolbar` as a keyed
+         * object (or array) of button configuration objects.
+         *
+         *     @example
+         *     Ext.create({
+         *         xtype: &#39;panel&#39;,
+         *         html: &#39;hello world&#39;,
+         *         padding: 20,
+         *         buttons: {
+         *            ok: {text: &#39;OK&#39;, handler: &#39;onOK&#39;}
+         *         }
+         *     });
+         *
+         * For buttons that are defined in `standardButtons` (such as `&#39;ok&#39;`), there is a
+         * more convenient short-hand for this config:
+         *
+         *     @example
+         *     Ext.create({
+         *         fullscreen: true,
+         *         xtype: &#39;panel&#39;,
+         *         html: &#39;hello world&#39;,
+         *         padding: 20,
+         *         buttons: {
+         *            ok: &#39;onOK&#39;,
+         *            cancel: &#39;onCancel&#39;
+         *         }
+         *     });
+         *
+         * The {@link #minButtonWidth} is used as the default
+         * {@link Ext.Button#minWidth minWidth} for the buttons in the buttons toolbar.
+         * @since 6.5.0
+         */
+        buttons: null,
+
+        // @cmd-auto-dependency {aliasPrefix: &quot;widget.&quot;, typeProperty: &quot;xtype&quot;, defaultType: &quot;toolbar&quot;}
+<span id='Ext-Panel-cfg-bbar'>        /**
+</span>         * @cfg {Object/Object[]} bbar
+         * Convenience config. Short for &#39;Bottom Bar&#39;.
+         *
+         *     @example
+         *     Ext.create({
+         *         xtype: &#39;panel&#39;,
+         *         fullscreen: true,
+         *         html: &#39;hello world&#39;,
+         *         padding: 20,
+         *         bbar: [{
+         *             xtype: &#39;button&#39;,
+         *             text : &#39;Button 1&#39;
+         *         }]
+         *     });
+         *
+         * is equivalent to
+         *
+         *     @example
+         *     Ext.create({
+         *         xtype: &#39;panel&#39;,
+         *         fullscreen: true,
+         *         html: &#39;hello world&#39;,
+         *         padding: 20,
+         *         items: [{
+         *             xtype: &#39;toolbar&#39;,
+         *             docked: &#39;bottom&#39;,
+         *             items: [{
+         *                 xtype: &#39;button&#39;,
+         *                 text: &#39;Button 1&#39;
+         *             }]
+         *         }]
+         *     });
+         *
+         * @since 6.5.0
+         */
+        bbar: null,
+
+        // @cmd-auto-dependency {aliasPrefix: &quot;widget.&quot;, typeProperty: &quot;xtype&quot;, defaultType: &quot;toolbar&quot;}
+<span id='Ext-Panel-cfg-lbar'>        /**
+</span>         * @cfg {Object/Object[]} lbar
+         * Convenience config. Short for &#39;Left Bar&#39; (left-docked, vertical toolbar).
+         *
+         *     @example
+         *     Ext.create({
+         *         xtype: &#39;panel&#39;,
+         *         fullscreen: true,
+         *         html: &#39;hello world&#39;,
+         *         padding: 20,
+         *         lbar: [{
+         *             xtype: &#39;button&#39;,
+         *             text : &#39;Button 1&#39;
+         *         }]
+         *     });
+         *
+         * is equivalent to
+         *
+         *     @example
+         *     Ext.create({
+         *         xtype: &#39;panel&#39;,
+         *         fullscreen: true,
+         *         html: &#39;hello world&#39;,
+         *         padding: 20,
+         *         items: [{
+         *             xtype: &#39;toolbar&#39;,
+         *             docked: &#39;left&#39;,
+         *             items: [{
+         *                 xtype: &#39;button&#39;,
+         *                 text: &#39;Button 1&#39;
+         *             }]
+         *         }]
+         *     });
+         *
+         * @since 6.5.0
+         */
+        lbar: null,
+
+        // @cmd-auto-dependency {aliasPrefix: &quot;widget.&quot;, typeProperty: &quot;xtype&quot;, defaultType: &quot;toolbar&quot;}
+<span id='Ext-Panel-cfg-rbar'>        /**
+</span>         * @cfg {Object/Object[]} rbar
+         * Convenience config. Short for &#39;Right Bar&#39; (right-docked, vertical toolbar).
+         *
+         *     @example
+         *     Ext.create({
+         *         xtype: &#39;panel&#39;,
+         *         fullscreen: true,
+         *         html: &#39;hello world&#39;,
+         *         padding: 20,
+         *         rbar: [{
+         *             xtype: &#39;button&#39;,
+         *             text : &#39;Button 1&#39;
+         *         }]
+         *     });
+         *
+         * is equivalent to
+         *
+         *     @example
+         *     Ext.create({
+         *         xtype: &#39;panel&#39;,
+         *         fullscreen: true,
+         *         html: &#39;hello world&#39;,
+         *         padding: 20,
+         *         items: [{
+         *             xtype: &#39;toolbar&#39;,
+         *             docked: &#39;right&#39;,
+         *             items: [{
+         *                 xtype: &#39;button&#39;,
+         *                 text: &#39;Button 1&#39;
+         *             }]
+         *         }]
+         *     });
+         *
+         * @since 6.5.0
+         */
+        rbar: null,
+
+        // @cmd-auto-dependency {aliasPrefix: &quot;widget.&quot;, typeProperty: &quot;xtype&quot;, defaultType: &quot;toolbar&quot;}
+<span id='Ext-Panel-cfg-tbar'>        /**
+</span>         * @cfg {Object/Object[]} tbar
+         * Convenience config. Short for &#39;Top Bar&#39;.
+         *
+         *     @example
+         *     Ext.create({
+         *         xtype: &#39;panel&#39;,
+         *         fullscreen: true,
+         *         html: &#39;hello world&#39;,
+         *         padding: 20,
+         *         tbar: [{
+         *             xtype: &#39;button&#39;,
+         *             text : &#39;Button 1&#39;
+         *         }]
+         *     });
+         *
+         * is equivalent to
+         *
+         *     @example
+         *     Ext.create({
+         *         xtype: &#39;panel&#39;,
+         *         fullscreen: true,
+         *         html: &#39;hello world&#39;,
+         *         padding: 20,
+         *         items: [{
+         *             xtype: &#39;toolbar&#39;,
+         *             docked: &#39;top&#39;,
+         *             items: [{
+         *                 xtype: &#39;button&#39;,
+         *                 text: &#39;Button 1&#39;
+         *             }]
+         *         }]
+         *     });
+         *
+         * @since 6.5.0
+         */
+        tbar: null
+    },
+
+    cachedConfig: {
+<span id='Ext-Panel-cfg-border'>        /**
+</span>         * @cfg border
+         * @inheritdoc
+         */
+        border: false,
+
+<span id='Ext-Panel-cfg-bodyBorder'>        /**
+</span>         * @cfg {Boolean} bodyBorder
+         * Controls the border style of the panel body using the following values:
+         * 
+         * - `true` to enable the border around the panel body (as defined by the theme)
+         * Note that even when enabled, the bodyBorder is only visible when there are
+         * docked items around the edges of the panel.  Where the bodyBorder touches the
+         * panel&#39;s outer border it is automatically collapsed into a single border.
+         *
+         * - `false` to disable the body border
+         *
+         * - `null` - use the value of {@link #cfg-border border} as the value for 
+         * `bodyBorder`
+         */
+        bodyBorder: null,
+
+<span id='Ext-Panel-cfg-bodyPadding'>        /**
+</span>         * @cfg {Number/Boolean/String} bodyPadding
+         * A shortcut for setting a padding style on the body element. The value can 
+         * either be a number to be applied to all sides, or a normal CSS string
+         * describing padding.
+         * 
+         *     bodyPadding: 5 // 5px padding on all sides
+         *     
+         *     bodyPadding: &#39;10 20&#39; // 10px top and bottom padding - 20px side padding
+         * 
+         * *See the {@link Ext.dom.Element#static-method-unitizeBox unitizeBox} method
+         * for more information on what string values are valid*
+         */
+        bodyPadding: null,
+
+<span id='Ext-Panel-cfg-bodyStyle'>        /**
+</span>         * @cfg {String/Object} bodyStyle
+         * Custom CSS styles to be applied to the panel&#39;s body element, which can be
+         * supplied as a valid CSS style string or an object containing style property
+         * name/value pairs.
+         * 
+         * For example, these two formats are interpreted to be equivalent:
+         *
+         *     bodyStyle: &#39;background:#ffc; padding:10px;&#39;
+         *
+         *     bodyStyle: {
+         *         background: &#39;#ffc&#39;,
+         *         padding: &#39;10px&#39;
+         *     }
+         *
+         * @accessor set
+         * @since 6.5.0
+         */
+        bodyStyle: null,
+
+<span id='Ext-Panel-cfg-buttonToolbar'>        /**
+</span>         * @cfg {Object/Ext.Toolbar} buttonToolbar
+         * Configure the toolbar that holds the `buttons` inside.
+         * @since 6.5.0
+         */
+        buttonToolbar: {
+            xtype: &#39;toolbar&#39;,
+            itemId: &#39;buttonToolbar&#39;,
+            docked: &#39;bottom&#39;,
+            defaultType: &#39;button&#39;,
+            weighted: true,
+            ui: &#39;footer&#39;,
+            defaultButtonUI: &#39;action&#39;,
+
+            layout: {
+                type: &#39;box&#39;,
+                vertical: false,
+                pack: &#39;center&#39;
+            }
+        },
+
+<span id='Ext-Panel-cfg-closeAction'>        /**
+</span>         * @cfg {String} closeAction
+         * The action to take when the close header tool is clicked:
+         *
+         * - **`&#39;{@link #method-destroy}&#39;`** :
+         *
+         *   {@link #method-remove remove} the window from the DOM and {@link Ext.Component#method-destroy destroy} it and all descendant
+         *   Components. The window will **not** be available to be redisplayed via the {@link #method-show} method.
+         *
+         * - **`&#39;{@link #method-hide}&#39;`** :
+         *
+         *   {@link #method-hide} the window by setting visibility to hidden and applying negative offsets. The window will be
+         *   available to be redisplayed via the {@link #method-show} method.
+         *
+         * **Note:** This behavior has changed! setting *does* affect the {@link #method-close} method which will invoke the
+         * appropriate closeAction.
+         */
+        closeAction: &#39;destroy&#39;,
+
+<span id='Ext-Panel-cfg-closeToolText'>        /**
+</span>         * @cfg {String} closeToolText
+         * Text to be announced by screen readers when the **close**
+         * {@link Ext.Tool tool} is focused.  Will also be set as the close tool&#39;s
+         * {@link Ext.Tool#cfg-tooltip tooltip} text.
+         *
+         * **Note:** Applicable when the panel is {@link #closable}: true
+         * @locale
+         */
+        closeToolText: &#39;Close panel&#39;
+    },
+
+<span id='Ext-Panel-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;panel&#39;,
+
+<span id='Ext-Panel-property-headerCls'>    headerCls: null,
+</span><span id='Ext-Panel-property-titleCls'>    titleCls: null,
+</span><span id='Ext-Panel-property-toolCls'>    toolCls: Ext.baseCSSPrefix + &#39;paneltool&#39;,
+</span><span id='Ext-Panel-property-sideCls'>    sideCls: {
+</span>        top: Ext.baseCSSPrefix + &#39;top&#39;,
+        right: Ext.baseCSSPrefix + &#39;right&#39;,
+        bottom: Ext.baseCSSPrefix + &#39;bottom&#39;,
+        left: Ext.baseCSSPrefix + &#39;left&#39;
+    },
+
+<span id='Ext-Panel-cfg-manageBorders'>    /**
+</span>     * @cfg manageBorders
+     * @inheritdoc
+     */
+    manageBorders: true,
+
+<span id='Ext-Panel-property-allowHeader'>    allowHeader: true,
+</span>
+<span id='Ext-Panel-property-template'>    /**
+</span>     * @property template
+     * @inheritdoc
+     */
+    template: [{
+        reference: &#39;bodyWrapElement&#39;,
+        cls: Ext.baseCSSPrefix + &#39;body-wrap-el&#39;,
+        uiCls: &#39;body-wrap-el&#39;,
+        children: [{
+            reference: &#39;bodyElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;body-el&#39;,
+            uiCls: &#39;body-el&#39;
+        }]
+    }],
+
+<span id='Ext-Panel-method-addBodyCls'>    /**
+</span>     * Adds a CSS class to the body element. If not rendered, the class will be added
+     * when the panel is rendered.
+     * @param {String} cls The class to add
+     * @return {Ext.Panel} this
+     */
+    addBodyCls: function(cls) {
+        this.bodyElement.addCls(cls);
+        return this;
+    },
+
+<span id='Ext-Panel-method-removeBodyCls'>    /**
+</span>     * Removes a CSS class from the body element
+     * @param {String} cls The class to remove
+     * @return {Ext.Panel} this
+     */
+    removeBodyCls: function(cls) {
+        this.bodyElement.removeCls(cls);
+        return this;
+    },
+
+<span id='Ext-Panel-method-applyBodyPadding'>    applyBodyPadding: function(bodyPadding) {
+</span>        if (bodyPadding === true) {
+            bodyPadding = 5;
+        }
+
+        if (bodyPadding) {
+            bodyPadding = Ext.dom.Element.unitizeBox(bodyPadding);
+        }
+
+        return bodyPadding;
+    },
+
+<span id='Ext-Panel-method-applyBodyStyle'>    applyBodyStyle: function (bodyStyle, oldBodyStyle) {
+</span>        // If we&#39;re doing something with data binding, say:
+        // style: {
+        //     backgroundColor: &#39;rgba({r}, {g}, {b}, 1)&#39;
+        // }
+        // The inner values will change, but the object won&#39;t, so force
+        // a copy to be created here if necessary
+        if (oldBodyStyle &amp;&amp; bodyStyle === oldBodyStyle &amp;&amp; Ext.isObject(oldBodyStyle)) {
+            bodyStyle = Ext.apply({}, bodyStyle);
+        }
+
+        this.bodyElement.applyStyles(bodyStyle);
+
+        return null;
+    },
+
+<span id='Ext-Panel-method-getBodyStyle'>    //&lt;debug&gt;
+</span>    getBodyStyle: function () {
+        Ext.Error.raise(&quot;&#39;bodyStyle&#39; is a write-only config.  To query element styles use the Ext.dom.Element API.&quot;);
+    },
+    //&lt;/debug&gt;
+
+<span id='Ext-Panel-method-addTool'>    /**
+</span>     * Add tools to this panel {@link Ext.panel.Header header}
+     * 
+     *     panel.addTool({
+     *         type: &#39;gear&#39;,
+     *         handler: function () {
+     *             // ....
+     *         }
+     *     });
+     *     
+     *     panel.addTool([{
+     *         type: &#39;gear&#39;,
+     *         handler: &#39;viewControllerGearMethod&#39;
+     *     }, {
+     *         type: &#39;save&#39;,
+     *         handler: &#39;viewControllerSaveMethod&#39;
+     *     }]);
+     *
+     * By default the tools will be accessible via keyboard, with the exception of 
+     * automatically added collapse/expand and close tools.
+     *
+     * If you implement keyboard equivalents of your tools&#39; actions elsewhere and do not
+     * want the tools to participate in keyboard navigation, you can make them 
+     * presentational instead:
+     * 
+     *     panel.addTool({
+     *         type: &#39;mytool&#39;,
+     *         focusable: false,
+     *         ariaRole: &#39;presentation&#39;
+     *         // ...
+     *     });
+     * 
+     * @param {Object/Object[]/Ext.Tool/Ext.Tool[]} tool The tool or tools to add.
+     */
+    addTool: function (tool) {
+        var header = this.ensureHeader(),  // creates if header !== false
+            items;
+
+        if (header) {
+            items = this.createTools(Ext.Array.from(tool));
+
+            if (items &amp;&amp; items.length) {
+                items = header.add(items);
+            }
+        }
+
+        return items;
+    },
+
+<span id='Ext-Panel-method-applyHeader'>    applyHeader: function (newHeader, oldHeader) {
+</span>        // This method should never call any getters here doing so will cause re-entry into this method. Extra Headers will be created
+        var me = this,
+            header = oldHeader,
+            isTrue;
+
+        me.allowHeader = newHeader !== false;
+
+        if (oldHeader &amp;&amp; !newHeader) {
+            header = Ext.destroy(header);
+        }
+
+        if (newHeader &amp;&amp; me.allowHeader) {
+            isTrue = newHeader === true;
+            if (header) {
+                if (!isTrue) {
+                    header.setConfig(newHeader);
+                }
+            } else {
+                if (isTrue) {
+                    newHeader = {};
+                }
+                newHeader.$initParent = me;
+                header = Ext.factory(me.createHeader(newHeader));
+                me.header = header;
+                delete header.$initParent;
+                delete newHeader.$initParent;
+
+                // Must not use the parent linkage. That implies that this is in the
+                // items collection, and available to be removed using the remove method.
+                header.ownerCmp = me;
+
+                (me.maxHeightElement || me.el).insertFirst(header.el);
+
+                header.doInheritUi();
+            }
+        }
+
+        return header || null;
+    },
+
+<span id='Ext-Panel-method-updateHeader'>    updateHeader: function(header) {
+</span>        if (header) {
+            this.positionHeader(header);
+        } else {
+            this.syncBorders();
+        }
+    },
+
+<span id='Ext-Panel-method-applyTools'>    applyTools: function (tools) {
+</span>        var header = this.ensureHeader(),  // creates if header !== false
+            items;
+
+        if (header) {
+            // Remove all tools (since we are the impl of a setTools([...]) call)
+            header.clearTools();
+
+            items = this.createTools(tools);
+
+            if (items &amp;&amp; items.length) {
+                header.add(items);
+            }
+        }
+
+        // we don&#39;t return anything since the tools are &quot;stored&quot; on the Header
+    },
+
+<span id='Ext-Panel-method-close'>    /**
+</span>     * Closes this panel as described by the `closeAction`.
+     */
+    close: function() {
+        var me = this,
+            action = me.getCloseAction(),
+            destroy = action === &#39;destroy&#39;;
+
+        if (me.fireEvent(&#39;beforeclose&#39;, me) !== false) {
+            if (action &amp;&amp; !destroy) {
+                me[action]();
+            }
+
+            me.fireEvent(&#39;close&#39;, me);
+
+            if (destroy) {
+                me.destroy();
+            }
+        }
+    },
+
+<span id='Ext-Panel-method-createHeader'>    createHeader: function (config) {
+</span>        var me = this,
+            ret = {
+                xtype: &#39;panelheader&#39;,
+                instanceCls: me.headerCls,
+                docked: &#39;top&#39;
+            },
+            icon, title;
+
+        me._isCreatingHeader = true;
+
+        if (config &amp;&amp; config !== true) {
+            Ext.merge(ret, config);
+        }
+
+        if (me.initialized) {
+            // Only attempt to configure title if we are not currently initializing.
+            // During initialization the updater for title will run if present and apply
+            // it to the header so there is no work to be done here.
+            title = me.getTitle();
+
+            if (title != null) {
+                if (typeof title === &#39;string&#39;) {
+                    title = {
+                        text: title
+                    };
+                }
+
+                Ext.merge(ret, {
+                    title: title
+                });
+            }
+
+            icon = me.getIconCls();
+            if (icon != null) {
+                ret.iconCls = icon;
+            } else {
+                icon = me.getIcon();
+                if (icon != null) {
+                    ret.icon = icon;
+                }
+            }
+        }
+
+        me._isCreatingHeader = false;
+        return ret;
+    },
+
+<span id='Ext-Panel-method-applyAnchor'>    applyAnchor: function(anchor, oldAnchor) {
+</span>        var me = this,
+            el = me.el.dom,
+            svgEl, pathEl;
+
+        // true results in us owning an anchor element in the anchor property
+        if (anchor) {
+            // Already have one - undefined means no change`
+            if (oldAnchor) {
+                return;
+            } else {
+                anchor = me.el.insertFirst({
+                    cls: Ext.baseCSSPrefix + &#39;anchor-el&#39;
+                });
+                svgEl = document.createElementNS(&quot;http://www.w3.org/2000/svg&quot;, &#39;svg&#39;);
+                svgEl.setAttribute(&#39;class&#39;, Ext.baseCSSPrefix + &#39;pointer-el&#39;);
+                pathEl = document.createElementNS(&quot;http://www.w3.org/2000/svg&quot;, &#39;path&#39;);
+                svgEl.appendChild(pathEl);
+                anchor.dom.appendChild(svgEl);
+            }
+            // Anchor is positioned outside the element bounds.
+            // Must show overflow while anchor is enabled.
+            el.style.overflow = &#39;visible&#39;;
+        }
+        // false destroys the anchor element and dereferences the pointerEl
+        else if (oldAnchor) {
+            me.anchorSize = oldAnchor.destroy();
+            el.style.overflow = &#39;&#39;;
+        }
+
+        return anchor;
+    },
+
+<span id='Ext-Panel-method-initAnchor'>    initAnchor: function() {
+</span>        var me = this,
+            el = me.el,
+            anchor = me.getAnchor(),
+            cls = me.sideCls.top,
+            svgEl = anchor.dom.firstChild,
+            pathEl = svgEl.firstChild,
+            anchorSize;
+
+        anchor.addCls(cls);
+        anchor.show();
+        anchorSize = anchor.measure();
+        me.anchorSize = anchorSize = new Ext.util.Offset(anchorSize.width, anchorSize.height);
+
+        // A small space between the anchor point and the target
+        me.anchorMargin = parseFloat(anchor.getStyle(&#39;marginLeft&#39;)) || 0;
+        anchor.dom.style.margin = &#39;0&#39;;
+
+        // Draw our arrow.
+        svgEl.setAttribute(&#39;height&#39;, anchorSize.y);
+        svgEl.setAttribute(&#39;width&#39;, anchorSize.x);
+        pathEl.setAttribute(&#39;d&#39;, &#39;M0 &#39; + anchorSize.y + &#39; L&#39; + anchorSize.x / 2 + &#39; 0.5 L&#39; + anchorSize.x + &#39; &#39; + anchorSize.y);
+        anchorSize.y -= parseFloat(Ext.fly(pathEl).getStyle(&#39;stroke-width&#39;));
+
+        anchor.removeCls(cls);
+        anchor.hide();
+    },
+
+<span id='Ext-Panel-method-updateAnchorPosition'>    updateAnchorPosition: function(anchorPosition, oldAnchorPosition) {
+</span>        var me = this,
+            anchorEl = me.getAnchor(),
+            sideCls = me.sideCls,
+            el = me.el;
+
+        // If we have no anchor, there&#39;s nothing to do.
+        if (anchorEl) {
+            if (oldAnchorPosition) {
+                anchorEl.removeCls(sideCls[oldAnchorPosition.side]);
+            }
+
+            if (anchorPosition) {
+                anchorEl.addCls(sideCls[anchorPosition.side]);
+                anchorEl.translate(anchorPosition.x, anchorPosition.y);
+                anchorEl.show();
+            } else {
+                anchorEl.hide();
+            }
+        }
+    },
+
+<span id='Ext-Panel-method-updateBorder'>    updateBorder: function(border, oldBorder) {
+</span>        var me = this;
+
+        me.callParent([ border, oldBorder ]);
+
+        if (me.getBodyBorder() === null) {
+            me.setBodyBorderEnabled(border !== false);
+        }
+
+        me.syncBorders();
+    },
+
+<span id='Ext-Panel-method-updateBodyPadding'>    updateBodyPadding: function(newBodyPadding) {
+</span>        this.bodyElement.setStyle(&#39;padding&#39;, newBodyPadding);
+    },
+
+<span id='Ext-Panel-method-updateBodyBorder'>    updateBodyBorder: function(bodyBorder) {
+</span>        var me = this;
+
+        bodyBorder = (bodyBorder === null) ? me.getBorder() : bodyBorder;
+
+        me.setBodyBorderEnabled(bodyBorder !== false);
+
+        me.syncBorders();
+    },
+
+<span id='Ext-Panel-method-updateClosable'>    updateClosable: function(closable) {
+</span>        var me = this,
+            tools;
+
+        if (closable) {
+            tools = me.addTool({
+                type: &#39;close&#39;,
+                weight: 1000,
+                scope: me,
+                handler: &#39;onCloseTool&#39;,
+                tooltip: me.getCloseToolText(),
+                $internal: true
+            });
+            
+            if (tools &amp;&amp; tools.length) {
+                me.closeTool = tools[0];
+            }
+        }
+        else {
+            Ext.destroy(me.closeTool);
+        }
+    },
+
+<span id='Ext-Panel-method-updateHeaderPosition'>    updateHeaderPosition: function(headerPosition, oldHeaderPosition) {
+</span>        this.moveHeaderPosition(headerPosition, oldHeaderPosition);
+    },
+
+<span id='Ext-Panel-method-updateIcon'>    updateIcon: function (icon) {
+</span>        var header = this.ensureHeader();  // creates if header !== false
+
+        if (header) {
+            header.setIcon(icon);
+        }
+    },
+
+<span id='Ext-Panel-method-updateIconCls'>    updateIconCls: function (iconCls) {
+</span>        var header = this.ensureHeader();  // creates if header !== false
+
+        if (header) {
+            header.setIconCls(iconCls);
+        }
+    },
+
+<span id='Ext-Panel-method-updateIconAlign'>    updateIconAlign: function (iconAlign) {
+</span>        var header = this.ensureHeader();  // creates if header !== false
+
+        if (header) {
+            header.setIconAlign(iconAlign);
+        }
+    },
+
+<span id='Ext-Panel-method-applyBbar'>    applyBbar: function (toolbar, previous) {
+</span>        return this.normalizeDockedBars(toolbar, previous, &#39;bottom&#39;);
+    },
+
+<span id='Ext-Panel-method-applyButtons'>    applyButtons: function (buttons, oldButtons) {
+</span>        var me = this,
+            array = Ext.convertKeyedItems(buttons, &#39;xxx&#39;, &#39;xxx&#39;), // to detect handlers
+            buttonDefaults = me.getButtonDefaults(),
+            standardButtons = me.getStandardButtons(),
+            toolbar = me.getButtonToolbar(),
+            n = array ? array.length : 0,
+            button, defaults, handler, i;
+
+        if (buttons &amp;&amp; typeof buttons === &#39;object&#39;) {
+            if (buttons.xtype || buttons.itemId || buttons.items || buttons.reference) {
+                // Single config object is understood to be the toolbar not a single
+                // buttom...
+                return me.normalizeDockedBars(buttons, oldButtons, &#39;bottom&#39;, toolbar);
+            }
+        }
+
+        if (buttons) {
+            if (array === buttons) { // if (wasn&#39;t an object)
+                array = [];
+
+                for (i = 0; i &lt; n; ++i) {
+                    button = buttons[i];
+
+                    if (typeof button === &#39;string&#39;) {
+                        if (!Ext.Toolbar.shortcuts[button]) {
+                            button = Ext.applyIf({
+                                itemId: button,
+                                text: button
+                            }, buttonDefaults);
+                        }
+                    }
+                    else if (buttonDefaults) {
+                        button = Ext.apply({}, button, buttonDefaults);
+                    }
+
+                    array[i] = button;
+                }
+            }
+            else {
+                // convertKeyedItems has already shallow copied each item in order
+                // to place in the itemId, so leverage that... It has also promoted
+                // string items like &#39;foo&#39; in to objects like { xxx: &#39;foo&#39; } so we
+                // can make sure they have buttonDefaults
+                for (i = 0; i &lt; n; ++i) {
+                    button = array[i];
+                    handler = button.xxx;
+                    defaults = standardButtons[button.itemId];
+
+                    if (defaults) {
+                        Ext.applyIf(button, defaults);
+                        // ok: &#39;onOK&#39;  ==&gt; { handler: &#39;onOK&#39;, text: &#39;OK&#39;, weight: 10 }
+                    }
+                    //&lt;debug&gt;
+                    else if (handler) {
+                        Ext.raise(&#39;Button handler short-hand is only valid for standardButtons&#39;);
+                    }
+                    //&lt;/debug&gt;
+
+                    if (handler) {
+                        delete button.xxx;
+                        button.handler = handler;
+                        // ok: &#39;onOK&#39;  ==&gt; { handler: &#39;onOK&#39; }
+                    }
+
+                    if (buttonDefaults) {
+                        Ext.applyIf(button, buttonDefaults);
+                    }
+                }
+            }
+        }
+        return me.normalizeDockedBars(array, oldButtons, &#39;bottom&#39;, toolbar);
+    },
+
+<span id='Ext-Panel-method-applyLbar'>    applyLbar: function (toolbar, previous) {
+</span>        return this.normalizeDockedBars(toolbar, previous, &#39;left&#39;);
+    },
+
+<span id='Ext-Panel-method-applyRbar'>    applyRbar: function (toolbar, previous) {
+</span>        return this.normalizeDockedBars(toolbar, previous, &#39;right&#39;);
+    },
+
+<span id='Ext-Panel-method-applyTbar'>    applyTbar: function (toolbar, previous) {
+</span>        return this.normalizeDockedBars(toolbar, previous, &#39;top&#39;);
+    },
+
+<span id='Ext-Panel-method-updateTitle'>    updateTitle: function (title) {
+</span>        var header = this.ensureHeader(),
+            tab = this.tab;
+
+        if (header) {
+            header.setTitle(title);
+        }
+
+        if (tab &amp;&amp; tab.isTab &amp;&amp; !tab.destroying &amp;&amp; !tab.destroyed) {
+            tab.setText(title);
+        }
+    },
+
+<span id='Ext-Panel-method-updateTitleAlign'>    updateTitleAlign: function (titleAlign) {
+</span>        var header = this.ensureHeader();  // creates if header !== false
+
+        if (header) {
+            header.setTitleAlign(titleAlign);
+        }
+    },
+
+<span id='Ext-Panel-method-updateUi'>    updateUi: function(ui, oldUi) {
+</span>        this.callParent([ui, oldUi]);
+
+        if (this.hasResizable) {
+            this.onResizableUiChange(ui, oldUi);
+        }
+
+        // invalidate anchor size so it is measured again on next alignTo
+        this.anchorSize = null;
+    },
+
+<span id='Ext-Panel-method-alignTo'>    alignTo: function(component, alignment, options) {
+</span>        var me = this,
+            anchorElement = me.getAnchor(),
+            config = me.initialConfig,
+            positioned = me.isPositioned(),
+            setX = positioned ? me.setLeft : me.setX,
+            setY = positioned ? me.setTop : me.setY,
+            x, y, target, anchorMargin, alignmentInfo, resultRegion, oldHeight, parent;
+
+        // Initialize anchor size, content and margin if not done.
+        if (anchorElement) {
+            if (!me.anchorSize) {
+                me.initAnchor();
+            }
+        }
+
+        // Call through the Component class (which registers a viewportResizeListener), and
+        // up to Widget which does pure alignment.
+        // We only need extra if we&#39;re showing an anchor.
+        else {
+            return me.callParent([component, alignment, options]);
+        }
+
+        anchorMargin = me.anchorMargin;
+
+        // Passed &quot;component&quot; may be a Region, Component, oer element
+        target = component.isRegion ? component :
+            (component.isWidget ? component.el : Ext.fly(component)).getRegion();
+
+        target.adjust(-anchorMargin, anchorMargin, anchorMargin, -anchorMargin);
+        alignmentInfo = me.getAlignmentInfo(target, alignment);
+
+        if (alignmentInfo.isAligned) {
+            return;
+        }
+
+        parent = me.getParent();
+
+        if (!me.getFloated()) {
+            if (!parent) {
+                me.setFloated(true);
+            } else {
+                me.positioned = true;
+            }
+        }
+
+        if (&#39;unconstrainedWidth&#39; in me) {
+            me.setWidth(me.unconstrainedWidth);
+        }
+        if (&#39;unconstrainedHeight&#39; in me) {
+            me.setHeight(me.unconstrainedHeight);
+        }
+
+        // Cache the alignment options for any realign call which might happen on
+        // viewport resize or configuration change.
+        // See Ext.Widget#realign
+        me.alignToArgs = [component, alignment, options];
+
+        resultRegion = me.getAlignRegion(target, alignment, Ext.apply({
+            anchorSize: me.anchorSize,
+            axisLock: me.getAxisLock()
+        }, options));
+
+        // If already aligned, will return undefined
+        if (resultRegion) {
+            setX.call(me, resultRegion.x);
+            setY.call(me, resultRegion.y);
+            if (resultRegion.constrainWidth) {
+                me.unconstrainedWidth = config.width || me.self.prototype.width;
+
+                // We must deal with height changing if we restrict width and we are aligning above
+                oldHeight = me.el.getHeight();
+                me.setWidth(alignmentInfo.stats.width = resultRegion.getWidth());
+
+                // We are being positioned above, bump upwards by how much the
+                // element has expanded as a result of width restriction.
+                if (resultRegion.align.position === 0) {
+                    setY.call(me, resultRegion.y + (oldHeight - me.el.getHeight()));
+                }
+            }
+            if (resultRegion.constrainHeight) {
+                me.unconstrainedHeight = config.height || me.self.prototype.height;
+                me.setHeight(alignmentInfo.stats.height = resultRegion.getHeight());
+            }
+            if (resultRegion.anchor) {
+                x = 0;
+                y = 0;
+
+                // The result is to the left or right of the target
+                if (resultRegion.anchor.align &amp; 1) {
+                   y = resultRegion.anchor.y - resultRegion.y;
+                } else {
+                    x = resultRegion.anchor.x - resultRegion.x;
+                }
+
+                me.setAnchorPosition({
+                    side: resultRegion.anchor.position,
+                    x: x,
+                    y: y
+                });
+            } else {
+                me.setAnchorPosition(null);
+            }
+            me.setCurrentAlignmentInfo(alignmentInfo);
+        } else if (anchorElement) {
+            // Already aligned
+            anchorElement.show();
+        }
+
+        if (!me.viewportResizeListener) {
+            me.viewportResizeListener = Ext.on({
+                resize: &#39;onViewportResize&#39;,
+                scope: me,
+                destroyable: true
+            });
+        }
+    },
+
+<span id='Ext-Panel-method-getRefItems'>    getRefItems: function(deep) {
+</span>        var items = this.callParent([deep]),
+            header = this.getConfig(&#39;header&#39;, false, true);
+
+        if (header) {
+            // Header is logically and visually the first item, so
+            // header, then header items are *prepended* to results.
+            if (deep) {
+                items.unshift.apply(items, header.getRefItems(deep));
+            }
+            items.unshift(header);
+        }
+
+        return items;
+    },
+
+<span id='Ext-Panel-method-onCloseTool'>    onCloseTool: function () {
+</span>        this.close();
+    },
+
+<span id='Ext-Panel-method-onRender'>    onRender: function () {
+</span>        var me = this,
+            header;
+
+        me.callParent();
+
+        header = me.getHeader();
+        if (header) {
+            header.setRendered(true);
+        }
+
+        if (me.hasCollapsible) {
+            me.onCollapsibleRendered();
+        }
+    },
+
+<span id='Ext-Panel-method-doDestroy'>    doDestroy: function() {
+</span>        Ext.destroy(this.header, this.anchor);
+        this.callParent();
+    },
+
+<span id='Ext-Panel-property-privates'>    privates: {
+</span>        headerPositionMap: {
+            top: {
+                cls: Ext.baseCSSPrefix + &#39;header-position-top&#39;,
+                dom: 0,
+                horz: true
+            },
+            right: {
+                cls: Ext.baseCSSPrefix + &#39;header-position-right&#39;,
+                dom: 1,
+                vert: true
+            },
+            bottom: {
+                cls: Ext.baseCSSPrefix + &#39;header-position-bottom&#39;,
+                dom: 1,
+                horz: true
+            },
+            left: {
+                cls: Ext.baseCSSPrefix + &#39;header-position-left&#39;,
+                dom: 0,
+                vert: true
+            }
+        },
+
+        ensureHeader: function () {
+            var me = this,
+                header;
+
+            if (!me._isCreatingHeader) {
+                me.getItems();
+
+                header = me.getHeader();
+
+                if (!header &amp;&amp; me.allowHeader) {
+                    me.setHeader(true);
+                    header = me.getHeader();
+                }
+            }
+
+            return header;
+        },
+
+        moveHeaderPosition: function(headerPosition, oldHeaderPosition) {
+            var me = this,
+                el = me.element,
+                map = me.headerPositionMap,
+                oldItem = map[oldHeaderPosition],
+                newItem = map[headerPosition],
+                oldCls = oldItem ? oldItem.cls : &#39;&#39;,
+                newCls = newItem.cls,
+                positionedHeader,
+                header;
+
+            if (oldCls !== newCls) {
+                if (oldHeaderPosition) {
+                    el.removeCls(oldCls);
+                }
+                el.addCls(newCls);
+            }
+
+            if (oldHeaderPosition || headerPosition !== &#39;top&#39;) {
+                header = me.ensureHeader();
+                if (header) {
+                    if (!me.isConfiguring) {
+                        me.positionHeader(header, headerPosition);
+                        positionedHeader = true;
+                    }
+                }
+            }
+
+            if (!positionedHeader) {
+                me.syncBorders();
+            }
+
+            return header;
+        },
+
+        _packButtonAlign: {
+            left: &#39;start&#39;,
+            right: &#39;end&#39;,
+            center: &#39;center&#39;
+        },
+
+        normalizeDockedBars: function (toolbar, previous, pos, buttonToolbarCfg,
+                                       disableFocusableContainer) {
+            if (!toolbar) {
+                if (previous) {
+                    previous.destroy();
+                }
+                return toolbar;
+            }
+
+            var me = this,
+                isComponent = toolbar.isComponent,
+                buttonAlign, buttonToolbarDefaults, index, layout, minButtonWidth, pack;
+
+            if (Ext.isArray(toolbar)) {
+                toolbar = {
+                    xtype: &#39;toolbar&#39;,
+                    items: toolbar
+                };
+            } else if (!isComponent) {
+                // Incoming toolbar config can be a property on the prototype
+                toolbar = Ext.clone(toolbar);
+            }
+
+            if (!toolbar.xtype) {
+                toolbar.xtype = &#39;toolbar&#39;;
+            }
+
+            if (isComponent) {
+                toolbar.setDocked(pos);
+            } else {
+                toolbar.docked = pos;
+            }
+
+            if (disableFocusableContainer) {
+                if (isComponent) {
+                    toolbar.setEnableFocusableContainer(false);
+                } else {
+                    toolbar.enableFocusableContainer = false;
+                }
+            }
+
+            // Support for buttonAlign (only used by buttons)
+            if (buttonToolbarCfg &amp;&amp; !isComponent) {
+                toolbar = Ext.merge(Ext.clone(buttonToolbarCfg), toolbar);
+                toolbar.layout = Ext.merge(layout = {}, toolbar.layout);
+
+                buttonAlign = me.getButtonAlign();
+                if (buttonAlign) {
+                    pack = me._packButtonAlign[buttonAlign];
+                    if (pack) {
+                        layout.pack = pack;
+                    }
+                }
+
+                minButtonWidth = this.getMinButtonWidth();
+                buttonToolbarDefaults = toolbar.defaults;
+
+                toolbar.defaults = function (config) {
+                    var defaults = buttonToolbarDefaults || {},
+                        // no xtype or a button instance
+                        isButton = !config.xtype || config.isButton,
+                        cls;
+
+                    // Here we have an object config with an xtype, check if it&#39;s a button
+                    // or a button subclass
+                    if (!isButton) {
+                        cls = Ext.ClassManager.getByAlias(&#39;widget.&#39; + config.xtype);
+
+                        if (cls) {
+                            isButton = cls.prototype.isButton;
+                        }
+                    }
+
+                    if (isButton &amp;&amp; minButtonWidth &amp;&amp; !(&#39;minWidth&#39; in defaults)) {
+                        defaults = Ext.apply({minWidth: minButtonWidth}, defaults);
+                    }
+
+                    return defaults;
+                };
+            }
+
+            if (previous) {
+                // Since these fellows will often have the same itemId, we need to
+                // remove the remove toolbar before adding the new one.
+                index = me.indexOf(previous);
+                previous.destroy();
+                toolbar = me.insert(index, toolbar);
+            }
+            else {
+                toolbar = me.add(toolbar);
+            }
+
+            return toolbar;
+        },
+
+        positionHeader: function(header, position) {
+            var me = this,
+                pos = position || me.getHeaderPosition();
+
+            header.setPosition(pos);
+
+            me.syncBorders();
+        },
+
+        setBodyBorderEnabled: function(enabled) {
+            this.bodyElement.setStyle(&#39;border-width&#39;, enabled ? &#39;&#39; : &#39;0&#39;);
+        },
+
+        syncBorders: function() {
+            if (!this.isConfiguring) {
+                this.getLayout().handleDockedItemBorders(true);
+            }
+        }
+    }
+};});
+</pre>
+</body>
+</html>

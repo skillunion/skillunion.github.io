@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-trigger-Reveal'>/**
+</span> * A &quot;reveal&quot; trigger.  Used in {@link Ext.field.Password Password Fields} when
+ * `{@link Ext.field.Password#revealable revealable}` is `true`.
+ */
+Ext.define(&#39;Ext.field.trigger.Reveal&#39;, {
+    extend: &#39;Ext.field.trigger.Trigger&#39;,
+    xtype: &#39;revealtrigger&#39;,
+    alias: &#39;trigger.reveal&#39;,
+<span id='Ext-field-trigger-Reveal-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;revealtrigger&#39;,
+</span><span id='Ext-field-trigger-Reveal-property-weight'>    weight: -1000,
+</span><span id='Ext-field-trigger-Reveal-cfg-hidden'>    hidden: true,
+</span><span id='Ext-field-trigger-Reveal-cfg-handler'>    handler: &#39;onRevealTap&#39;,
+</span><span id='Ext-field-trigger-Reveal-cfg-scope'>    scope: &#39;this&#39;
+</span>});</pre>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-rtl-layout-ContextItem'>/**
+</span> * @override Ext.rtl.layout.ContextItem
+ * This override adds RTL support to Ext.layout.ContextItem.
+ */
+Ext.define(&#39;Ext.rtl.layout.ContextItem&#39;, {
+    override: &#39;Ext.layout.ContextItem&#39;,
+
+<span id='Ext-rtl-layout-ContextItem-property-rtlTranslateProps'>    rtlTranslateProps: {
+</span>        x: &#39;right&#39;,
+        y: &#39;top&#39;
+    },
+
+<span id='Ext-rtl-layout-ContextItem-method-constructor'>    constructor: function(config) {
+</span>        var me = this,
+            componentContext = config.componentContext;
+
+        me.callParent([config]);
+
+        // If a componentContext exists, it means this context item is the child element
+        // of a component, so just ask for the state. If no componentContext, then ask
+        // the component for the state
+        me.rtl = componentContext ? componentContext.rtl : me.target.getInherited().rtl;
+
+        if (me.rtl) {
+            me.translateProps = me.rtlTranslateProps;
+        }
+    }
+
+});
+</pre>
+</body>
+</html>

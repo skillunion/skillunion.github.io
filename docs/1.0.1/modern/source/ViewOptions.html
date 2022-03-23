@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-plugin-ViewOptions'>/**
+</span> * The Modern Grid&#39;s ViewOptions plugin produces a menu that slides in from the right
+ * (by default) when you longpress on the grid headers. The menu displays the column
+ * header names which represents the order of the grid&#39;s columns. This allows users to
+ * easily reorder the grid&#39;s columns by reordering the rows. Items may be dragged by
+ * grabbing the furthest left side of the row and moving the item vertically.
+ *
+ * Once the columns are ordered to your liking, you may then close the menu by tapping the
+ * &quot;Done&quot; button.
+ *
+ *     @example
+ *     var store = Ext.create(&#39;Ext.data.Store&#39;, {
+ *         fields: [&#39;name&#39;, &#39;email&#39;, &#39;phone&#39;],
+ *         data: [{
+ *             name: &#39;Lisa&#39;,
+ *             email: &#39;lisa@simpsons.com&#39;,
+ *             phone: &#39;555-111-1224&#39;
+ *         }, {
+ *             name: &#39;Bart&#39;,
+ *             email: &#39;bart@simpsons.com&#39;,
+ *             phone: &#39;555-111-1234&#39;
+ *         }, {
+ *             name: &#39;Homer&#39;,
+ *             email: &#39;homer@simpsons.com&#39;,
+ *             phone: &#39;555-222-1244&#39;
+ *         }, {
+ *             name: &#39;Marge&#39;,
+ *             email: &#39;marge@simpsons.com&#39;,
+ *             phone: &#39;555-222-1254&#39;
+ *         }]
+ *     });
+ *
+ *     Ext.create(&#39;Ext.grid.Grid&#39;, {
+ *         store: store,
+ *         plugins: {
+ *             gridviewoptions: true
+ *         },
+ *         columns: [{
+ *             text: &#39;Name&#39;,
+ *             dataIndex: &#39;name&#39;,
+ *             width: 200
+ *         }, {
+ *             text: &#39;Email&#39;,
+ *             dataIndex: &#39;email&#39;,
+ *             width: 250
+ *         }, {
+ *             text: &#39;Phone&#39;,
+ *             dataIndex: &#39;phone&#39;,
+ *             width: 120
+ *         }],
+ *         fullscreen: true
+ *     });
+ *
+ * Developers may modify the menu and its contents by overriding {@link #sheet} and
+ * {@link #columnList} respectively.
+ *
+ */
+Ext.define(&#39;Ext.grid.plugin.ViewOptions&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: &#39;plugin.gridviewoptions&#39;,
+
+    requires: [
+        &#39;Ext.dataview.NestedList&#39;,
+        &#39;Ext.dataview.plugin.SortableList&#39;,
+        &#39;Ext.grid.plugin.ViewOptionsListItem&#39;
+    ],
+
+    config: {
+<span id='Ext-grid-plugin-ViewOptions-cfg-grid'>        /**
+</span>         * @private
+         */
+        grid: null,
+
+<span id='Ext-grid-plugin-ViewOptions-cfg-sheetWidth'>        /**
+</span>         * The width of the menu
+         */
+        sheetWidth: 320,
+
+<span id='Ext-grid-plugin-ViewOptions-cfg-sheet'>        /**
+</span>         * The configuration of the menu
+         */
+        sheet: {
+            lazy: true,
+            $value: {
+                xtype: &#39;sheet&#39;,
+                cls: Ext.baseCSSPrefix + &#39;gridviewoptions&#39;,
+                items: [{
+                    docked: &#39;top&#39;,
+                    xtype: &#39;titlebar&#39;,
+                    title: &#39;Customize&#39;,
+                    items: [{
+                        xtype: &#39;button&#39;,
+                        text: &#39;Done&#39;,
+                        ui: &#39;action&#39;,
+                        align: &#39;right&#39;,
+                        role: &#39;donebutton&#39;
+                    }]
+                }],
+                hidden: true,
+                hideOnMaskTap: true,
+                enter: &#39;right&#39;,
+                exit: &#39;right&#39;,
+                modal: true,
+                right: 0,
+                layout: &#39;fit&#39;,
+                stretchY: true
+            }
+        },
+
+<span id='Ext-grid-plugin-ViewOptions-cfg-columnList'>        /**
+</span>         * The column&#39;s configuration
+         */
+        columnList: {
+            lazy: true,
+            $value: {
+                xtype: &#39;nestedlist&#39;,
+                title: &#39;Columns&#39;,
+                clearSelectionOnListChange: false,
+                listConfig: {
+                    triggerEvent: null,
+                    bufferSize: 1,
+                    infinite: true,
+                    minimumBufferSize: 1,
+                    mode: &#39;MULTI&#39;,
+                    variableHeights: true,
+                    plugins: {
+                        sortablelist: {
+                            source: {
+                                handle: &#39;.&#39; + Ext.baseCSSPrefix + &#39;column-options-sortablehandle&#39;
+                            }
+                        }
+                    },
+                    itemConfig: {
+                        xtype: &#39;viewoptionslistitem&#39;
+                    },
+                    itemTpl: &#39;{text}&#39;
+                },
+                store: {
+                    type: &#39;tree&#39;,
+                    fields: [
+                        &#39;id&#39;,
+                        &#39;text&#39;,
+                        &#39;dataIndex&#39;,
+                        &#39;header&#39;,
+                        &#39;hidden&#39;,
+                        &#39;hideable&#39;,
+                        &#39;grouped&#39;,
+                        &#39;groupable&#39;
+                    ],
+                    root: {
+                        text: &#39;Columns&#39;
+                    }
+                }
+            }
+        },
+
+<span id='Ext-grid-plugin-ViewOptions-cfg-visibleIndicatorSelector'>        /**
+</span>         * The CSS class responsible for displaying the visibility indicator.
+         */
+        visibleIndicatorSelector: &#39;.&#39; + Ext.baseCSSPrefix + &#39;column-options-visibleindicator&#39;,
+
+<span id='Ext-grid-plugin-ViewOptions-cfg-groupIndicatorSelector'>        /**
+</span>         * The CSS class responsible for displaying the grouping indicator.
+         */
+        groupIndicatorSelector: &#39;.&#39; + Ext.baseCSSPrefix + &#39;column-options-groupindicator&#39;
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-init'>    init: function(grid) {
+</span>        this.setGrid(grid);
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-destroy'>    destroy: function () {
+</span>        this.destroyMembers(&#39;sheet&#39;, &#39;columnList&#39;);
+
+        this.callParent();
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-updateGrid'>    updateGrid: function(grid, oldGrid) {
+</span>        if (oldGrid) {
+            oldGrid.getHeaderContainer().renderElement.un({
+                contextmenu: &#39;onHeaderContextMenu&#39;,
+                longpress: &#39;onHeaderLongPress&#39;,
+                scope: this
+            });
+            oldGrid.un({
+                columnadd: &#39;onColumnAdd&#39;,
+                columnmove: &#39;onColumnMove&#39;,
+                columnremove: &#39;onColumnRemove&#39;,
+                columnhide: &#39;onColumnHide&#39;,
+                columnshow: &#39;onColumnShow&#39;,
+                scope: this
+            });
+        }
+
+        if (grid) {
+            grid.getHeaderContainer().renderElement.on({
+                contextmenu: &#39;onHeaderContextMenu&#39;,
+                longpress: &#39;onHeaderLongPress&#39;,
+                scope: this
+            });
+        }
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-applySheet'>    applySheet: function(sheet) {
+</span>        if (sheet &amp;&amp; !sheet.isComponent) {
+            sheet = Ext.factory(sheet, Ext.Sheet);
+        }
+
+        return sheet;
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-applyColumnList'>    applyColumnList: function(list) {
+</span>        if (list &amp;&amp; !list.isComponent) {
+            list = Ext.factory(list, Ext.Container);
+        }
+        return list;
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-updateColumnList'>    updateColumnList: function(list) {
+</span>        if (list) {
+            list.on({
+                listchange: &#39;onListChange&#39;,
+                scope: this
+            });
+
+            // For each item in the nested list, we want to handle the reorder
+            list.on(&#39;dragsort&#39;, &#39;onColumnDrag&#39;, this, {
+                delegate: &#39;&gt; list&#39;
+            });
+
+            this.attachTapListeners();
+        }
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-updateSheet'>    updateSheet: function(sheet) {
+</span>        sheet.setWidth(this.getSheetWidth());
+        sheet.add(this.getColumnList());
+        sheet.on(&#39;hide&#39;, &#39;onSheetHide&#39;, this);
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onDoneButtonTap'>    onDoneButtonTap: function() {
+</span>        this.getSheet().hide();
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onColumnDrag'>    onColumnDrag: function(list, row, newIndex) {
+</span>        var column = Ext.getCmp(row.getRecord().get(&#39;id&#39;)),
+            parent = column.getParent(),
+            siblings = parent.getInnerItems(),
+            i, ln, sibling;
+
+        for (i = 0, ln = newIndex; i &lt; ln; i++) {
+            sibling = siblings[i];
+            if (!sibling.isHeaderGroup &amp;&amp; sibling.getIgnore()) {
+                newIndex += 1;
+            }
+        }
+
+        this.isMoving = true;
+        parent.insert(newIndex, column);
+        this.isMoving = false;
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-attachTapListeners'>    attachTapListeners: function() {
+</span>        var activeList = this.getColumnList().getActiveItem();
+        if (!activeList.hasAttachedTapListeners) {
+            activeList.onBefore({
+                childtap: &#39;onListChildTap&#39;,
+                scope: this
+            });
+            activeList.hasAttachedTapListeners = true;
+        }
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onListChange'>    onListChange: function(nestedList, list) {
+</span>        var store = list.getStore(),
+            activeNode = store.getNode(),
+            records = activeNode.childNodes,
+            ln = records.length,
+            i, column, record;
+
+        for (i = 0; i &lt; ln; i++) {
+            record = records[i];
+            column = Ext.getCmp(record.getId());
+
+            record.set(&#39;hidden&#39;, column.isHidden());
+        }
+
+        this.attachTapListeners();
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onListChildTap'>    onListChildTap: function(list, location) {
+</span>        var me = this,
+            handled = false,
+            e = location.event;
+
+        if (Ext.fly(e.target).is(me.getVisibleIndicatorSelector())) {
+            me.onVisibleIndicatorTap(location.row, location.record);
+            handled = true;
+        } else if (Ext.fly(e.target).is(me.getGroupIndicatorSelector())) {
+            me.onGroupIndicatorTap(location.row, location.record);
+            handled = true;
+        }
+
+        return !handled;
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onVisibleIndicatorTap'>    onVisibleIndicatorTap: function(row, record) {
+</span>        var hidden = !record.get(&#39;hidden&#39;),
+            column = Ext.getCmp(record.get(&#39;id&#39;));
+
+        column.setHidden(hidden);
+        record.set(&#39;hidden&#39;, hidden);
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onGroupIndicatorTap'>    onGroupIndicatorTap: function(row, record) {
+</span>        var me = this,
+            grouped = !record.get(&#39;grouped&#39;),
+            store = me.getGrid().getStore();
+
+        // Clear everything
+        this.getListRoot().cascade(function(node) {
+            node.set(&#39;grouped&#39;, false);
+        });
+
+        if (grouped) {
+            store.setGrouper({
+                property: record.get(&#39;dataIndex&#39;)
+            });
+            record.set(&#39;grouped&#39;, true);
+        } else {
+            store.setGrouper(null);
+        }
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onColumnHide'>    onColumnHide: function(headerContainer, column) {
+</span>        var nestedList = this.getColumnList(),
+            activeList = nestedList.getActiveItem(),
+            store = activeList.getStore(),
+            record = store.getById(column.getId());
+
+        if (record) {
+            record.set(&#39;hidden&#39;, true);
+        }
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onColumnShow'>    onColumnShow: function(headerContainer, column) {
+</span>        var nestedList = this.getColumnList(),
+            activeList = nestedList.getActiveItem(),
+            store = activeList.getStore(),
+            record = store.getById(column.getId());
+
+        if (record) {
+            record.set(&#39;hidden&#39;, false);
+        }
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onColumnAdd'>    onColumnAdd: function(grid, column) {
+</span>        if (column.getIgnore() || this.isMoving) {
+            return;
+        }
+
+        var me = this,
+            nestedList = me.getColumnList(),
+            mainHeaderCt = grid.getHeaderContainer(),
+            header = column.getParent(),
+            store = nestedList.getStore(),
+            parentNode = store.getRoot(),
+            isGridGrouped = grid.getGrouped(),
+            grouper = grid.getStore().getGrouper(),
+            dataIndex = column.getDataIndex(),
+            data = {
+                id: column.getId(),
+                text: column.getText() || &#39;\xA0&#39;,
+                groupable: isGridGrouped &amp;&amp; column.canGroup(),
+                hidden: column.isHidden(),
+                hideable: column.getHideable(),
+                grouped: !!(isGridGrouped &amp;&amp; grouper &amp;&amp; grouper.getProperty() === dataIndex),
+                dataIndex: column.getDataIndex(),
+                leaf: true
+            }, idx, headerNode;
+
+        if (header !== mainHeaderCt) {
+            headerNode = parentNode.findChild(&#39;id&#39;, header.getId());
+            if (!headerNode) {
+                idx = header.getParent().indexOf(header);
+                headerNode = parentNode.insertChild(idx, {
+                    groupable: false,
+                    header: true,
+                    hidden: header.isHidden(),
+                    id: header.getId(),
+                    text: header.getText()
+                });
+            }
+            idx = header.indexOf(column);
+            parentNode = headerNode;
+        } else {
+            idx = mainHeaderCt.indexOf(column);
+        }
+
+        parentNode.insertChild(idx, data);
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onColumnMove'>    onColumnMove: function(headerContainer, column, header) {
+</span>        this.onColumnRemove(headerContainer, column);
+        this.onColumnAdd(headerContainer, column, header);
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onColumnRemove'>    onColumnRemove: function(headerContainer, column) {
+</span>        if (column.getIgnore() || this.isMoving) {
+            return;
+        }
+
+        var root = this.getListRoot(),
+            record = root.findChild(&#39;id&#39;, column.getId(), true);
+
+        if (record) {
+            record.parentNode.removeChild(record, true);
+        }
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onHeaderContextMenu'>    onHeaderContextMenu: function(e) {
+</span>        // Stop context menu from being triggered by a longpress
+        e.preventDefault();
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onHeaderLongPress'>    onHeaderLongPress: function(e) {
+</span>        if (!this.getSheet().isVisible()) {
+            this.showViewOptions();
+        }
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-hideViewOptions'>    hideViewOptions: function() {
+</span>        var me = this,
+            sheet = me.getSheet();
+
+        me.getGrid().getHeaderContainer().setSortable(me.cachedSortable);
+        delete me.cachedSortable;
+
+        sheet.hide();
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-onSheetHide'>    onSheetHide: function() {
+</span>        this.hideViewOptions();
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-method-showViewOptions'>    showViewOptions: function() {
+</span>        var me = this,
+            sheet = me.getSheet(),
+            header;
+
+        me.setup();
+
+        if (!sheet.isVisible()) {
+            // Since we may have shown the header in response to a longpress we don&#39;t
+            // want the succeeding &quot;tap&quot; to trigger column sorting, so we temporarily
+            // disable sort-on-tap while the ViewOptions are shown
+            header = me.getGrid().getHeaderContainer();
+            me.cachedSortable = header.getSortable();
+            header.setSortable(false);
+
+            me.updateListInfo();
+
+            sheet.show();
+        }
+    },
+
+<span id='Ext-grid-plugin-ViewOptions-property-privates'>    privates: {
+</span>        getListRoot: function() {
+            return this.getColumnList().getStore().getRoot();
+        },
+
+        setup: function() {
+            var me = this,
+                grid = me.getGrid(),
+                sheet, root;
+
+            if (me.doneSetup) {
+                return;
+            }
+            me.doneSetup = true;
+
+            root = this.getListRoot();
+
+            root.removeAll();
+
+            grid.getColumns().forEach(function(leaf) {
+                me.onColumnAdd(grid, leaf);
+            });
+
+            // Don&#39;t track the events until the first show, it&#39;s easier to
+            // build it from scratch.
+            grid.on({
+                columnadd: &#39;onColumnAdd&#39;,
+                columnmove: &#39;onColumnMove&#39;,
+                columnremove: &#39;onColumnRemove&#39;,
+                columnhide: &#39;onColumnHide&#39;,
+                columnshow: &#39;onColumnShow&#39;,
+                scope: me
+            });
+
+
+            sheet = me.getSheet();
+
+            sheet.down(&#39;button[role=donebutton]&#39;).on({
+                tap: &#39;onDoneButtonTap&#39;,
+                scope: me
+            });
+        },
+
+        updateListInfo: function() {
+            var grid = this.getGrid(),
+                store = grid.getStore(),
+                grouper = store.getGrouper(),
+                isGridGrouped = grid.getGrouped(),
+                grouperProp = grouper &amp;&amp; grouper.getProperty();
+
+            this.getColumnList().getStore().getRoot().cascade(function(node) {
+                var grouped = false,
+                    dataIndex;
+
+                if (isGridGrouped) {
+                    dataIndex = node.get(&#39;dataIndex&#39;);
+                    grouped = dataIndex &amp;&amp; dataIndex === grouperProp;
+                }
+                node.set(&#39;grouped&#39;, dataIndex &amp;&amp; grouped);
+            });
+        }
+    }
+});
+</pre>
+</body>
+</html>

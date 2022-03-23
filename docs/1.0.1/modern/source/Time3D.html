@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-axis-Time3D'>/**
+</span> * @class Ext.chart.axis.Time3D
+ */
+Ext.define(&#39;Ext.chart.axis.Time3D&#39;, {
+    extend: &#39;Ext.chart.axis.Numeric3D&#39;,
+    alias: &#39;axis.time3d&#39;,
+<span id='Ext-chart-axis-Time3D-property-type'>    type: &#39;time3d&#39;,
+</span>    requires: [
+        &#39;Ext.chart.axis.layout.Continuous&#39;,
+        &#39;Ext.chart.axis.segmenter.Time&#39;
+    ],
+    config: {
+<span id='Ext-chart-axis-Time3D-cfg-dateFormat'>        /**
+</span>         * @cfg {String/Boolean} dateFormat
+         * Indicates the format the date will be rendered on.
+         * For example: &#39;M d&#39; will render the dates as &#39;Jan 30&#39;, etc.
+         */
+        dateFormat: null,
+
+<span id='Ext-chart-axis-Time3D-cfg-fromDate'>        /**
+</span>         * @cfg {Date} fromDate The starting date for the time axis.
+         */
+        fromDate: null,
+
+<span id='Ext-chart-axis-Time3D-cfg-toDate'>        /**
+</span>         * @cfg {Date} toDate The ending date for the time axis.
+         */
+        toDate: null,
+
+<span id='Ext-chart-axis-Time3D-cfg-layout'>        layout: &#39;continuous&#39;,
+</span>
+<span id='Ext-chart-axis-Time3D-cfg-segmenter'>        segmenter: &#39;time&#39;,
+</span>
+<span id='Ext-chart-axis-Time3D-cfg-aggregator'>        aggregator: &#39;time&#39;
+</span>    },
+
+<span id='Ext-chart-axis-Time3D-method-updateDateFormat'>    updateDateFormat: function (format) {
+</span>        this.setRenderer(function (axis, date) {
+            return Ext.Date.format(new Date(date), format);
+        });
+    },
+
+<span id='Ext-chart-axis-Time3D-method-updateFromDate'>    updateFromDate: function (date) {
+</span>        this.setMinimum(+date);
+    },
+
+<span id='Ext-chart-axis-Time3D-method-updateToDate'>    updateToDate: function (date) {
+</span>        this.setMaximum(+date);
+    },
+
+<span id='Ext-chart-axis-Time3D-method-getCoordFor'>    getCoordFor: function (value) {
+</span>        if (Ext.isString(value)) {
+            value = new Date(value);
+        }
+        return +value;
+    }
+});
+</pre>
+</body>
+</html>

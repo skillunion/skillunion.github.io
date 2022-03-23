@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-CartesianChart'>/**
+</span> * Represents a chart that uses cartesian coordinates.
+ * A cartesian chart has two directions, X direction and Y direction.
+ * The series and axes are coordinated along these directions.
+ * By default the x direction is horizontal and y direction is vertical,
+ * You can swap the direction by setting the {@link #flipXY} config to `true`.
+ *
+ * Cartesian series often treats x direction an y direction differently.
+ * In most cases, data on x direction are assumed to be monotonically increasing.
+ * Based on this property, cartesian series can be trimmed and summarized properly
+ * to gain a better performance.
+ *
+ * Please check out the summary for the {@link Ext.chart.AbstractChart} as well,
+ * for helpful tips and important details.
+ *
+ */
+Ext.define(&#39;Ext.chart.CartesianChart&#39;, {
+    extend: &#39;Ext.chart.AbstractChart&#39;,
+    alternateClassName: &#39;Ext.chart.Chart&#39;,
+    requires: [
+        &#39;Ext.chart.grid.HorizontalGrid&#39;,
+        &#39;Ext.chart.grid.VerticalGrid&#39;
+    ],
+    xtype: [ &#39;cartesian&#39;, &#39;chart&#39; ],
+<span id='Ext-chart-CartesianChart-property-isCartesian'>    isCartesian: true,
+</span>
+    config: {
+<span id='Ext-chart-CartesianChart-cfg-flipXY'>        /**
+</span>         * @cfg {Boolean} flipXY Flip the direction of X and Y axis.
+         * If flipXY is `true`, the X axes will be vertical and Y axes will be horizontal.
+         * Note that {@link Ext.chart.axis.Axis#position positions} of chart axes have
+         * to be updated accordingly: axes positioned to the `top` and `bottom` should
+         * be positioned to the `left` or `right` and vice versa.
+         */
+        flipXY: false,
+<span id='Ext-chart-CartesianChart-cfg-innerRect'>        /*
+</span>
+         While it may seem tedious to change the position config of all axes every time
+         when the value of the flipXY config is changed, it&#39;s hard to predict the
+         expectaction of the user here, as illustrated below.
+
+         The &#39;num&#39; and &#39;cat&#39; here stand for the numeric and the category axis, respectively.
+         And the right column shows the expected (subjective) result of setting the flipXY
+         config of the chart to &#39;true&#39;.
+
+         As one can see, there&#39;s no single rule (e.g. position swapping, clockwise 90° chart
+         rotation) that will produce a universally accepted result.
+         So we are letting the user decide, instead of doing it for them.
+
+         ---------------------------------------------
+         |   flipXY: false       |    flipXY: true   |
+         ---------------------------------------------
+         |        ^              |      ^            |
+         |        |     *        |      | * * *      |
+         |   num1 |   * *        |  cat | * *        |
+         |        | * * *        |      | *          |
+         |        --------&gt;      |      --------&gt;    |
+         |           cat         |         num1      |
+         ---------------------------------------------
+         |                       |         num1      |
+         |       ^       ^       |      ^-------&gt;    |
+         |       |     * |       |      | * * *      |
+         |  num1 |   * * | num2  |  cat | * *        |
+         |       | * * * |       |      | *          |
+         |       --------&gt;       |      --------&gt;    |
+         |          cat          |         num2      |
+         ---------------------------------------------
+
+         */
+
+        innerRect: [0, 0, 1, 1],
+
+<span id='Ext-chart-CartesianChart-cfg-innerPadding'>        /**
+</span>         * @cfg {Object} innerPadding The amount of inner padding in pixels.
+         * Inner padding is the padding from the innermost axes to the series.
+         */
+        innerPadding: {
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+        }
+    },
+
+<span id='Ext-chart-CartesianChart-method-applyInnerPadding'>    applyInnerPadding: function (padding, oldPadding) {
+</span>        if (!Ext.isObject(padding)) {
+            return Ext.util.Format.parseBox(padding);
+        } else if (!oldPadding) {
+            return padding;
+        } else {
+            return Ext.apply(oldPadding, padding);
+        }
+    },
+
+<span id='Ext-chart-CartesianChart-method-getDirectionForAxis'>    getDirectionForAxis: function (position) {
+</span>        var flipXY = this.getFlipXY(),
+            direction;
+
+        if (position === &#39;left&#39; || position === &#39;right&#39;) {
+            direction = flipXY ? &#39;X&#39; : &#39;Y&#39;;
+        } else {
+            direction = flipXY ? &#39;Y&#39; : &#39;X&#39;;
+        }
+
+        return direction;
+    },
+
+<span id='Ext-chart-CartesianChart-method-performLayout'>    /**
+</span>     * Layout the axes and series.
+     */
+    performLayout: function () {
+        var me = this;
+
+        if (me.callParent() === false) {
+            return;
+        }
+
+        me.chartLayoutCount++;
+        me.suspendAnimation();
+
+        // &#39;chart&#39; surface rect is the size of the chart&#39;s inner element
+        // (see chart.getChartBox), i.e. the portion of the chart minus
+        // the legend area (whether DOM or sprite based).
+        var chartRect = me.getSurface(&#39;chart&#39;).getRect(),
+            left = chartRect[0],
+            top = chartRect[1],
+            width = chartRect[2],
+            height = chartRect[3],
+            captionList = me.captionList,
+            axes = me.getAxes(), axis,
+            seriesList = me.getSeries(), series,
+            axisSurface, thickness,
+            insetPadding = me.getInsetPadding(),
+            innerPadding = me.getInnerPadding(),
+            surface, gridSurface,
+            // shrinkBox represents padding added on each side by
+            // innerPadding &amp; insetPadding configs and the legend.
+            shrinkBox = Ext.apply({}, insetPadding),
+            mainRect, innerWidth, innerHeight,
+            elements, floating, floatingValue, matrix, i, ln,
+            isRtl = me.getInherited().rtl,
+            flipXY = me.getFlipXY(),
+            caption;
+
+        if (width &lt;= 0 || height &lt;= 0) {
+            return;
+        }
+
+        me.suspendThicknessChanged();
+
+        for (i = 0; i &lt; axes.length; i++) {
+            axis = axes[i];
+            axisSurface = axis.getSurface();
+            floating = axis.getFloating();
+            floatingValue = floating ? floating.value : null;
+            thickness = axis.getThickness();
+            switch (axis.getPosition()) {
+                case &#39;top&#39;:
+                    axisSurface.setRect([left, top + shrinkBox.top + 1, width, thickness]);
+                    break;
+                case &#39;bottom&#39;:
+                    axisSurface.setRect([left, top + height - (shrinkBox.bottom + thickness), width, thickness]);
+                    break;
+                case &#39;left&#39;:
+                    axisSurface.setRect([left + shrinkBox.left, top, thickness, height]);
+                    break;
+                case &#39;right&#39;:
+                    axisSurface.setRect([left + width - (shrinkBox.right + thickness), top, thickness, height]);
+                    break;
+            }
+            if (floatingValue === null) {
+                shrinkBox[axis.getPosition()] += thickness;
+            }
+        }
+
+        width -= shrinkBox.left + shrinkBox.right;
+        height -= shrinkBox.top + shrinkBox.bottom;
+
+        mainRect = [
+            left + shrinkBox.left,
+            top + shrinkBox.top,
+            width,
+            height
+        ];
+
+        shrinkBox.left += innerPadding.left;
+        shrinkBox.top += innerPadding.top;
+        shrinkBox.right += innerPadding.right;
+        shrinkBox.bottom += innerPadding.bottom;
+
+        innerWidth = width - innerPadding.left - innerPadding.right;
+        innerHeight = height - innerPadding.top - innerPadding.bottom;
+
+        me.setInnerRect([shrinkBox.left, shrinkBox.top, innerWidth, innerHeight]);
+
+        if (innerWidth &lt;= 0 || innerHeight &lt;= 0) {
+            return;
+        }
+
+        me.setMainRect(mainRect);
+        me.getSurface().setRect(mainRect);
+
+        for (i = 0, ln = me.surfaceMap.grid &amp;&amp; me.surfaceMap.grid.length; i &lt; ln; i++) {
+            gridSurface = me.surfaceMap.grid[i];
+            gridSurface.setRect(mainRect);
+            gridSurface.matrix.set(1, 0, 0, 1, innerPadding.left, innerPadding.top);
+            gridSurface.matrix.inverse(gridSurface.inverseMatrix);
+        }
+
+        for (i = 0; i &lt; axes.length; i++) {
+            axis = axes[i];
+            axis.getRange(true);
+            axisSurface = axis.getSurface();
+            matrix = axisSurface.matrix;
+            elements = matrix.elements;
+            switch (axis.getPosition()) {
+                case &#39;top&#39;:
+                case &#39;bottom&#39;:
+                    elements[4] = shrinkBox.left;
+                    axis.setLength(innerWidth);
+                    break;
+                case &#39;left&#39;:
+                case &#39;right&#39;:
+                    elements[5] = shrinkBox.top;
+                    axis.setLength(innerHeight);
+                    break;
+            }
+            axis.updateTitleSprite();
+            matrix.inverse(axisSurface.inverseMatrix);
+        }
+
+        for (i = 0, ln = seriesList.length; i &lt; ln; i++) {
+            series = seriesList[i];
+            surface = series.getSurface();
+            surface.setRect(mainRect);
+            if (flipXY) {
+                if (isRtl) {
+                    surface.matrix.set(0, -1, -1, 0,
+                        innerPadding.left + innerWidth,
+                        innerPadding.top + innerHeight);
+                } else {
+                    surface.matrix.set(0, -1, 1, 0,
+                        innerPadding.left,
+                        innerPadding.top + innerHeight);
+                }
+            } else {
+                surface.matrix.set(1, 0, 0, -1,
+                    innerPadding.left,
+                    innerPadding.top + innerHeight);
+            }
+            surface.matrix.inverse(surface.inverseMatrix);
+            series.getOverlaySurface().setRect(mainRect);
+        }
+
+        if (captionList) {
+            for (i = 0, ln = captionList.length; i &lt; ln; i++) {
+                caption = captionList[i];
+                if (caption.getAlignTo() === &#39;series&#39;) {
+                    caption.alignRect(mainRect);
+                }
+                caption.performLayout();
+            }
+        }
+
+        // In certain cases &#39;performLayout&#39; override is not an option without major code duplication.
+        // &#39;afterChartLayout&#39; can be a cleaner solution in such cases (because of the timing of its call).
+        me.afterChartLayout(); // currently in cartesian charts only (used by Navigator)
+        me.redraw();
+
+        me.resumeAnimation();
+        // &#39;resumeThicknessChanged&#39; may trigger another layout, if the &#39;redraw&#39; call above
+        // resulted in a situation where an axis is no longer &#39;thick&#39; enough to accommodate
+        // the new labels. E.g. the labels were: &#39;Bob&#39;, &#39;Ann&#39;, &#39;Joe&#39; and now they are &#39;Jonathan&#39;,
+        // &#39;Rachael&#39;, &#39;Michael&#39;. An axis has to be made thicker now, and another layout should be
+        // performed. This second layout is not scheduled, but performed immediately, which will
+        // increment the &#39;chartLayoutCount&#39; again.
+        me.resumeThicknessChanged();
+        me.chartLayoutCount--;
+        // &#39;checkLayoutEnd&#39; will check if another layout is already running or scheduled and,
+        // if neither is the case, will fire the &#39;layout&#39; event, meaning we are totally done
+        // with layout at this point.
+        me.checkLayoutEnd();
+    },
+
+<span id='Ext-chart-CartesianChart-method-afterChartLayout'>    afterChartLayout: Ext.emptyFn,
+</span>
+<span id='Ext-chart-CartesianChart-method-refloatAxes'>    refloatAxes: function () {
+</span>        var me = this,
+            axes = me.getAxes(),
+            axesCount = (axes &amp;&amp; axes.length) || 0,
+            axis, axisSurface, axisRect,
+            floating, value, alongAxis, matrix,
+            chartRect = me.getChartRect(),
+            inset = me.getInsetPadding(),
+            inner = me.getInnerPadding(),
+            width = chartRect[2] - inset.left - inset.right,
+            height = chartRect[3] - inset.top - inset.bottom,
+            isHorizontal, i;
+
+        for (i = 0; i &lt; axesCount; i++) {
+            axis = axes[i];
+            floating = axis.getFloating();
+            value = floating ? floating.value : null;
+            if (value === null) {
+                axis.floatingAtCoord = null;
+                continue;
+            }
+            axisSurface = axis.getSurface();
+            axisRect = axisSurface.getRect();
+            if (!axisRect) {
+                continue;
+            }
+            axisRect = axisRect.slice();
+            alongAxis = me.getAxis(floating.alongAxis);
+            if (alongAxis) {
+                isHorizontal = alongAxis.getAlignment() === &#39;horizontal&#39;;
+                if (Ext.isString(value)) {
+                    value = alongAxis.getCoordFor(value);
+                }
+                alongAxis.floatingAxes[axis.getId()] = value;
+                matrix = alongAxis.getSprites()[0].attr.matrix;
+                if (isHorizontal) {
+                    value = value * matrix.getXX() + matrix.getDX();
+                    axis.floatingAtCoord = value + inner.left + inner.right;
+                } else {
+                    value = value * matrix.getYY() + matrix.getDY();
+                    axis.floatingAtCoord = value + inner.top + inner.bottom;
+                }
+            } else {
+                isHorizontal = axis.getAlignment() === &#39;horizontal&#39;;
+                if (isHorizontal) {
+                    axis.floatingAtCoord = value + inner.top + inner.bottom;
+                } else {
+                    axis.floatingAtCoord = value + inner.left + inner.right;
+                }
+                value = axisSurface.roundPixel(0.01 * value * (isHorizontal ? height : width));
+            }
+            switch (axis.getPosition()) {
+                case &#39;top&#39;:
+                    axisRect[1] = inset.top + inner.top + value - axisRect[3] + 1;
+                    break;
+                case &#39;bottom&#39;:
+                    axisRect[1] = inset.top + inner.top + (alongAxis ? value : height - value);
+                    break;
+                case &#39;left&#39;:
+                    axisRect[0] = inset.left + inner.left + value - axisRect[2];
+                    break;
+                case &#39;right&#39;:
+                    axisRect[0] = inset.left + inner.left + (alongAxis ? value : width - value) - 1;
+                    break;
+            }
+            axisSurface.setRect(axisRect);
+        }
+    },
+
+<span id='Ext-chart-CartesianChart-method-redraw'>    redraw: function () {
+</span>        var me = this,
+            seriesList = me.getSeries(),
+            axes = me.getAxes(),
+            rect = me.getMainRect(),
+            innerWidth, innerHeight,
+            innerPadding = me.getInnerPadding(),
+            sprites, xRange, yRange, isSide, attr, i, j, ln,
+            axis, axisX, axisY, range, visibleRange,
+            flipXY = me.getFlipXY(),
+            zBase = 1000,
+            zIndex, markersZIndex,
+            series, sprite, markers;
+
+        if (!rect) {
+            return;
+        }
+
+        innerWidth = rect[2] - innerPadding.left - innerPadding.right;
+        innerHeight = rect[3] - innerPadding.top - innerPadding.bottom;
+
+        for (i = 0; i &lt; seriesList.length; i++) {
+            series = seriesList[i];
+
+            axisX = series.getXAxis();
+            if (axisX) {
+                visibleRange = axisX.getVisibleRange();
+                xRange = axisX.getRange();
+                xRange = [
+                    xRange[0] + (xRange[1] - xRange[0]) * visibleRange[0],
+                    xRange[0] + (xRange[1] - xRange[0]) * visibleRange[1]
+                ];
+            } else {
+                xRange = series.getXRange();
+            }
+
+            axisY = series.getYAxis();
+            if (axisY) {
+                visibleRange = axisY.getVisibleRange();
+                yRange = axisY.getRange();
+                yRange = [
+                    yRange[0] + (yRange[1] - yRange[0]) * visibleRange[0],
+                    yRange[0] + (yRange[1] - yRange[0]) * visibleRange[1]
+                ];
+            } else {
+                yRange = series.getYRange();
+            }
+
+            attr = {
+                visibleMinX: xRange[0],
+                visibleMaxX: xRange[1],
+                visibleMinY: yRange[0],
+                visibleMaxY: yRange[1],
+                innerWidth: innerWidth,
+                innerHeight: innerHeight,
+                flipXY: flipXY
+            };
+
+            sprites = series.getSprites();
+            for (j = 0, ln = sprites.length; j &lt; ln; j++) {
+
+                // All the series now share the same surface, so we must assign
+                // the sprites a zIndex that depends on the index of their series.
+                sprite = sprites[j];
+                zIndex = sprite.attr.zIndex;
+                if (zIndex &lt; zBase) {
+                    // Set the sprite&#39;s zIndex
+                    zIndex += (i + 1) * 100 + zBase;
+                    sprite.attr.zIndex = zIndex;
+                    // If the sprite is a MarkerHolder, set zIndex of the bound markers as well.
+                    // Do this for the &#39;items&#39; markers only, as those are the only ones
+                    // that go into the &#39;series&#39; surface. &#39;labels&#39; and &#39;markers&#39; markers
+                    // go into the &#39;overlay&#39; surface instead.
+                    markers = sprite.getMarker(&#39;items&#39;);
+                    if (markers) {
+                        markersZIndex = markers.attr.zIndex;
+                        if (markersZIndex === Number.MAX_VALUE) {
+                            markers.attr.zIndex = zIndex;
+                        } else if (markersZIndex &lt; zBase) {
+                            markers.attr.zIndex = zIndex + markersZIndex;
+                        }
+                    }
+                }
+
+                sprite.setAttributes(attr, true);
+            }
+        }
+
+        for (i = 0; i &lt; axes.length; i++) {
+            axis = axes[i];
+            isSide = axis.isSide();
+            sprites = axis.getSprites();
+            range = axis.getRange();
+            visibleRange = axis.getVisibleRange();
+            attr = {
+                dataMin: range[0],
+                dataMax: range[1],
+                visibleMin: visibleRange[0],
+                visibleMax: visibleRange[1]
+            };
+            if (isSide) {
+                attr.length = innerHeight;
+                attr.startGap = innerPadding.bottom;
+                attr.endGap = innerPadding.top;
+            } else {
+                attr.length = innerWidth;
+                attr.startGap = innerPadding.left;
+                attr.endGap = innerPadding.right;
+            }
+            for (j = 0, ln = sprites.length; j &lt; ln; j++) {
+                sprites[j].setAttributes(attr, true);
+            }
+        }
+        me.renderFrame();
+        me.callParent();
+    },
+
+<span id='Ext-chart-CartesianChart-method-renderFrame'>    renderFrame: function () {
+</span>        this.refloatAxes();
+        this.callParent();
+    }
+});
+</pre>
+</body>
+</html>

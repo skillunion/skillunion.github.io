@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-column-Check'>/**
+</span> * A Column subclass which renders a checkbox in each column cell which toggles the truthiness of the associated data field on click.
+ */
+Ext.define(&#39;Ext.grid.column.Check&#39;, {
+    extend: &#39;Ext.grid.column.Column&#39;,
+
+<span id='Ext-grid-column-Check-property-isCheckColumn'>    isCheckColumn: true,
+</span>
+    requires: [
+        &#39;Ext.util.Format&#39;,
+        &#39;Ext.grid.cell.Number&#39;
+    ],
+
+    xtype: &#39;checkcolumn&#39;,
+
+<span id='Ext-grid-column-Check-event-beforecheckchange'>    /**
+</span>     * @event beforecheckchange
+     * Fires when the UI requests a change of check status.
+     * The change may be vetoed by returning `false` from a listener.
+     * @param {Ext.grid.cell.Check} this The cell changing its state.
+     * @param {Number} rowIndex The row index.
+     * @param {Boolean} checked `true` if the box is to be checked.
+     * @param {Ext.data.Model} record The record to be updated.
+     * @param {Ext.event.Event} e The underlying event which caused the check change.
+     * @param {Ext.grid.CellContext} e.position A {@link Ext.grid.CellContext CellContext} object
+     * containing all contextual information about where the event was triggered.
+     */
+
+<span id='Ext-grid-column-Check-event-checkchange'>    /**
+</span>     * @event checkchange
+     * Fires when the UI has successfully changed the checked state of a row.
+     * @param {Ext.grid.cell.Check} this The cell changing its state.
+     * @param {Number} rowIndex The row index.
+     * @param {Boolean} checked `true` if the box is now checked.
+     * @param {Ext.data.Model} record The record which was updated.
+     * @param {Ext.event.Event} e The underlying event which caused the check change.
+     * @param {Ext.grid.CellContext} e.position A {@link Ext.grid.CellContext CellContext} object
+     */
+
+    cachedConfig: {
+<span id='Ext-grid-column-Check-cfg-headerCheckboxAlign'>        /**
+</span>         * @cfg {&#39;top&#39;/&#39;right&#39;/&#39;bottom&#39;/&#39;left&#39;} headerCheckboxAlign
+         * Alignment of the header checkbox relative to the title text.
+         */
+        headerCheckboxAlign: &#39;bottom&#39;
+    },
+
+    config: {
+<span id='Ext-grid-column-Check-cfg-stopSelection'>        /**
+</span>         * @cfg {Boolean} stopSelection
+         * Prevent grid selection upon tap.
+         */
+        stopSelection: true,
+
+<span id='Ext-grid-column-Check-cfg-headerCheckbox'>        /**
+</span>         * @cfg {Boolean} [headerCheckbox=false]
+         * Configure as `true` to display a checkbox below the header text.
+         *
+         * Clicking the checkbox will check/uncheck all records.
+         */
+        headerCheckbox: null
+    },
+
+<span id='Ext-grid-column-Check-cfg-align'>    /**
+</span>     * @cfg align
+     * @inheritdoc
+     */
+    align: &#39;center&#39;,
+
+<span id='Ext-grid-column-Check-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;checkcolumn&#39;,
+<span id='Ext-grid-column-Check-property-noHeaderCheckboxCls'>    noHeaderCheckboxCls: Ext.baseCSSPrefix + &#39;no-header-checkbox&#39;,
+</span><span id='Ext-grid-column-Check-property-checkedCls'>    checkedCls: Ext.baseCSSPrefix + &#39;checked&#39;,
+</span><span id='Ext-grid-column-Check-property-hasTextCls'>    hasTextCls: Ext.baseCSSPrefix + &#39;has-text&#39;,
+</span><span id='Ext-grid-column-Check-property-checkboxAlignCls'>    checkboxAlignCls: {
+</span>        top: Ext.baseCSSPrefix + &#39;checkbox-align-top&#39;,
+        right: Ext.baseCSSPrefix + &#39;checkbox-align-right&#39;,
+        bottom: Ext.baseCSSPrefix + &#39;checkbox-align-bottom&#39;,
+        left: Ext.baseCSSPrefix + &#39;checkbox-align-left&#39;
+    },
+
+<span id='Ext-grid-column-Check-cfg-text'>    /**
+</span>     * @cfg text
+     * @inheritdoc
+     */
+    text: &#39;&#39;,
+
+<span id='Ext-grid-column-Check-cfg-ignoreExport'>    /**
+</span>     * @cfg ignoreExport
+     * @inheritdoc
+     */
+    ignoreExport: true,
+
+<span id='Ext-grid-column-Check-cfg-cell'>    /**
+</span>     * @cfg cell
+     * @inheritdoc
+     */
+    cell: {
+        xtype: &#39;checkcell&#39;
+    },
+
+<span id='Ext-grid-column-Check-property-afterTitleTemplate'>    afterTitleTemplate: [{
+</span>        reference: &#39;checkboxElement&#39;,
+        classList: [
+            Ext.baseCSSPrefix + &#39;checkbox-el&#39;,
+            Ext.baseCSSPrefix + &#39;font-icon&#39;
+        ]
+    }],
+
+<span id='Ext-grid-column-Check-method-onColumnTap'>    onColumnTap: function (e) {
+</span>        var me = this;
+
+        if ((e.target === me.checkboxElement.dom) &amp;&amp; !me.getDisabled()) {
+            me.toggleAll(e);
+        }
+
+        me.callParent([e]);
+    },
+
+<span id='Ext-grid-column-Check-method-toggleAll'>    toggleAll: function(e) {
+</span>        var me = this,
+            checked = !me.allChecked;
+
+        if (me.fireEvent(&#39;beforeheadercheckchange&#39;, me, checked, e) !== false) {
+            me.doToggleAll(checked);
+            me.setHeaderStatus(checked);
+            me.fireEvent(&#39;headercheckchange&#39;, me, checked, e);
+        }
+    },
+
+<span id='Ext-grid-column-Check-method-doToggleAll'>    doToggleAll: function(checked) {
+</span>        var me = this,
+            store = me.getGrid().getStore();
+
+        store.each(function(record) {
+            me.setRecordChecked(record, checked);
+        });
+    },
+
+<span id='Ext-grid-column-Check-method-setRecordChecked'>    setRecordChecked: function (record, checked, e) {
+</span>        checked = !!checked;
+
+        this.doSetRecordChecked(record, checked);
+
+        // Must clear the &quot;all checked&quot; status in the column header
+        if (checked) {
+            this.updateHeaderState();
+        } else {
+            this.setHeaderStatus(checked);
+        }
+    },
+
+<span id='Ext-grid-column-Check-method-doSetRecordChecked'>    doSetRecordChecked: function(record, checked) {
+</span>        var dataIndex = this.getDataIndex();
+
+        // Only proceed if we NEED to change
+        if (record.get(dataIndex) != checked) {
+            record.set(dataIndex, checked);
+        }
+    },
+
+<span id='Ext-grid-column-Check-method-areAllChecked'>    areAllChecked: function() {
+</span>        var me = this,
+            store = me.getGrid().getStore(),
+            records, len, i;
+
+        if (store &amp;&amp; !store.isVirtualStore &amp;&amp; store.getCount() &gt; 0) {
+            records = store.getData().items;
+            len = records.length;
+            for (i = 0; i &lt; len; ++i) {
+                if (!me.isRecordChecked(records[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    },
+
+<span id='Ext-grid-column-Check-method-isRecordChecked'>    isRecordChecked: function (record) {
+</span>        return record.get(this.getDataIndex());
+    },
+
+<span id='Ext-grid-column-Check-method-updateHeaderState'>    updateHeaderState: function() {
+</span>        // This is called on a timer, so ignore if it fires after destruction
+        if (!this.destroyed &amp;&amp; (this.getHeaderCheckbox() !== false)) {
+            this.setHeaderStatus(this.areAllChecked());
+        }
+    },
+
+<span id='Ext-grid-column-Check-method-setHeaderStatus'>    setHeaderStatus: function(checked) {
+</span>        var me = this;
+
+        // Will fire initially due to allChecked being undefined and using !==
+        if (me.allChecked !== checked) {
+            me.allChecked = checked;
+            me.el.toggleCls(me.checkedCls, checked);
+        }
+    },
+
+<span id='Ext-grid-column-Check-method-updateDisabled'>    updateDisabled: function(disabled, oldDisabled) {
+</span>        var me = this,
+            grid = me.getGrid(),
+            rows,
+            len, i;
+
+        me.callParent([disabled, oldDisabled]);
+
+        if (grid) {
+            rows = grid.getViewItems();
+            len = rows.length;
+
+            for (i = 0; i &lt; len; i++) {
+                rows[i].getCellByColumn(me).setDisabled(disabled);
+            }
+        }
+    },
+
+<span id='Ext-grid-column-Check-method-updateHeaderCheckboxAlign'>    updateHeaderCheckboxAlign: function (align, oldAlign) {
+</span>        var me = this,
+            checkboxAlignCls = me.checkboxAlignCls;
+
+        if (oldAlign) {
+            me.removeCls(checkboxAlignCls[oldAlign]);
+        }
+
+        if (align) {
+            //&lt;debug&gt;
+            if (!checkboxAlignCls[align]) {
+                Ext.raise(&quot;Invalid value for checkboxAlign: &#39;&quot; + align + &quot;&#39;&quot;);
+            }
+            //&lt;/debug&gt;
+            me.addCls(checkboxAlignCls[align]);
+        }
+    },
+
+<span id='Ext-grid-column-Check-method-updateHeaderCheckbox'>    updateHeaderCheckbox: function(headerCheckbox) {
+</span>        var me = this,
+            grid = me.getGrid();
+
+        me.el.toggleCls(me.noHeaderCheckboxCls, !headerCheckbox);
+        me.setSortable(!headerCheckbox);
+
+        // May be called in initialization before we are added to a grid.
+        if (grid) {
+
+            // Keep the header checkbox up to date
+            me.updateHeaderState();
+        }
+    },
+
+<span id='Ext-grid-column-Check-method-updateText'>    updateText: function (text) {
+</span>        // Override: We do not want &amp;nbsp; because it uncenters the checkbox.
+        this.setHtml(text);
+        this.toggleCls(this.hasTextCls, !!text);
+    }
+});
+</pre>
+</body>
+</html>

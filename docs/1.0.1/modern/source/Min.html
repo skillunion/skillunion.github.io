@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-summary-Min'>/**
+</span> * Calculates the minimum for a set of data.
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.data.summary.Min&#39;, {
+    extend: &#39;Ext.data.summary.Base&#39;,
+
+    alias: &#39;data.summary.min&#39;,
+
+<span id='Ext-data-summary-Min-method-calculate'>    calculate: function(records, property, root, begin, end) {
+</span>        var min = this.extractValue(records[begin], property, root),
+            i, v;
+
+        for (i = begin; i &lt; end; ++i) {
+            v = this.extractValue(records[i], property, root);
+            if (v &lt; min) {
+                min = v;
+            }
+        }
+
+        return min;
+    }
+});</pre>
+</body>
+</html>

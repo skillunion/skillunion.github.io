@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-draw-sprite-Instancing'>/**
+</span> * @class Ext.draw.sprite.Instancing
+ * @extends Ext.draw.sprite.Sprite
+ *
+ * Sprite that represents multiple instances based on the given template.
+ */
+Ext.define(&#39;Ext.draw.sprite.Instancing&#39;, {
+    extend: &#39;Ext.draw.sprite.Sprite&#39;,
+    alias: &#39;sprite.instancing&#39;,
+<span id='Ext-draw-sprite-Instancing-property-type'>    type: &#39;instancing&#39;,
+</span><span id='Ext-draw-sprite-Instancing-property-isInstancing'>    isInstancing: true,
+</span>
+    config: {
+<span id='Ext-draw-sprite-Instancing-cfg-template'>        /**
+</span>         * @cfg {Object} [template] The sprite template used by all instances.
+         */
+        template: null,
+
+<span id='Ext-draw-sprite-Instancing-cfg-instances'>        /**
+</span>         * @cfg {Array} [instances]
+         * The instances of the {@link #template} sprite as configs of attributes.
+         */
+        instances: null
+    },
+
+<span id='Ext-draw-sprite-Instancing-property-instances'>    instances: null,
+</span>
+<span id='Ext-draw-sprite-Instancing-method-applyTemplate'>    applyTemplate: function (template) {
+</span>        //&lt;debug&gt;
+        if (!Ext.isObject(template)) {
+            Ext.raise(&quot;A template of an instancing sprite must either be &quot; +
+                &quot;a sprite instance or a valid config object from which a template &quot; +
+                &quot;sprite will be created.&quot;);
+        } else if (template.isInstancing || template.isComposite) {
+            Ext.raise(&quot;Can&#39;t use an instancing or composite sprite &quot; +
+                &quot;as a template for an instancing sprite.&quot;);
+        }
+        //&lt;/debug&gt;
+        if (!template.isSprite) {
+            if (!template.xclass &amp;&amp; !template.type) {
+                // For compatibility with legacy charts.
+                template.type = &#39;circle&#39;;
+            }
+            template = Ext.create(template.xclass || &#39;sprite.&#39; + template.type, template);
+        }
+        var surface = template.getSurface();
+        if (surface) {
+            surface.remove(template);
+        }
+        template.setParent(this);
+        return template;
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-updateTemplate'>    updateTemplate: function (template, oldTemplate) {
+</span>        if (oldTemplate) {
+            delete oldTemplate.ownAttr;
+        }
+        template.setSurface(this.getSurface());
+        // ownAttr is used to get a reference to the template&#39;s attributes
+        // when one of the instances is rendering, as at that moment the template&#39;s
+        // attributes (template.attr) are the instance&#39;s attributes.
+        template.ownAttr = template.attr;
+
+        this.clearAll();
+        this.setDirty(true);
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-updateInstances'>    updateInstances: function (instances) {
+</span>        this.clearAll();
+
+        if (Ext.isArray(instances)) {
+            for (var i = 0, ln = instances.length; i &lt; ln; i++) {
+                this.add(instances[i]);
+            }
+        }
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-updateSurface'>    updateSurface: function (surface) {
+</span>        var template = this.getTemplate();
+
+        if (template &amp;&amp; !template.destroyed) {
+            template.setSurface(surface);
+        }
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-get'>    get: function (index) {
+</span>        return this.instances[index];
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-getCount'>    getCount: function () {
+</span>        return this.instances.length;
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-clearAll'>    clearAll: function () {
+</span>        var template = this.getTemplate();
+
+        template.attr.children = this.instances = [];
+        this.position = 0;
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-createInstance'>    /**
+</span>     * @deprecated 6.2.0
+     * Deprecated, use the {@link #add} method instead.
+     */
+    createInstance: function (config, bypassNormalization, avoidCopy) {
+        return this.add(config, bypassNormalization, avoidCopy);
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-add'>    /**
+</span>     * Creates a new sprite instance.
+     *
+     * @param {Object} config The configuration of the instance.
+     * @param {Boolean} [bypassNormalization] &#39;true&#39; to bypass attribute normalization.
+     * @param {Boolean} [avoidCopy] &#39;true&#39; to avoid copying the `config` object.
+     * @return {Object} The attributes of the instance.
+     */
+    add: function (config, bypassNormalization, avoidCopy) {
+        var me = this,
+            template = me.getTemplate(),
+            originalAttr = template.attr,
+            attr = Ext.Object.chain(originalAttr);
+
+        template.modifiers.target.prepareAttributes(attr);
+        template.attr = attr;
+        template.setAttributes(config, bypassNormalization, avoidCopy);
+        attr.template = template;
+        me.instances.push(attr);
+        template.attr = originalAttr;
+        me.position++;
+
+        return attr;
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-getBBox'>    /**
+</span>     * Not supported.
+     * 
+     * @return {null}
+     */
+    getBBox: function () { return null; },
+
+<span id='Ext-draw-sprite-Instancing-method-getBBoxFor'>    /**
+</span>     * Returns the bounding box for the instance at the given index.
+     *
+     * @param {Number} index The index of the instance.
+     * @param {Boolean} [isWithoutTransform] &#39;true&#39; to not apply sprite transforms to the bounding box.
+     * @return {Object} The bounding box for the instance.
+     */
+    getBBoxFor: function (index, isWithoutTransform) {
+        var template = this.getTemplate(),
+            originalAttr = template.attr,
+            bbox;
+
+        template.attr = this.instances[index];
+        bbox = template.getBBox(isWithoutTransform);
+        template.attr = originalAttr;
+        return bbox;
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-isVisible'>    /**
+</span>     * @private
+     * Checks if the instancing sprite can be seen.
+     * @return {Boolean}
+     */
+    isVisible: function () {
+        var attr = this.attr,
+            parent = this.getParent(),
+            result;
+
+        result = parent &amp;&amp; parent.isSurface &amp;&amp; !attr.hidden &amp;&amp; attr.globalAlpha;
+
+        return !!result;
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-isInstanceVisible'>    /**
+</span>     * @private
+     * Checks if the instance of an instancing sprite can be seen.
+     * @param {Number} index The index of the instance.
+     */
+    isInstanceVisible: function (index) {
+        var me = this,
+            template = me.getTemplate(),
+            originalAttr = template.attr,
+            instances = me.instances,
+            result = false;
+
+        if (!Ext.isNumber(index) || index &lt; 0 || index &gt;= instances.length || !me.isVisible()) {
+            return result;
+        }
+
+        template.attr = instances[index];
+        result = template.isVisible(point, options);
+        template.attr = originalAttr;
+
+        return result;
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-render'>    render: function (surface, ctx, rect) {
+</span>        //&lt;debug&gt;
+        if (!this.getTemplate()) {
+            Ext.raise(&#39;An instancing sprite must have a template.&#39;);
+        }
+        //&lt;/debug&gt;
+        var me = this,
+            template = me.getTemplate(),
+            surfaceRect = surface.getRect(),
+            mat = me.attr.matrix,
+            originalAttr = template.attr,
+            instances = me.instances,
+            ln = me.position,
+            i;
+
+        mat.toContext(ctx);
+        template.preRender(surface, ctx, rect);
+        template.useAttributes(ctx, surfaceRect);
+
+        template.isSpriteInstance = true;
+        for (i = 0; i &lt; ln; i++) {
+            if (instances[i].hidden) {
+                continue;
+            }
+            ctx.save();
+            template.attr = instances[i];
+            template.useAttributes(ctx, surfaceRect);
+            template.render(surface, ctx, rect);
+            ctx.restore();
+        }
+        template.isSpriteInstance = false;
+
+        template.attr = originalAttr;
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-setAttributesFor'>    /**
+</span>     * Sets the attributes for the instance at the given index.
+     * 
+     * @param {Number} index the index of the instance
+     * @param {Object} changes the attributes to change
+     * @param {Boolean} [bypassNormalization] &#39;true&#39; to avoid attribute normalization
+     */
+    setAttributesFor: function (index, changes, bypassNormalization) {
+        var template = this.getTemplate(),
+            originalAttr = template.attr,
+            attr = this.instances[index];
+
+        if (!attr) {
+            return;
+        }
+        template.attr = attr;
+        if (bypassNormalization) {
+            changes = Ext.apply({}, changes);
+        } else {
+            changes = template.self.def.normalize(changes);
+        }
+        template.modifiers.target.pushDown(attr, changes);
+        template.attr = originalAttr;
+    },
+
+<span id='Ext-draw-sprite-Instancing-method-destroy'>    destroy: function () {
+</span>        var me = this,
+            template = me.getTemplate();
+
+        me.instances = null;
+
+        if (template) {
+            template.destroy();
+        }
+
+        me.callParent();
+    }
+});</pre>
+</body>
+</html>

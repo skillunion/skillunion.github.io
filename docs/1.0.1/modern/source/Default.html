@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-viewport-Default'>/**
+</span> * @private
+ * Base class for iOS and Android viewports.
+ */
+Ext.define(&#39;Ext.viewport.Default&#39;, function() {
+    var TOP = 1,
+        RIGHT = 2,
+        BOTTOM = 4,
+        LEFT = 8,
+        sideMap = {
+            top: TOP,
+            right: RIGHT,
+            bottom: BOTTOM,
+            left: LEFT
+        },
+        oppositeSide = {
+            &quot;1&quot;: BOTTOM,
+            &quot;2&quot;: LEFT,
+            &quot;4&quot;: TOP,
+            &quot;8&quot;: RIGHT
+        },
+        oppositeSideNames = {
+            left: &#39;right&#39;,
+            right: &#39;left&#39;,
+            top: &#39;bottom&#39;,
+            bottom: &#39;top&#39;,
+            up: &#39;bottom&#39;,
+            down: &#39;top&#39;
+        };
+
+    return {
+        extend: &#39;Ext.Container&#39;,
+
+        xtype: &#39;viewport&#39;,
+
+<span id='Ext-viewport-Default-property-PORTRAIT'>        PORTRAIT: &#39;portrait&#39;,
+</span>
+<span id='Ext-viewport-Default-property-LANDSCAPE'>        LANDSCAPE: &#39;landscape&#39;,
+</span>
+        requires: [
+            &#39;Ext.GlobalEvents&#39;,
+            &#39;Ext.layout.Card&#39;,
+            &#39;Ext.util.InputBlocker&#39;
+        ],
+
+<span id='Ext-viewport-Default-cfg-nameHolder'>        nameHolder: true,
+</span>
+<span id='Ext-viewport-Default-event-ready'>        /**
+</span>         * @event ready
+         * Fires when the Viewport is in the DOM and ready.
+         * @param {Ext.Viewport} this
+         */
+
+<span id='Ext-viewport-Default-event-maximize'>        /**
+</span>         * @event maximize
+         * Fires when the Viewport is maximized.
+         * @param {Ext.Viewport} this
+         */
+
+<span id='Ext-viewport-Default-event-orientationchange'>        /**
+</span>         * @event orientationchange
+         * Fires when the Viewport orientation has changed.
+         * @param {Ext.Viewport} this
+         * @param {String} newOrientation The new orientation.
+         * @param {Number} width The width of the Viewport.
+         * @param {Number} height The height of the Viewport.
+         */
+
+        config: {
+<span id='Ext-viewport-Default-cfg-autoMaximize'>            /**
+</span>             * @private
+             */
+            autoMaximize: false,
+
+<span id='Ext-viewport-Default-cfg-autoBlurInput'>            /**
+</span>             * @private
+             *
+             * Auto blur the focused element when touching on a non-input. This is used to work around Android bugs
+             * where the virtual keyboard is not hidden when tapping outside an input.
+             */
+            autoBlurInput: true,
+
+<span id='Ext-viewport-Default-cfg-preventZooming'>            /**
+</span>             * @cfg {Boolean} preventZooming
+             * `true` to attempt to stop zooming when you double tap on the screen on mobile devices,
+             * typically HTC devices with HTC Sense UI.
+             * @accessor
+             */
+            preventZooming: false,
+
+<span id='Ext-viewport-Default-cfg-autoRender'>            /**
+</span>             * @cfg
+             * @private
+             */
+            autoRender: true,
+
+<span id='Ext-viewport-Default-cfg-layout'>            /**
+</span>             * @cfg {Object/String} layout Configuration for this Container&#39;s layout. Example:
+             *
+             *     Ext.create(&#39;Ext.Container&#39;, {
+             *         layout: {
+             *             type: &#39;hbox&#39;,
+             *             align: &#39;middle&#39;
+             *         },
+             *         items: [
+             *             {
+             *                 xtype: &#39;panel&#39;,
+             *                 flex: 1,
+             *                 style: &#39;background-color: red;&#39;
+             *             },
+             *             {
+             *                 xtype: &#39;panel&#39;,
+             *                 flex: 2,
+             *                 style: &#39;background-color: green&#39;
+             *             }
+             *         ]
+             *     });
+             *
+             * @accessor
+             */
+            layout: &#39;card&#39;,
+
+<span id='Ext-viewport-Default-cfg-width'>            /**
+</span>             * @cfg
+             * @private
+             */
+            width: &#39;100%&#39;,
+
+<span id='Ext-viewport-Default-cfg-height'>            /**
+</span>             * @cfg
+             * @private
+             */
+            height: &#39;100%&#39;,
+
+<span id='Ext-viewport-Default-cfg-menus'>            /**
+</span>             * An object of all the menus on this viewport.
+             * @private
+             */
+            menus: {},
+
+<span id='Ext-viewport-Default-cfg-orientation'>            /**
+</span>             * @private
+             */
+            orientation: null,
+
+<span id='Ext-viewport-Default-cfg-swipeThreshold'>            /**
+</span>             * @cfg {Number} swipeThreshold
+             * The minimum distance an edge swipe must traverse in order to trigger showing
+             * an edge menu.
+             *
+             * Note that reversing an edge swipe gesture back towards the edge aborts showing
+             * that side&#39;s edge menu.
+             */
+            swipeThreshold: 30
+        },
+
+<span id='Ext-viewport-Default-property-classCls'>        classCls: Ext.baseCSSPrefix + &#39;viewport&#39;,
+</span>
+<span id='Ext-viewport-Default-method-getTemplate'>        getTemplate: function() {
+</span>            var template = this.callParent();
+
+            // Used in legacy browser that do not support matchMedia. Hidden element is used for checking of orientation
+            if (!Ext.feature.has.MatchMedia) {
+                template.unshift({
+                    reference: &#39;orientationElement&#39;,
+                    className: Ext.baseCSSPrefix + &#39;orientation-inspector&#39;,
+                    children: [{
+                        className: Ext.baseCSSPrefix + &#39;orientation-inspector-landscape&#39;
+                    }]
+                });
+            }
+
+            return template;
+        },
+
+<span id='Ext-viewport-Default-property-isReady'>        /**
+</span>         * @property {Boolean} isReady
+         * `true` if the DOM is ready.
+         */
+        isReady: false,
+
+<span id='Ext-viewport-Default-property-isViewport'>        isViewport: true,
+</span>
+<span id='Ext-viewport-Default-property-isMaximizing'>        isMaximizing: false,
+</span>
+<span id='Ext-viewport-Default-cfg-id'>        id: &#39;ext-viewport&#39;,
+</span>
+<span id='Ext-viewport-Default-property-isInputRegex'>        isInputRegex: /^(input|textarea|select|a)$/i,
+</span>
+<span id='Ext-viewport-Default-property-isInteractiveWebComponentRegEx'>        isInteractiveWebComponentRegEx: /^(audio|video)$/i,
+</span>
+<span id='Ext-viewport-Default-property-notScalableRe'>        notScalableRe: /user-scalable=no/,
+</span>
+<span id='Ext-viewport-Default-property-focusable'>        focusable: false,
+</span><span id='Ext-viewport-Default-property-focusEl'>        focusEl: null,
+</span><span id='Ext-viewport-Default-property-ariaEl'>        ariaEl: null,
+</span>
+<span id='Ext-viewport-Default-property-allSidesCls'>        allSidesCls: [
+</span>            Ext.baseCSSPrefix + &#39;top&#39;,
+            Ext.baseCSSPrefix + &#39;right&#39;,
+            Ext.baseCSSPrefix + &#39;bottom&#39;,
+            Ext.baseCSSPrefix + &#39;left&#39;
+        ],
+
+<span id='Ext-viewport-Default-property-sideClsMap'>        sideClsMap: {
+</span>            top: Ext.baseCSSPrefix + &#39;top&#39;,
+            right: Ext.baseCSSPrefix + &#39;right&#39;,
+            bottom: Ext.baseCSSPrefix + &#39;bottom&#39;,
+            left: Ext.baseCSSPrefix + &#39;left&#39;
+        },
+
+<span id='Ext-viewport-Default-property-hasViewportCls'>        hasViewportCls: Ext.baseCSSPrefix + &#39;has-viewport&#39;,
+</span><span id='Ext-viewport-Default-property-fixedCls'>        fixedCls: Ext.baseCSSPrefix + &#39;fixed-viewport&#39;,
+</span>
+<span id='Ext-viewport-Default-property-fullscreenItemCls'>        /**
+</span>         * @private
+         */
+        fullscreenItemCls: Ext.baseCSSPrefix + &#39;fullscreen&#39;,
+
+<span id='Ext-viewport-Default-method-constructor'>        constructor: function(config) {
+</span>            var me = this;
+
+            me.doPreventPanning = me.doPreventPanning.bind(me);
+            me.doPreventZooming = me.doPreventZooming.bind(me);
+
+            me.maximizeOnEvents = [
+              &#39;ready&#39;,
+              &#39;orientationchange&#39;
+            ];
+
+            // set default devicePixelRatio if it is not explicitly defined
+            window.devicePixelRatio = window.devicePixelRatio || 1;
+
+            me.callParent([config]);
+
+            me.updateSize();
+            me.windowOuterHeight = me.getWindowOuterHeight();
+
+            // The global scroller is our scroller.
+            // We must provide a non-scrolling one if we are not configured to scroll,
+            // otherwise the deferred ready listener in Scroller will create
+            // one with scroll: true
+            Ext.setViewportScroller(me.getScrollable() || Ext.getViewportScroller().setConfig({
+                x: false,
+                y: false,
+                component: me
+            }));
+
+            // The body has to be overflow:hidden
+            Ext.getBody().setStyle(&#39;overflow&#39;, &#39;hidden&#39;);
+
+            Ext.get(document.documentElement).addCls(me.hasViewportCls);
+
+            me.stretchHeights = me.stretchHeights || {};
+
+            if (Ext.feature.has.OrientationChange) {
+                me.addWindowListener(&#39;orientationchange&#39;, me.onOrientationChange.bind(me));
+            }
+
+            if (!Ext.os.is.iOS || !me.isScalable()) {
+                Ext.get(document.documentElement).addCls(me.fixedCls);
+            }
+
+            // Tale over firing the resize event to sync the Viewport first, then fire the event.
+            Ext.GlobalEvents.on(&#39;resize&#39;, &#39;onWindowResize&#39;, me, {priority: 1000});
+
+            Ext.onDocumentReady(me.onDomReady, me);
+
+            return me;
+        },
+
+<span id='Ext-viewport-Default-method-initialize'>        initialize: function() {
+</span>            var me = this;
+
+            me.addMeta(&#39;apple-mobile-web-app-capable&#39;, &#39;yes&#39;);
+            me.addMeta(&#39;apple-touch-fullscreen&#39;, &#39;yes&#39;);
+
+            me.callParent();
+        },
+
+<span id='Ext-viewport-Default-method-getRefItems'>        getRefItems: function(deep) {
+</span>            var menus = this.getMenus(),
+                result = this.callParent([deep]),
+                side, menu;
+
+            for (side in menus) {
+                menu = menus[side];
+
+                if (menu) {
+                    Ext.Array.include(result, menu);
+                }
+            }
+
+            return result;
+        },
+
+<span id='Ext-viewport-Default-method-initInheritedState'>        initInheritedState: function (inheritedState, inheritedStateInner) {
+</span>            var me = this,
+                root = Ext.rootInheritedState;
+
+            if (inheritedState !== root) {
+                // We need to go at this again but with the rootInheritedState object. Let
+                // any derived class poke on the proper object!
+                me.initInheritedState(me.inheritedState = root,
+                    me.inheritedStateInner = Ext.Object.chain(root));
+            } else {
+                me.callParent([inheritedState, inheritedStateInner]);
+            }
+        },
+
+<span id='Ext-viewport-Default-method-onAppLaunch'>        onAppLaunch: function() {
+</span>            var me = this;
+            if (!me.isReady) {
+                me.onDomReady();
+            }
+        },
+
+<span id='Ext-viewport-Default-method-onDomReady'>        onDomReady: function() {
+</span>            var me = this;
+
+            if (me.isReady) {
+                return;
+            }
+
+            me.isReady = true;
+            me.updateSize();
+            me.onReady();
+            me.fireEvent(&#39;ready&#39;, me);
+            Ext.GlobalEvents.fireEvent(&#39;viewportready&#39;, me);
+        },
+
+<span id='Ext-viewport-Default-method-onReady'>        onReady: function() {
+</span>            if (this.getAutoRender()) {
+                this.render();
+            }
+        },
+
+<span id='Ext-viewport-Default-method-render'>        render: function() {
+</span>            var me = this,
+                body = Ext.getBody();
+
+            if (!me.rendered) {
+                // Render ourself *before* any existing floatRoot so that floateds
+                // are always on top.
+                me.callParent([body, Ext.floatRoot]);
+
+                me.setOrientation(me.determineOrientation());
+                Ext.getBody().addCls(Ext.baseCSSPrefix + me.getOrientation());
+            }
+        },
+
+<span id='Ext-viewport-Default-method-applyAutoMaximize'>        applyAutoMaximize: function(autoMaximize) {
+</span>            return Ext.browser.is.WebView ? false : autoMaximize;
+        },
+
+<span id='Ext-viewport-Default-method-updateAutoMaximize'>        updateAutoMaximize: function(autoMaximize) {
+</span>            var me = this;
+
+            if (autoMaximize) {
+                me.on(&#39;ready&#39;, &#39;doAutoMaximizeOnReady&#39;, me, { single: true });
+                me.on(&#39;orientationchange&#39;, &#39;doAutoMaximizeOnOrientationChange&#39;, me);
+            } else {
+                me.un(&#39;ready&#39;, &#39;doAutoMaximizeOnReady&#39;, me);
+                me.un(&#39;orientationchange&#39;, &#39;doAutoMaximizeOnOrientationChange&#39;, me);
+            }
+        },
+
+<span id='Ext-viewport-Default-method-updatePreventPanning'>        updatePreventPanning: function(preventPanning) {
+</span>            this.toggleWindowListener(preventPanning, &#39;touchmove&#39;, this.doPreventPanning, false);
+        },
+
+<span id='Ext-viewport-Default-method-updatePreventZooming'>        updatePreventZooming: function(preventZooming) {
+</span>            var touchstart = Ext.feature.has.TouchEvents ? &#39;touchstart&#39; : &#39;mousedown&#39;;
+            this.toggleWindowListener(preventZooming, touchstart, this.doPreventZooming, false);
+        },
+
+<span id='Ext-viewport-Default-method-doAutoMaximizeOnReady'>        doAutoMaximizeOnReady: function() {
+</span>            var me = this;
+
+            me.isMaximizing = true;
+
+            me.on(&#39;maximize&#39;, function() {
+                me.isMaximizing = false;
+
+                me.updateSize();
+
+                me.fireEvent(&#39;ready&#39;, me);
+            }, me, { single: true });
+
+            me.maximize();
+        },
+
+<span id='Ext-viewport-Default-method-doAutoMaximizeOnOrientationChange'>        doAutoMaximizeOnOrientationChange: function() {
+</span>            var me = this;
+
+            me.isMaximizing = true;
+
+            me.on(&#39;maximize&#39;, function() {
+                me.isMaximizing = false;
+
+                me.updateSize();
+            }, me, { single: true });
+
+            me.maximize();
+        },
+
+<span id='Ext-viewport-Default-method-doPreventPanning'>        doPreventPanning: function(e) {
+</span>            var target = e.target, 
+                touch;
+
+            // If we have an interaction on a WebComponent we need to check the actual shadow dom element selected
+            // to determine if it is an input before preventing default behavior
+            // Side effect to this is if the shadow input does not do anything with &#39;touchmove&#39; the user could pan
+            // the screen.
+            if (this.isInteractiveWebComponentRegEx.test(target.tagName) &amp;&amp; e.touches &amp;&amp; e.touches.length &gt; 0) {
+                touch = e.touches[0];
+                if (touch &amp;&amp; touch.target &amp;&amp; this.isInputRegex.test(touch.target.tagName)) {
+                    return;
+                }
+            }
+
+            if (target &amp;&amp; target.nodeType === 1 &amp;&amp; !this.isInputRegex.test(target.tagName)) {
+                e.preventDefault();
+            }
+        },
+
+<span id='Ext-viewport-Default-method-doPreventZooming'>        doPreventZooming: function(e) {
+</span>            // Don&#39;t prevent right mouse event
+            if (&#39;button&#39; in e &amp;&amp; e.button !== 0) {
+                return;
+            }
+
+            var target = e.target, 
+                inputRe = this.isInputRegex,
+                touch;
+
+            if (this.isInteractiveWebComponentRegEx.test(target.tagName) &amp;&amp; e.touches &amp;&amp; e.touches.length &gt; 0) {
+                touch = e.touches[0];
+                if (touch &amp;&amp; touch.target &amp;&amp; inputRe.test(touch.target.tagName)) {
+                    return;
+                }
+            }
+
+            if (target &amp;&amp; target.nodeType === 1 &amp;&amp; !inputRe.test(target.tagName)) {
+                e.preventDefault();
+            }
+        },
+
+<span id='Ext-viewport-Default-method-addWindowListener'>        addWindowListener: function(eventName, fn, capturing) {
+</span>            window.addEventListener(eventName, fn, Boolean(capturing));
+        },
+
+<span id='Ext-viewport-Default-method-removeWindowListener'>        removeWindowListener: function(eventName, fn, capturing) {
+</span>            window.removeEventListener(eventName, fn, Boolean(capturing));
+        },
+
+<span id='Ext-viewport-Default-method-supportsOrientation'>        supportsOrientation: function() {
+</span>            return Ext.feature.has.Orientation;
+        },
+
+<span id='Ext-viewport-Default-method-supportsMatchMedia'>        supportsMatchMedia: function() {
+</span>            return Ext.feature.has.MatchMedia;
+        },
+
+<span id='Ext-viewport-Default-method-onOrientationChange'>        onOrientationChange: function() {
+</span>            this.setOrientation(this.determineOrientation());
+        },
+
+<span id='Ext-viewport-Default-method-determineOrientation'>        determineOrientation: function() {
+</span>            var me = this,
+                orientationElement = me.orientationElement,
+                nativeOrientation, visible;
+
+            // First attempt will be to use Native Orientation information
+            if (me.supportsOrientation()) {
+                nativeOrientation = me.getWindowOrientation();
+                // 90 || -90 || 270 is landscape
+                if (Math.abs(nativeOrientation) === 90 || nativeOrientation === 270) {
+                    return me.LANDSCAPE;
+                } else {
+                    return me.PORTRAIT;
+                }
+                // Second attempt will be to use MatchMedia and a media query
+            } else if (me.supportsMatchMedia()) {
+                return window.matchMedia(&#39;(orientation : landscape)&#39;).matches ? me.LANDSCAPE : me.PORTRAIT;
+                // Fall back on hidden element with media query attached to it (media query in Base Theme)
+            } else if (orientationElement) {
+                visible = orientationElement.first().isVisible();
+                return visible ? me.LANDSCAPE : me.PORTRAIT;
+            }
+
+            return null;
+        },
+
+<span id='Ext-viewport-Default-method-updateOrientation'>        updateOrientation: function(newValue, oldValue) {
+</span>            if (oldValue) {
+                this.fireOrientationChangeEvent(newValue, oldValue);
+            }
+        },
+
+<span id='Ext-viewport-Default-method-fireOrientationChangeEvent'>        fireOrientationChangeEvent: function(newOrientation, oldOrientation) {
+</span>            var me = this,
+                newSize = me.updateSize();
+
+            Ext.getBody().replaceCls(Ext.baseCSSPrefix + oldOrientation, Ext.baseCSSPrefix + newOrientation);
+
+            me.fireEvent(&#39;orientationchange&#39;, me, newOrientation, newSize.width, newSize.height);
+        },
+
+<span id='Ext-viewport-Default-method-onWindowResize'>        onWindowResize: function(width, height) {
+</span>            var me = this,
+                oldWidth = me.lastSize.width,
+                oldHeight = me.lastSize.height;
+
+            me.updateSize(width, height);
+
+            // On devices that do not support native orientation we use resize.
+            // orientationchange events are only dispatched when there is an actual change in orientation value
+            // so in cases on devices with orientation change events, the setter is called an extra time, but stopped after
+            me.setOrientation(me.determineOrientation());
+
+            // Only fire the event if we have actually resized.
+            if (width != null) {
+                me.fireEvent(&#39;resize&#39;, this, width, height, oldWidth, oldHeight);
+            }
+        },
+
+<span id='Ext-viewport-Default-method-updateSize'>        updateSize: function(width, height) {
+</span>            var lastSize = this.lastSize;
+
+            lastSize.width  = width  !== undefined ? width  : this.getWindowWidth();
+            lastSize.height = height !== undefined ? height : this.getWindowHeight();
+
+            return lastSize;
+        },
+
+<span id='Ext-viewport-Default-method-waitUntil'>        waitUntil: function(condition, onSatisfied, onTimeout, delay, timeoutDuration) {
+</span>            if (!delay) {
+                delay = 50;
+            }
+
+            if (!timeoutDuration) {
+                timeoutDuration = 2000;
+            }
+
+            var scope = this,
+                elapse = 0;
+
+            Ext.defer(function repeat() {
+                elapse += delay;
+
+                if (condition.call(scope) === true) {
+                    if (onSatisfied) {
+                        onSatisfied.call(scope);
+                    }
+                }
+                else {
+                    if (elapse &gt;= timeoutDuration) {
+                        if (onTimeout) {
+                            onTimeout.call(scope);
+                        }
+                    }
+                    else {
+                        Ext.defer(repeat, delay);
+                    }
+                }
+            }, delay);
+        },
+
+<span id='Ext-viewport-Default-method-maximize'>        maximize: function() {
+</span>            this.fireMaximizeEvent();
+        },
+
+<span id='Ext-viewport-Default-method-fireMaximizeEvent'>        fireMaximizeEvent: function() {
+</span>            this.updateSize();
+            this.fireEvent(&#39;maximize&#39;, this);
+        },
+
+<span id='Ext-viewport-Default-method-updateHeight'>        updateHeight: function(height, oldHeight) {
+</span>            Ext.getBody().setHeight(height);
+            this.callParent([height, oldHeight]);
+        },
+
+<span id='Ext-viewport-Default-method-updateWidth'>        updateWidth: function(width, oldWidth) {
+</span>            Ext.getBody().setWidth(width);
+            this.callParent([width, oldWidth]);
+        },
+
+<span id='Ext-viewport-Default-method-scrollToTop'>        scrollToTop: function() {
+</span>            window.scrollTo(0, -1);
+        },
+
+<span id='Ext-viewport-Default-method-getWindowWidth'>        /**
+</span>         * Retrieves the document width.
+         * @return {Number} width in pixels.
+         */
+        getWindowWidth: function() {
+            return window.innerWidth;
+        },
+
+<span id='Ext-viewport-Default-method-getWindowHeight'>        /**
+</span>         * Retrieves the document height.
+         * @return {Number} height in pixels.
+         */
+        getWindowHeight: function() {
+            return window.innerHeight;
+        },
+
+<span id='Ext-viewport-Default-method-getWindowOuterHeight'>        getWindowOuterHeight: function() {
+</span>            return window.outerHeight;
+        },
+
+<span id='Ext-viewport-Default-method-getWindowOrientation'>        getWindowOrientation: function() {
+</span>            return window.orientation;
+        },
+
+<span id='Ext-viewport-Default-method-getSize'>        getSize: function() {
+</span>            return this.lastSize;
+        },
+
+<span id='Ext-viewport-Default-method-setItemFullScreen'>        setItemFullScreen: function(item) {
+</span>            item.addCls(this.fullscreenItemCls);
+            item.setTop(0);
+            item.setRight(0);
+            item.setBottom(0);
+            item.setLeft(0);
+            this.add(item);
+        },
+
+<span id='Ext-viewport-Default-method-setMenu'>        /**
+</span>         * Sets a menu for a given side of the Viewport.
+         *
+         * Adds functionality to show the menu by swiping from the side of the screen from the given side.
+         *
+         * If a menu is already set for a given side, it will be replaced by the passed menu.
+         *
+         * Available sides are: `left`, `right`, `top`, and `bottom`.
+         *
+         * **Note:** The `cover` and `reveal` animation configs are mutually exclusive.
+         * Include only one animation config or omit both to default to `cover`.
+         *
+         * @param {Ext.Menu/Object} menu The menu instance or config to assign to the viewport.
+         * @param {Object} config The configuration for the menu.
+         * @param {&#39;top&#39;/&#39;bottom&#39;/&#39;left&#39;/&#39;right&#39;} config.side The side to put the menu on.
+         * @param {Boolean} config.cover True to cover the viewport content. Defaults to `true`.
+         * @param {Boolean} config.reveal True to push the menu alongside the viewport
+         * content. Defaults to `false`.
+         *
+         * @return {Ext.Menu} The menu set for the passed side.
+         */
+        setMenu: function(menu, config) {
+            config = config || {};
+
+            //&lt;debug&gt;
+            if (config.reveal &amp;&amp; config.cover) {
+                Ext.raise(&#39;[Ext.Viewport] setMenu(): Only one of reveal or cover allowed in config&#39;);
+            }
+            //&lt;/debug&gt;
+
+            var me = this,
+                side, menus, oldMenu;
+
+            // Temporary workaround for body shifting issue
+            if (Ext.os.is.iOS &amp;&amp; !me.hasiOSOrientationFix) {
+                me.hasiOSOrientationFix = true;
+                me.on(&#39;orientationchange&#39;, function() {
+                    window.scrollTo(0, 0);
+                }, me);
+            }
+
+            //&lt;debug&gt;
+            if (!menu) {
+                Ext.raise(&quot;You must specify a menu configuration.&quot;);
+            }
+            //&lt;/debug&gt;
+
+            menus = me.getMenus();
+
+            if (!me.addedSwipeListener) {
+                me.attachSwipeListeners();
+                me.addedSwipeListener = true;
+            }
+
+            // Either create the menu, or reconfigure a passed instance
+            // according to the config settings for side, cover, and reveal.
+            menu = me.configureMenu(menu, config);
+            side = menu.getSide();
+
+            // We we already have a menu for this side, ensure it&#39;s hidden
+            // and reconfgure it using setConfig which will either use
+            // the config in the default situation, that the menu is a Sheet,
+            // or update the private property.
+            oldMenu = menus[side];
+            if (oldMenu &amp;&amp; !oldMenu.destroyed &amp;&amp; oldMenu !== menu) {
+                me.hideMenu(side);
+                oldMenu.setSide(null);
+            }
+
+            menus[side] = menu;
+
+            me.setMenus(menus);
+
+            return menu;
+        },
+
+<span id='Ext-viewport-Default-method-attachSwipeListeners'>        attachSwipeListeners: function() {
+</span>            var me = this;
+
+            me.element.on({
+                tap: me.onTap,
+                swipestart: me.onSwipeStart,
+                edgeswipestart: me.onEdgeSwipeStart,
+                edgeswipe: me.onEdgeSwipe,
+                edgeswipeend: me.onEdgeSwipeEnd,
+                scope: me
+            });
+        },
+
+<span id='Ext-viewport-Default-method-configureMenu'>        configureMenu: function(menu, config) {
+</span>            // We may be creating or reconfiguring a menu here.
+            // If reconfiguring, only change configs that are present in the passed config.
+            var isInstanced = menu.isComponent,
+
+                // If an instance is being reconfigured, and the config is silent about
+                // reveal, cover, or side, we must use the instance&#39;s current setting.
+                reveal = isInstanced &amp;&amp; !(&#39;reveal&#39; in config) ? menu.getReveal() : !!config.reveal,
+                cover  = (isInstanced &amp;&amp; !(&#39;cover&#39; in config)  ? menu.getCover()  : config.cover) !== false &amp;&amp; !reveal,
+                side   = isInstanced &amp;&amp; !(&#39;side&#39; in config)   ? menu.getSide()   : config.side,
+                wasFloated;
+
+            //&lt;debug&gt;
+            if (!side) {
+                Ext.raise(&quot;You must specify a side to dock the menu.&quot;);
+            }
+
+            if (!sideMap[side]) {
+                Ext.raise(&quot;You must specify a valid side (left, right, top or bottom) to dock the menu.&quot;);
+            }
+            //&lt;/debug&gt;
+
+            // Upgrade the config object to have the correct configurations as defaulted
+            // in from the existing instance if it is an instance.
+            config = {
+                hideAnimation: null,
+                showAnimation: null,
+                hidden: true,
+                floated: cover,
+                zIndex : cover ? null : 5,
+                reveal: reveal,
+                cover: cover,
+                side: side
+            };
+            config[oppositeSideNames[side]] = null;
+
+            if (isInstanced) {
+                wasFloated = menu.getFloated();
+
+                // Flipping modes - the menu has to be derendered.
+                if (config.floated !== wasFloated) {
+                    if (menu.rendered) {
+                        // If menu was covering the viewport, then it was a floated child
+                        // just remove it non-destructively. It will be derendered and lose
+                        // its parent reference.
+                        if (wasFloated) {
+                            this.remove(menu, false);
+                        }
+                        // If we&#39;re in the non-standard menu insertion mode, we need to derender.
+                        // Floated setRender(false) does unwrap the component from its floatWrap.
+                        else {
+                            menu.el.dom.parentNode.removeChild(menu.el.dom);
+                            menu.setRendered(false);
+                        }
+                    }
+
+                    // Clear down old positioning
+                    menu.setConfig({
+                        top: null,
+                        right: null,
+                        bottom: null,
+                        left: null
+                    });
+                }
+
+                // Reconfigure instance according to config.
+                // Use strict: false because if the menu is not an instance of Sheet,
+                // the reveal, cover and side configs are merely private properties.
+                menu.setConfig(config, null, {
+                    strict: false
+                });
+            } else {
+                config.xtype = &#39;actionsheet&#39;;
+                menu = Ext.create(Ext.apply(config, menu));
+            }
+
+            // Update the positioning configs *after* the floatedness has been fully setttled
+            // If applied during configuration, these imply positioned, and *not* floated.
+            config = {
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0
+            };
+            config[oppositeSideNames[side]] = null;
+            menu.setConfig(config);
+
+            menu.toggleCls(menu.floatingCls, !menu.getFloated());
+            menu.removeCls(this.getLayout().itemCls);
+            menu.toggleCls(Ext.baseCSSPrefix + &#39;menu-cover&#39;, cover);
+            menu.toggleCls(Ext.baseCSSPrefix + &#39;menu-reveal&#39;, reveal);
+            menu.replaceCls(this.allSidesCls, this.sideClsMap[side]);
+            menu.isViewportMenu = true;
+
+            return menu;
+        },
+
+<span id='Ext-viewport-Default-method-removeMenu'>        /**
+</span>         * Removes a menu from a specified side.
+         * @param {&#39;top&#39;/&#39;bottom&#39;/&#39;left&#39;/&#39;right&#39;} side The side to remove the menu from
+         * @param {Boolean} animation Pass `true` to animate the menu out of view
+         */
+        removeMenu: function(side, animation) {
+            var me = this,
+                menus = me.getMenus() || {},
+                menu = menus[side];
+
+            if (menu) {
+                me.hideMenu(side, animation);
+                menu.removeCls(me.sideClsMap[side]);
+            }
+            delete menus[side];
+            me.setMenus(menus);
+        },
+
+<span id='Ext-viewport-Default-method-showMenu'>        /**
+</span>         * Shows the menu that has been {@link #method!setMenu set} on the passed side.
+         *
+         * If no menu has been set on the passed side, nothing hapens.
+         * @param {&#39;top&#39;/&#39;bottom&#39;/&#39;left&#39;/&#39;right&#39;} side The side to show the menu for.
+         */
+        showMenu: function(side) {
+            var me = this,
+                sideValue = sideMap[side],
+                menu = me.getMenus()[side],
+                viewportAfter = {
+                    translateX: 0,
+                    translateY: 0
+                }, size;
+
+            if (!menu || !menu.isHidden()) {
+                return;
+            }
+
+            // Ensures Menu is rendered, and positioned for animation
+            me.beforeMenuAnimate(menu);
+
+            size = menu.element.measure(sideValue &amp; (LEFT | RIGHT) ? &#39;w&#39; : &#39;h&#39;);
+
+            if (sideValue === LEFT) {
+                viewportAfter.translateX = size;
+            } else if (sideValue === RIGHT) {
+                viewportAfter.translateX = -size;
+            } else if (sideValue === TOP) {
+                viewportAfter.translateY = size;
+            } else if (sideValue === BOTTOM) {
+                viewportAfter.translateY = -size;
+            }
+
+            // Menu always animates in. Animate to an unstranslated state.
+            menu.translate(0, 0, {
+                duration: 200
+            });
+
+            // Viewport only animates out of its way if menu is not not floated.
+            if (!menu.getFloated()) {
+                me.translate(viewportAfter.translateX, viewportAfter.translateY, {
+                    duration: 200
+                });
+            }
+        },
+
+<span id='Ext-viewport-Default-method-hideMenu'>        /**
+</span>         * Hides a menu specified by the menu&#39;s side.
+         * @param {&#39;top&#39;/&#39;bottom&#39;/&#39;left&#39;/&#39;right&#39;} side The side which the menu is placed.
+         * @param {Boolean} animate if false, the menu will be hidden without animation.
+         */
+        hideMenu: function(side, animate) {
+            var me = this,
+                sideValue = sideMap[side],
+                menu = me.getMenus()[side],
+                after = {
+                    translateX: 0,
+                    translateY: 0
+                },
+                size;
+
+            animate = animate !== false;
+
+            if (!menu || menu.isHidden()) {
+                return;
+            }
+
+            size = menu.element.measure(sideValue &amp; (LEFT | RIGHT) ? &#39;w&#39; : &#39;h&#39;);
+
+            if (sideValue === LEFT) {
+                after.translateX = -size;
+            } else if (sideValue === RIGHT) {
+                after.translateX = size;
+            } else if (sideValue === TOP) {
+                after.translateY = -size;
+            } else if (sideValue === BOTTOM) {
+                after.translateY = size;
+            }
+
+            // Animate menu out of view if told to
+            if (animate) {
+                menu.revertFocus();
+                menu.translate(after.translateX, after.translateY, {
+                    duration: 200,
+                    callback: function () {
+                        if (!menu.destroyed) {
+                            menu.translate(0, 0);
+                            menu.setHidden(true);
+                        }
+                    }
+                });
+            }
+            // Otherwise hide it immediately
+            else {
+                menu.getTranslatable().stopAnimation();
+                menu.setHidden(true);
+            }
+
+            // Viewport only has to move back into place if menu is not not floated
+            // Return it to an unstranslated state
+            if (!menu.getFloated()) {
+                me.translate(0, 0, animate ? {
+                    duration: 200
+                } : null);
+            }
+        },
+
+<span id='Ext-viewport-Default-method-hideAllMenus'>        /**
+</span>         * Hides all visible menus.
+         */
+        hideAllMenus: function(animation) {
+            var menus = this.getMenus(),
+                side;
+
+            for (side in menus) {
+                this.hideMenu(side, animation);
+            }
+        },
+
+<span id='Ext-viewport-Default-method-hideOtherMenus'>        /**
+</span>         * Hides all menus except for the side specified
+         * @param {&#39;top&#39;/&#39;bottom&#39;/&#39;left&#39;/&#39;right&#39;} side Side not to hide.
+         * @param {Boolean} animate if false, the menu will be hidden without animation.
+         */
+        hideOtherMenus: function(side, animate){
+            var menus = this.getMenus(),
+                menu;
+
+            for (menu in menus) {
+                if (side !== menu) {
+                    this.hideMenu(menu, animate);
+                }
+            }
+        },
+
+<span id='Ext-viewport-Default-method-toggleMenu'>        /**
+</span>         * Toggles the menu specified by side
+         * @param {&#39;top&#39;/&#39;bottom&#39;/&#39;left&#39;/&#39;right&#39;} side The side which the menu is placed.
+         */
+        toggleMenu: function(side) {
+            var menus = this.getMenus(), 
+                menu;
+
+            if (menus[side]) {
+                menu = menus[side];
+
+                menu.setDisplayed(menu.isHidden());
+            }
+        },
+
+<span id='Ext-viewport-Default-method-applyScrollable'>        applyScrollable: function (scrollable) {
+</span>            return this.callParent([ scrollable, Ext.getViewportScroller() ]);
+        },
+
+<span id='Ext-viewport-Default-method-doDestroy'>        doDestroy: function() {
+</span>            var me = this,
+                docEl = Ext.get(document.documentElement),
+                scroller = me._scrollable;
+
+            docEl.removeCls(me.hasViewportCls);
+            docEl.removeCls(me.fixedCls);
+
+            // We acquired usage of the global body scroller through our applyScrollable.
+            // Just relinquish it here and allow it to live on.
+            if (scroller) {
+                // Return the body scroller to default; X and Y scrolling
+                scroller.setConfig({
+                    x: true,
+                    y: true
+                });
+                me._scrollable = null;
+            }
+
+            Ext.un(&#39;resize&#39;, &#39;onWindowResize&#39;, me);
+
+            me.callParent();
+
+            Ext.Viewport = null;
+        },
+
+<span id='Ext-viewport-Default-property-privates'>        privates: {
+</span>            addMeta: function(name, content) {
+                var meta = document.createElement(&#39;meta&#39;);
+
+                meta.setAttribute(&#39;name&#39;, name);
+                meta.setAttribute(&#39;content&#39;, content);
+                Ext.getHead().append(meta);
+            },
+
+<span id='Ext-viewport-Default-method-beforeMenuAnimate'>            /**
+</span>             * Sets up the before conditions to begin animating a menu into view
+             * whether from {@link #method!showMenu}, or {@link #method!beginEdgeSwipe}
+             * @param {Ext.Sheet} menu The menu to setup the animation.
+             * @private
+             */
+            beforeMenuAnimate: function(menu) {
+                var me = this,
+                    side = menu.getSide(),
+                    sideValue = sideMap[side],
+                    before = {
+                        translateX: 0,
+                        translateY: 0
+                    },
+                    size, modal;
+
+                me.hideOtherMenus(side);
+
+                // Ensure the menu is in place as a floated child, or programatically render it.
+                if (menu.getFloated()) {
+                    me.add(menu);
+                } else {
+                    // We&#39;re going off the reservation by programatically adding to the document body
+                    // Usually onAdded does this stuff. We must render the menu and its modal mask.
+                    Ext.getBody().insertFirst(menu.element);
+                    if (!menu.rendered) {
+                        menu.setRendered(true);
+                    }
+                    modal = menu.getModal();
+                    if (modal) {
+                        Ext.getBody().insertFirst(modal.element);
+                        if (!modal.rendered) {
+                            modal.setRendered(true);
+                        }
+                    }
+                    // Must initialize the translatable config to be able to animate
+                    me.translate(0, 0);
+                }
+                menu.removeCls(me.getLayout().itemCls);
+
+                // Now show the edge menu through the normal component show pathway
+                // which will fire the expected template methods and events.
+                menu.show(false, {
+                    side: null
+                });
+
+                size = menu.element.measure(sideValue &amp; (LEFT | RIGHT) ? &#39;w&#39; : &#39;h&#39;);
+
+                if (sideValue === LEFT) {
+                    before.translateX = -size;
+                } else if (sideValue === RIGHT) {
+                    before.translateX = size;
+                } else if (sideValue === TOP) {
+                    before.translateY = -size;
+                } else if (sideValue === BOTTOM) {
+                    before.translateY = size;
+                }
+                menu.translate(before.translateX, before.translateY);
+            },
+
+            doAddListener: function(eventName, fn, scope, options, order, caller, manager) {
+                var me = this;
+                if (eventName === &#39;ready&#39; &amp;&amp; me.isReady &amp;&amp; !me.isMaximizing) {
+                    fn.call(scope);
+                    return me;
+                }
+
+                me.callParent([eventName, fn, scope, options, order, caller, manager]);
+            },
+
+<span id='Ext-viewport-Default-method-isScalable'>            /**
+</span>             * Returns true if the user can zoom the viewport
+             * @private
+             */
+            isScalable: function () {
+                var me = this,
+                    metas = document.querySelectorAll(&#39;meta[name=&quot;viewport&quot;]&#39;),
+                    // if there are multiple viewport tags the last one wins.
+                    meta = metas.length &amp;&amp; metas[metas.length - 1],
+                    scalable = true,
+                    content;
+
+                if (meta) {
+                    content = meta.getAttribute(&#39;content&#39;);
+
+                    scalable = !(content &amp;&amp; me.notScalableRe.test(content));
+                }
+
+                return scalable;
+            },
+
+<span id='Ext-viewport-Default-method-onTap'>            /**
+</span>             * @private
+             */
+            onTap: function(e) {
+                // this.hideAllMenus();
+            },
+
+<span id='Ext-viewport-Default-method-onSwipeStart'>            /**
+</span>             * @private
+             */
+            onSwipeStart: function(e) {
+                var side = this.sideForSwipeDirection(e.direction),
+                    menu = this.getMenus()[side];
+
+                // preventing menu scrolling from being captured as viewport swiping
+                if (menu &amp;&amp; !menu.owns(e)) {
+                    this.hideMenu(side);
+                }
+            },
+
+<span id='Ext-viewport-Default-method-onEdgeSwipeStart'>            /**
+</span>             * @private
+             */
+            onEdgeSwipeStart: function(e) {
+                var me = this,
+                    menus = me.getMenus(),
+                    menu = menus[oppositeSideNames[e.direction]],
+                    menuSide, checkMenu;
+
+                if (!menu || !menu.isHidden()) {
+                    return;
+                }
+
+                // Claim the gesture to prevent viewport panning.
+                e.claimGesture();
+
+                for (menuSide in menus) {
+                    checkMenu = menus[menuSide];
+                    if (checkMenu.isVisible()) {
+                        return;
+                    }
+                }
+
+                me.$swiping = true;
+
+                // Ensures Menu is rendered, and positioned for animation
+                me.beforeMenuAnimate(menu);
+            },
+
+<span id='Ext-viewport-Default-method-onEdgeSwipe'>            /**
+</span>             * @private
+             */
+            onEdgeSwipe: function(e) {
+                var me = this,
+                    side = me.sideForDirection(e.direction),
+                    menu = me.getMenus()[oppositeSideNames[e.direction]],
+                    size, after, viewportAfter,
+                    movement, viewportMovement;
+
+                if (!menu || !me.$swiping) {
+                    return;
+                }
+
+                // Claim the gesture to prevent viewport panning.
+                e.claimGesture();
+
+                // See if the swipe has been reversed
+                if (e.distance !== me.lastSwipeDistance) {
+                    me.reverseSwiping = e.distance &lt; me.lastSwipeDistance;
+                }
+
+                me.lastSwipeDistance = e.distance;
+                size = menu.element.measure(side &amp; (LEFT | RIGHT) ? &#39;w&#39; : &#39;h&#39;);
+                movement = Math.min(e.distance - size, 0);
+                viewportMovement = Math.min(e.distance, size);
+
+                after = {
+                    translateX: 0,
+                    translateY: 0
+                };
+
+                viewportAfter = {
+                    translateX: 0,
+                    translateY: 0
+                };
+
+                if (side === LEFT) {
+                    after.translateX = movement;
+                    viewportAfter.translateX = viewportMovement;
+                } else if (side === RIGHT) {
+                    after.translateX = -movement;
+                    viewportAfter.translateX = -viewportMovement;
+                } else if (side === TOP) {
+                    after.translateY = movement;
+                    viewportAfter.translateY = viewportMovement;
+                } else if (side === BOTTOM) {
+                    after.translateY = -movement;
+                    viewportAfter.translateY = -viewportMovement;
+                }
+
+                menu.translate(after.translateX, after.translateY);
+
+                // Viewport only animates out of its way if menu is not not floated.
+                if (!menu.getFloated()) {
+                    me.translate(viewportAfter.translateX, viewportAfter.translateY);
+                }
+            },
+
+<span id='Ext-viewport-Default-method-onEdgeSwipeEnd'>            /**
+</span>             * @private
+             */
+            onEdgeSwipeEnd: function(e) {
+                var me = this,
+                    side = me.sideForDirection(e.direction),
+                    menu = me.getMenus()[oppositeSideNames[e.direction]],
+                    shouldRevert = me.reverseSwiping || (e.distance &lt; me.getSwipeThreshold()),
+                    after = {
+                        translateX: 0,
+                        translateY: 0
+                    }, viewportAfter = {
+                        translateX: 0,
+                        translateY: 0
+                    },
+                    size, velocity, movement, viewportMovement;
+
+                if (!menu) {
+                    return;
+                }
+
+                size = menu.element.measure(side &amp; (LEFT | RIGHT) ? &#39;w&#39; : &#39;h&#39;);
+                velocity = (e.flick) ? e.flick.velocity : 0;
+
+                // check if continuing in the right direction
+                if (side === RIGHT) {
+                    if (velocity.x &gt; 0) {
+                        shouldRevert = true;
+                    }
+                } else if (side === LEFT) {
+                    if (velocity.x &lt; 0) {
+                        shouldRevert = true;
+                    }
+                } else if (side === TOP) {
+                    if (velocity.y &lt; 0) {
+                        shouldRevert = true;
+                    }
+                } else if (side === BOTTOM) {
+                    if (velocity.y &gt; 0) {
+                        shouldRevert = true;
+                    }
+                }
+
+                movement = shouldRevert ? size : 0;
+                viewportMovement = shouldRevert ? 0 : -size;
+
+                if (side === LEFT) {
+                    after.translateX = -movement;
+                    viewportAfter.translateX = -viewportMovement;
+                } else if (side === RIGHT) {
+                    after.translateX = movement;
+                    viewportAfter.translateX = viewportMovement;
+                } else if (side === TOP) {
+                    after.translateY = -movement;
+                    viewportAfter.translateY = -viewportMovement;
+                } else if (side === BOTTOM) {
+                    after.translateY = movement;
+                    viewportAfter.translateY = viewportMovement;
+                }
+
+                // Menu always animates in (or out if reverting)
+                menu.translate(after.translateX, after.translateY, {
+                    duration: 200,
+                    callback: function() {
+                        if (shouldRevert) {
+                            menu.setHidden(true);
+                        }
+                    }
+                });
+
+               // Viewport only animates out of menu&#39;s way if menu is not not floated.
+               if (!menu.getFloated()) {
+                    me.translate(viewportAfter.translateX, viewportAfter.translateY, {
+                        duration: 200
+                    });
+                }
+
+                me.$swiping = false;
+            },
+
+<span id='Ext-viewport-Default-method-sideForDirection'>            /**
+</span>             * @private
+             */
+            sideForDirection: function(direction) {
+                if (direction === &#39;up&#39;) {
+                    direction = &#39;top&#39;;
+                } else if (direction === &#39;down&#39;) {
+                    direction = &#39;bottom&#39;;
+                }
+                return oppositeSide[sideMap[direction]];
+            },
+
+<span id='Ext-viewport-Default-method-sideForSwipeDirection'>            /**
+</span>             * @private
+             */
+            sideForSwipeDirection: function(direction) {
+                if (direction === &#39;up&#39;) {
+                    return  &#39;top&#39;;
+                } else if (direction === &#39;down&#39;) {
+                    return &#39;bottom&#39;;
+                }
+                return direction;
+            },
+
+            toggleWindowListener: function(on, eventName, fn, capturing) {
+                if (on) {
+                    this.addWindowListener(eventName, fn, capturing);
+                } else {
+                    this.removeWindowListener(eventName, fn, capturing);
+                }
+            }
+        }
+    };
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-grid-feature-CheckboxGrouping'>/**
+</span> * 
+ */
+Ext.define(&#39;SU.grid.feature.CheckboxGrouping&#39;, {
+    extend: &#39;Ext.grid.feature.Grouping&#39;,
+    alias: &#39;feature.checkboxgrouping&#39;,
+
+<span id='SU-grid-feature-CheckboxGrouping-property-checkDataIndex'>    /** @property */
+</span>    checkDataIndex: &#39;isChecked&#39;,
+<span id='SU-grid-feature-CheckboxGrouping-property-startCollapsed'>    /** @property */
+</span>    startCollapsed: true,
+<span id='SU-grid-feature-CheckboxGrouping-property-injectCheckbox'>    /** @property */
+</span>    injectCheckbox: 0,
+<span id='SU-grid-feature-CheckboxGrouping-property-checkOnly'>    /** @property */
+</span>    checkOnly: false,
+
+<span id='SU-grid-feature-CheckboxGrouping-property-headerWidth'>    headerWidth: 24,
+</span>
+<span id='SU-grid-feature-CheckboxGrouping-property-checkerOnCls'>    /**
+</span>     * @private
+     */
+    checkerOnCls: Ext.baseCSSPrefix + &#39;grid-hd-checker-on&#39;,
+
+<span id='SU-grid-feature-CheckboxGrouping-property-tdCls'>    tdCls: Ext.baseCSSPrefix + &#39;grid-cell-special &#39; + Ext.baseCSSPrefix + &#39;selmodel-column&#39;,
+</span><span id='SU-grid-feature-CheckboxGrouping-property-targetCls'>    targetCls: &#39;group-checkbox&#39;,
+</span>
+
+<span id='SU-grid-feature-CheckboxGrouping-method-init'>    init: function (grid) {
+</span>        var store = grid.getStore(),
+            view = grid.getView();
+
+        view.on({
+            beforerender: &#39;beforeViewRender&#39;,
+            selectionchange: &#39;changeViewSelection&#39;,
+            select: &#39;onViewSelect&#39;,
+            deselect: &#39;onViewDeselect&#39;,
+            scope: this
+        });
+
+        //this.groupHeaderTpl = &#39;&lt;input class=&quot;&#39; + this.targetCls + &#39;&quot; {[values.record &amp;&amp; (values.record.selected ? &quot;checked&quot; : &quot;&quot;)]} type=&quot;checkbox&quot;&gt; {name}&#39;;
+        this.groupHeaderTpl = &#39;&lt;input class=&quot;&#39; + this.targetCls + &#39;&quot; {[values.isChecked ? &quot;checked&quot; : &quot;&quot;]} type=&quot;checkbox&quot;&gt; {name}&#39;;
+
+        this.callParent(arguments);
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-beforeViewRender'>    beforeViewRender: function (view) {
+</span>        var me = this,
+            selModel = view.grid.selModel,
+            ownerLockable = view.grid.ownerLockable,
+            isLocked = selModel.locked;
+
+        if (me.injectCheckbox !== false) {
+            if (ownerLockable &amp;&amp; !me.lockListeners) {
+                me.lockListeners = ownerLockable.mon(ownerLockable, {
+                    lockcolumn: me.onColumnLock,
+                    unlockcolumn: me.onColumnUnlock,
+                    scope: me,
+                    destroyable: true
+                });
+            }
+
+            if (!ownerLockable || (view.isLockedView &amp;&amp; (me.hasLockedHeader() || isLocked)) || (view.isNormalView &amp;&amp; !me.column)) {
+                me.addCheckbox(view);
+                me.mon(view.ownerGrid, {
+                    beforereconfigure: me.onBeforeReconfigure,
+                    reconfigure: me.onReconfigure,
+                    scope: me
+                });
+            }
+        }
+
+        me.dataSource.on(&#39;groupchange&#39;, me.onGroupChange, me);
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-onGroupChange'>    // —крываем checkbox при отсутствии группировки
+</span>    onGroupChange: function (store, group) {
+        var me = this,
+            sm = me.grid.selModel;
+
+        if (me.column) {
+            me.column.setHidden(!group);
+        }
+
+        sm.suspendEvents();
+        sm.deselectAll();
+        sm.resumeEvents();
+
+        me.callParent(arguments);
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-hasLockedHeader'>    hasLockedHeader: function () {
+</span>        var columns = this.grid.getVisibleColumnManager().getColumns(),
+            len = columns.length, i;
+
+        for (i = 0; i &lt; len; i++) {
+            if (columns[i].locked) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-onColumnUnlock'>    onColumnUnlock: function (lockable, column) {
+</span>        var me = this,
+            checkbox = me.injectCheckbox,
+            lockedColumns = lockable.lockedGrid.visibleColumnManager.getColumns();
+
+        if (lockedColumns.length === 1 &amp;&amp; lockedColumns[0] === me.column) {
+            if (checkbox === &#39;first&#39;) {
+                checkbox = 0;
+            } else if (checkbox === &#39;last&#39;) {
+                checkbox = lockable.normalGrid.visibleColumnManager.getColumns().length;
+            }
+            lockable.unlock(me.column, checkbox);
+        }
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-onColumnLock'>    onColumnLock: function (lockable, column) {
+</span>        var me = this,
+            checkbox = me.injectCheckbox,
+            lockedColumns = lockable.lockedGrid.visibleColumnManager.getColumns();
+
+        if (lockedColumns.length === 1) {
+            if (checkbox === &#39;first&#39;) {
+                checkbox = 0;
+            } else if (checkbox === &#39;last&#39;) {
+                checkbox = lockable.lockedGrid.visibleColumnManager.getColumns().length;
+            }
+            lockable.lock(me.column, checkbox);
+        }
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-onBeforeReconfigure'>    /**
+</span>     * @param {Ext.panel.Table} grid
+     * @param {Ext.data.Store} store
+     * @param {Object[]} columns
+     * @private
+     */
+    onBeforeReconfigure: function (grid, store, columns /*, oldStore, oldColumns*/) {
+        var column = this.column,
+            headerCt = column.ownerCt;
+
+        if (columns &amp;&amp; headerCt) {
+            headerCt.remove(column, false);
+        }
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-onReconfigure'>    /**
+</span>     * @param {Ext.panel.Table} grid
+     * @param {Ext.data.Store} store
+     * @param {Object[]} columns
+     * @private
+     */
+    onReconfigure: function (grid, store, columns, oldStore, oldColumns) {
+        var me = this,
+            view = grid.getView();
+
+        if (columns) {
+            if (grid.lockable) {
+                if (grid.lockedGrid.isVisible()) {
+                    grid.lock(me.column, 0);
+                } else {
+                    grid.unlock(me.column, 0);
+                }
+            } else {
+                me.addCheckbox(view);
+            }
+            view.refreshView();
+        }
+
+        if (oldStore) {
+            store.un(&#39;update&#39;, me.onStoreUpdate, me);
+        }
+        if (store) {
+            store.on(&#39;update&#39;, me.onStoreUpdate, me);
+        }
+
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-addCheckbox'>    addCheckbox: function (view) {
+</span>        var me = this,
+            checkboxIndex = me.injectCheckbox,
+            headerCt = view.headerCt;
+
+        if (checkboxIndex !== false) {
+            if (checkboxIndex === &#39;first&#39;) {
+                checkboxIndex = 0;
+            } else if (checkboxIndex === &#39;last&#39;) {
+                checkboxIndex = headerCt.getColumnCount();
+            }
+            Ext.suspendLayouts();
+            me.column = headerCt.add(checkboxIndex, me.column || me.getHeaderConfig());
+            Ext.resumeLayouts();
+        }
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-getHeaderConfig'>    getHeaderConfig: function () {
+</span>        var me = this,
+            //htmlEncode = Ext.String.htmlEncode,
+            config;
+
+        config = {
+            xtype: &#39;checkcolumn&#39;,
+            dataIndex: me.checkDataIndex,
+            headerCheckbox: false,
+            isCheckerHd: false,
+            ignoreExport: true,
+            text: me.headerText,
+            width: me.headerWidth,
+            sortable: false,
+            draggable: false,
+            resizable: false,
+            hideable: false,
+            hidden: true,
+            menuDisabled: true,
+            checkOnly: me.checkOnly,
+            checkboxAriaRole: &#39;presentation&#39;,
+            tdCls: Ext.baseCSSPrefix + &#39;selmodel-checkbox &#39; + me.tdCls,
+            cls: Ext.baseCSSPrefix + &#39;selmodel-column&#39;,
+            locked: me.hasLockedHeader(),
+            //editRenderer: function () { return &#39;&amp;#160;&#39;; },
+            setRecordCheck: function (record, recordIndex, checked, cell) {
+                record.beginEdit();
+                record.set(this.dataIndex, checked, { dirty: false });
+                record.endEdit();
+            },
+            //isRecordChecked: Ext.bind(me.isRowSelected, me)
+        };
+
+        if (!me.checkOnly) {
+            config.tabIndex = undefined;
+            config.ariaRole = &#39;presentation&#39;;
+            config.focusable = false;
+        }
+        else {
+            //config.useAriaElements = true;
+            //config.ariaLabel = htmlEncode(me.headerAriaLabel);
+            //config.headerSelectText = htmlEncode(me.headerSelectText);
+            //config.headerDeselectText = htmlEncode(me.headerDeselectText);
+            //config.rowSelectText = htmlEncode(me.rowSelectText);
+            //config.rowDeselectText = htmlEncode(me.rowDeselectText);
+        }
+
+        return config;
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-setupRowData'>    setupRowData: function (record, idx, rowValues) {
+</span>        var me = this,
+            field = me.getGroupField();
+
+        me.callParent(arguments);
+        if (field) {
+            //groupInfo.record = me.getParentRecord(record.get(field));
+            rowValues.isChecked = me.groupRenderInfo.isChecked = this.getMetaGroup(record.get(field)).isChecked;
+        }
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-checkAllGroups'>    /**
+</span>     * This method will only run once... on the initial load of the view... this
+     * is so we can check the store for the grouped item&#39;s children... if they&#39;re
+     * all checked, then we need to set the private variable to checked
+     */
+    checkAllGroups: function (groupName) {
+        var store = this.view.getStore();
+        var groupField = this.getGroupField();
+
+        if (store) {
+            var groups = store.getGroups();
+            if (groups) {
+                groups.each(function (groupRec) {
+                    var allChecked = true;
+                    var groupKey = groupRec.getGroupKey();
+                    var checkGroup = true;
+                    if (groupName) {
+                        if (groupKey !== groupName) {
+                            checkGroup = false;
+                        }
+                    }
+                    if (checkGroup) {
+                        groupRec.each(function (rec) {
+                            allChecked = rec.get(this.checkDataIndex);
+                            groupName = rec.get(groupField);
+                            if (allChecked === false) {
+                                return false;
+                            }
+                        }, this);
+                        //store.suspendEvents();
+                        this.updateParentRecord(groupName, allChecked);
+                        //store.resumeEvents();
+                    }
+                }, this);
+            }
+        }
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-updateParentRecord'>    updateParentRecord: function (groupName, checked) {
+</span>        var me = this,
+            parentRecord = this.getParentRecord(groupName);
+        var metaGroup = this.getMetaGroup(groupName);
+
+        if (metaGroup.isChecked !== checked) {
+            metaGroup.isChecked = checked;
+            if (!me.updatingRecords) {
+                me.refreshView(groupName);
+            }
+            //Ext.defer(function () {
+            //    me.refreshView(groupName);
+            //}, 0);
+        }
+        //var me = this,
+        //    parentRecord = this.getParentRecord(groupName);
+
+        //if (parentRecord) {
+        //    if (parentRecord.selected !== selected) {
+        //        parentRecord.selected = selected;
+        //        Ext.defer(function () {
+        //            me.refreshView(groupName);
+        //        }, 0);
+        //    }
+        //}
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-getParentRecord'>    getParentRecord: function (groupName) {
+</span>        var parentRecord;
+        var metaGroup;
+        // For Ext JS 6 and 5.1.1
+        if (this.getMetaGroup) {
+            metaGroup = this.getMetaGroup(groupName);
+        }
+        // For Ext JS 5.1-
+        else {
+            metaGroup = this.groupCache[groupName];
+        }
+        if (metaGroup) {
+            parentRecord = metaGroup.placeholder;
+        }
+        return parentRecord;
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-refreshView'>    /**
+</span>     * TODO: This might break... we&#39;re using a private variable here... but this
+     * is the only way we can refresh the view without breaking any sort of
+     * scrolling... I&#39;m not sure how to only refresh the group header itself, so
+     * I&#39;m keeping the groupName as a param passing in... might be able to figure
+     * this out later
+     * @param {String} groupName
+     */
+    refreshView: function (groupName) {
+        var view = this.view;
+        if (view) {
+            view.refreshView();
+        }
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-changeViewSelection'>    changeViewSelection: function (selModel, records) {
+</span>    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-onViewSelect'>    onViewSelect: function (selModel, record) {
+</span>        var me = this;
+        var groupField = this.getGroupField();
+        var selection = selModel.getSelection();
+
+        if (!groupField) return;
+        //if (me.updatingRecords) return;
+        if (this.chacheSelection &amp;&amp; Ext.Array.equals(this.chacheSelection, selection)) return;
+        if (this.grid.ownerLockable.lockedGrid !== this.grid) return;
+
+        var groupName = record.get(groupField);
+        //var parentRecord = this.getParentRecord(groupName);
+        var groupRecord = this.getRecordGroup(record);
+
+        var selected = true;
+
+        groupRecord.each(function (rec) {
+            if (!~selection.indexOf(rec)) {
+                selected = false;
+                return false;
+            }
+        });
+
+        this.updateParentRecord(groupName, selected);
+
+        this.chacheSelection = selection;
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-onViewDeselect'>    onViewDeselect: function (selModel, record) {
+</span>        var groupField = this.getGroupField();
+        var selection = selModel.getSelection();
+
+        if (!groupField) return;
+        if (this.chacheSelection &amp;&amp; Ext.Array.equals(this.chacheSelection, selection)) return;
+        if (this.grid.ownerLockable.lockedGrid !== this.grid) return;
+
+        //var groupName = record.get(groupField);
+        //var parentRecord = this.getParentRecord(groupName);
+        //var groupRecord = this.getRecordGroup(record);
+
+        this.updateParentRecord(record.get(groupField), false);
+
+        this.chacheSelection = selection;
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-onStoreUpdate'>    onStoreUpdate: function (store, record, operation, modifiedFieldNames, details, eOpts) {
+</span>        console.log(&#39;update&#39;);
+        var grid = this.grid;
+        if (!this.updatingRecords &amp;&amp; grid &amp;&amp; record) {
+            var groupName = record.get(this.getGroupField());
+            this.checkAllGroups(groupName);
+            //grid.setSelection(record);
+            this.refreshView(groupName);
+        }
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-setRecordChecked'>    setRecordChecked: function (rec, checked) {
+</span>        //this.grid.selModel[checked ? &#39;doSelect&#39; : &#39;doDeselect&#39;]([rec]);
+        //rec.beginEdit();
+        //rec.set(this.checkDataIndex, checked, { dirty: false });
+        //rec.endEdit(true);
+    },
+
+<span id='SU-grid-feature-CheckboxGrouping-method-onGroupClick'>    onGroupClick: function (grid, node, group, event, eOpts) {
+</span>        if (event &amp;&amp; grid) {
+            var me = this,
+                sm = me.grid.selModel,
+                target = event.getTarget(&#39;.&#39; + me.targetCls),
+                store = grid.getStore(),
+                groupRecord = me.getRecordGroup(event.record);
+
+            if (target &amp;&amp; store &amp;&amp; groupRecord) {
+                var checked = target.checked;
+
+                me.updatingRecords = true;
+                //store.suspendEvents();
+                //groupRecord.each(function (rec, index) {
+                //    me.setRecordChecked(rec, checked);
+                //});
+                if (checked) {
+                    sm.doSelect(Ext.Array.clone(groupRecord.items), true, true);
+                } else {
+                    sm.doDeselect(Ext.Array.clone(groupRecord.items), true);
+                }
+                me.updateParentRecord(group, checked);
+                me.updatingRecords = false;
+                //store.resumeEvents();
+            } else {
+                this.callParent(arguments);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

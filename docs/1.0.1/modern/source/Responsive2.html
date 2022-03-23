@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-plugin-Responsive'>/**
+</span> * This plugin can be added to component instances to process a `responsiveConfig`. For
+ * example:
+ *
+ *      Ext.create({
+ *          xtype: &#39;panel&#39;,
+ *          layout: &#39;hbox&#39;,
+ *
+ *          items: [{
+ *              xtype: &#39;component&#39;,
+ *              plugins: {
+ *                  responsive: true
+ *              },
+ *
+ *              responsiveConfig: {
+ *                  &#39;width &lt; 800&#39;: {
+ *                      hidden: true
+ *                  },
+ *
+ *                  &#39;width &gt;= 800&#39;: {
+ *                      hidden: false
+ *                  }
+ *              }
+ *          },
+ *          ...]
+ *      });
+ *
+ * For details see `{@link Ext.mixin.Responsive#responsiveConfig responsiveConfig}`.
+ */
+Ext.define(&#39;Ext.plugin.Responsive&#39;, {
+    extend: &#39;Ext.mixin.Responsive&#39;,
+    alias: &#39;plugin.responsive&#39;,
+<span id='Ext-plugin-Responsive-property-id'>    id: &#39;responsive&#39;,
+</span>
+<span id='Ext-plugin-Responsive-property-isPlugin'>    isPlugin: true,
+</span><span id='Ext-plugin-Responsive-property-weight'>    weight: -1000,
+</span>
+<span id='Ext-plugin-Responsive-property-S-configStrict'>    $configStrict: false,
+</span>
+<span id='Ext-plugin-Responsive-method-constructor'>    constructor: function (config) {
+</span>        //&lt;debug&gt;
+        if (!config || !config.cmp) {
+            Ext.raise(&#39;Responsive plugin must be constructed by Component&#39;);
+        }
+        //&lt;/debug&gt;
+
+        var me = this,
+            cmp = config.cmp,
+            cmpConfig = cmp.initialConfig,
+            c = {
+                responsiveConfig: cmpConfig.responsiveConfig,
+                responsiveFormulas: cmpConfig.responsiveFormulas
+            },
+            transformed;
+
+        delete c.cmp;
+        delete c.type;
+
+        me.cmp = cmp;
+
+        me.initConfig(c);
+        me.setConfig(config);
+
+        transformed = me.transformed;
+
+        // Push the evaluated responsiveConfig values back on to the component:
+        if (transformed) {
+            me.transformed = null;
+
+            if (cmp.initConfig.$nullFn) {
+                // Instance has already been through initConfig... This would only be
+                // the case if this plugin was added after component construction.
+                cmp.setConfig(transformed);
+            } else {
+                cmp.initialConfig = Ext.merge(Ext.merge({}, cmpConfig), transformed);
+            }
+        }
+    },
+
+<span id='Ext-plugin-Responsive-method-init'>    init: Ext.emptyFn,
+</span>
+<span id='Ext-plugin-Responsive-property-privates'>    privates: {
+</span>        transformInstanceConfig: function (config) {
+            // Since the responsiveConfigs we manage are for the component and not for us,
+            // we set them aside here to be picked up by the constructor.
+            var transformed = this.callParent([config]),
+                ret;
+
+            this.transformed = transformed;
+
+            ret = Ext.apply({}, config);
+
+            delete ret.responsiveConfig; // already processed
+            delete ret.responsiveFormulas;
+
+            return ret;
+        },
+
+        updateResponsiveState: function () {
+            var config = this.getResponsiveState();
+
+            // Push the dynamic stuff back on to our component:
+            this.cmp.setConfig(config);
+        }
+    }
+});
+</pre>
+</body>
+</html>

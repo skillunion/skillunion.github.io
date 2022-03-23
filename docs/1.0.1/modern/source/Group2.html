@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-virtual-Group'>/**
+</span> * This class contains remote group information about virtual stores and provides
+ * a similar interface to `Ext.data.Group`.
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.data.virtual.Group&#39;, {
+<span id='Ext-data-virtual-Group-property-isVirtualGroup'>    isVirtualGroup: true,
+</span>
+<span id='Ext-data-virtual-Group-property-firstRecords'>    firstRecords: null,
+</span><span id='Ext-data-virtual-Group-property-id'>    id: &#39;&#39;,
+</span><span id='Ext-data-virtual-Group-property-summaryRecord'>    summaryRecord: null,
+</span>
+<span id='Ext-data-virtual-Group-method-constructor'>    constructor: function(key) {
+</span>        this.id = key;
+        this.firstRecords = [];
+    },
+
+<span id='Ext-data-virtual-Group-method-first'>    first: function() {
+</span>        return this.firstRecords[0] || null;
+    },
+
+<span id='Ext-data-virtual-Group-method-getGroupKey'>    getGroupKey: function() {
+</span>        return this.id;
+    },
+
+<span id='Ext-data-virtual-Group-method-getSummaryRecord'>    getSummaryRecord: function() {
+</span>        return this.summaryRecord;
+    }
+});
+</pre>
+</body>
+</html>

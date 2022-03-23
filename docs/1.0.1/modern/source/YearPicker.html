@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-panel-YearPicker'>/**
+</span> * A year picker for the {@link Ext.panel.Date DatePanel}. This component cannot
+ * be used standalone, only in conjunction with the {@link Ext.panel.Date yearPicker} config.
+ *
+ * @since 6.5.1
+ */
+Ext.define(&#39;Ext.panel.YearPicker&#39;, {
+    extend: &#39;Ext.dataview.BoundList&#39;,
+    xtype: &#39;yearpicker&#39;,
+
+<span id='Ext-panel-YearPicker-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;yearpicker&#39;,
+</span>
+    config: {
+<span id='Ext-panel-YearPicker-cfg-defaultOffset'>        defaultOffset: 100,
+</span><span id='Ext-panel-YearPicker-cfg-end'>        end: undefined,
+</span><span id='Ext-panel-YearPicker-cfg-start'>        start: undefined
+</span>    },
+
+<span id='Ext-panel-YearPicker-cfg-itemConfig'>    itemConfig: {
+</span>        ui: &#39;yearpicker&#39;,
+        tools: null
+    },
+<span id='Ext-panel-YearPicker-cfg-itemTpl'>    itemTpl: &#39;{year}&#39;,
+</span><span id='Ext-panel-YearPicker-cfg-pinFooters'>    pinFooters: false,
+</span><span id='Ext-panel-YearPicker-cfg-pinHeaders'>    pinHeaders: false,
+</span><span id='Ext-panel-YearPicker-cfg-scrollToTopOnRefresh'>    scrollToTopOnRefresh: false,
+</span>
+<span id='Ext-panel-YearPicker-method-initialize'>    initialize: function() {
+</span>        this.callParent();
+        this.rebuildStore();
+    },
+
+<span id='Ext-panel-YearPicker-method-focusYear'>    focusYear: function(year) {
+</span>        var me = this,
+            rec = me.getStore().getById(year),
+            item = me.mapToItem(rec),
+            scrollable = me.getScrollable(),
+            y = scrollable.getEnsureVisibleXY(item.element, {
+                align: {
+                    y: &#39;center?&#39;
+                }
+            }).y;
+
+        scrollable.scrollTo(null, y, false);
+        me.getNavigationModel().setLocation(rec);
+        me.select(rec);
+    },
+
+<span id='Ext-panel-YearPicker-method-onChildTap'>    onChildTap: function(location) {
+</span>        var rec = location.record;
+        if (rec) {
+            this.fireEvent(&#39;yeartap&#39;, this, rec.id);
+        }
+    },
+
+<span id='Ext-panel-YearPicker-method-applyEnd'>    applyEnd: function(end) {
+</span>        if (!end) {
+            end = (new Date()).getFullYear() + this.getDefaultOffset();
+        }
+        return end;
+    },
+
+<span id='Ext-panel-YearPicker-method-updateEnd'>    updateEnd: function() {
+</span>        this.rebuildStore();
+    },
+
+<span id='Ext-panel-YearPicker-method-applyStart'>    applyStart: function(start) {
+</span>        if (!start) {
+            start = (new Date()).getFullYear() - this.getDefaultOffset();
+        }
+        return start;
+    },
+
+<span id='Ext-panel-YearPicker-method-updateStart'>    updateStart: function() {
+</span>        this.rebuildStore();
+    },
+
+<span id='Ext-panel-YearPicker-property-privates'>    privates: {
+</span>        forceRefreshOnRender: true,
+
+        rebuildStore: function() {
+            var me = this,
+                start = me.getStart(),
+                end = me.getEnd(),
+                store = me.getStore(),
+                data, i;
+
+            if (me.isConfiguring) {
+                return;
+            }
+
+            if (!store) {
+                store = new Ext.data.Store({
+                    autoDestroy: true
+                });
+                me.setStore(store);
+            }
+
+            data = [];
+            for (i = start; i &lt;= end; ++i) {
+                data.push({
+                    id: i,
+                    year: i
+                });
+            }
+
+            store.loadData(data);
+        }
+    }
+});</pre>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-list-Tree'>/**
+</span> * @class Ext.list.Tree
+ */
+
+Ext.define(&#39;Ext.overrides.list.Tree&#39;, {
+    override: &#39;Ext.list.Tree&#39;,
+
+<span id='Ext-list-Tree-property-canMeasure'>    canMeasure: true,
+</span>
+<span id='Ext-list-Tree-method-constructor'>    constructor: function(config) {
+</span>        this.callParent([config]);
+        // Track size so that we can track the expanded size
+        // for use by the floated state of items when in micro mode.
+        // Browsers where this event is not supported, fall back to a width
+        // of 200px for floated tree items.
+        if (!Ext.isIE8) {
+            this.element.on(&#39;resize&#39;, &#39;onElResize&#39;, this);
+        }
+    },
+
+<span id='Ext-list-Tree-method-beforeLayout'>    beforeLayout: function () {
+</span>        this.syncIconSize();
+    },
+
+<span id='Ext-list-Tree-method-onElResize'>    onElResize: function(el, details) {
+</span>        if (!this.getMicro() &amp;&amp; this.canMeasure) {
+            this.expandedWidth = details.width;
+        }
+    },
+
+<span id='Ext-list-Tree-property-privates'>    privates: {
+</span>        defaultListWidth: 200,
+        expandedWidth: null
+    }
+});</pre>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Toast'>/**
+</span> * A &#39;Toast&#39; is a simple message that is displayed on the screen and then automatically closed by a
+ * timeout. Think about it like a text only alert box that will self destruct. **A Toast should not
+ * be instantiated manually** but creating by calling &#39;Ext.toast(message, timeout)&#39;. This will create
+ * one reusable toast container and content will be swapped out as toast messages are queued
+ * or displayed.
+ *
+ * # Simple Toast
+ *
+ *      @example
+ *      // Toast will close in 1000 milliseconds (default)
+ *      Ext.toast(&#39;Hello Sencha!&#39;);
+ *
+ * # Toast with Timeout
+ *
+ *      @example
+ *      // Toast will close in 5000 milliseconds
+ *      Ext.toast(&#39;Hello Sencha!&#39;, 5000);
+ *
+ * # Toast with config
+ *
+ *      @example
+ *      // Toast will close in 2000 milliseconds
+ *      Ext.toast({message: &#39;Hello Sencha!&#39;, timeout: 2000});
+ *
+ * # Multiple Toasts queued
+ *
+ *      @example
+ *      Ext.toast(&#39;Hello Sencha!&#39;);
+ *      Ext.toast(&#39;Hello Sencha Again!&#39;);
+ *      Ext.toast(&#39;Hello Sencha One More Time!&#39;);
+ */
+Ext.define(&#39;Ext.Toast&#39;, {
+    extend: &#39;Ext.Sheet&#39;,
+    requires: [
+        &#39;Ext.util.InputBlocker&#39;
+    ],
+
+    config: {
+<span id='Ext-Toast-cfg-centered'>        /**
+</span>         * @cfg centered
+         * @inheritdoc
+         */
+        centered: false,
+
+<span id='Ext-Toast-cfg-showAnimation'>        /**
+</span>         * @cfg showAnimation
+         * @inheritdoc
+         */
+        showAnimation: {
+            type: &#39;popIn&#39;,
+            duration: 250,
+            easing: &#39;ease-out&#39;
+        },
+
+<span id='Ext-Toast-cfg-hideAnimation'>        /**
+</span>         * @cfg hideAnimation
+         * @inheritdoc
+         */
+        hideAnimation: {
+            type: &#39;popOut&#39;,
+            duration: 250,
+            easing: &#39;ease-out&#39;
+        },
+
+<span id='Ext-Toast-cfg-zIndex'>        /**
+</span>         * Override the default `zIndex` so it is normally always above positioned components.
+         */
+        zIndex: 999,
+
+<span id='Ext-Toast-cfg-message'>        /**
+</span>         * @cfg {String} message
+         * The message to be displayed in the {@link Ext.Toast}.
+         * @accessor
+         */
+        message: &#39;&#39;,
+
+<span id='Ext-Toast-cfg-timeout'>        /**
+</span>         * @cfg {Number} timeout
+         * The amount of time in milliseconds to wait before destroying the toast automatically
+         */
+        timeout: 1000,
+
+<span id='Ext-Toast-cfg-maxQueue'>        /**
+</span>         * @cfg {Number} maxQueue
+         * The the maximum number of toasts that can be queued up.  When there are this many toasts queued up and
+         * a new call to Ext.toast() is made, the oldest queued Toast that is not yet displayed will be dropped
+         * from the queue.
+         */
+        maxQueue: 3,
+
+<span id='Ext-Toast-cfg-messageAnimation'>        /**
+</span>         * @cfg {Boolean/Object} messageAnimation
+         * The animation that should be used between toast messages when they are queued up
+         */
+        messageAnimation: true,
+
+<span id='Ext-Toast-cfg-hideOnMaskTap'>        /**
+</span>         * @cfg hideOnMaskTap
+         * @inheritdoc
+         */
+        hideOnMaskTap: true,
+
+<span id='Ext-Toast-cfg-modal'>        /**
+</span>         * @cfg modal
+         * @hide
+         */
+        modal: false,
+
+<span id='Ext-Toast-cfg-layout'>        /**
+</span>         * @cfg layout
+         * @inheritdoc
+         */
+        layout: {
+            type: &#39;vbox&#39;,
+            pack: &#39;center&#39;
+        }
+    },
+
+<span id='Ext-Toast-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;toast&#39;,
+
+<span id='Ext-Toast-method-applyMessage'>    /**
+</span>     * @private
+     */
+    applyMessage: function (value) {
+        var config = {
+            html: value,
+            cls: this.baseCls + &#39;-text&#39;
+        };
+
+        return Ext.factory(config, Ext.Component, this._message);
+    },
+
+<span id='Ext-Toast-method-updateMessage'>    /**
+</span>     * @private
+     */
+    updateMessage: function (newMessage) {
+        if (newMessage) {
+            this.add(newMessage);
+        }
+    },
+
+<span id='Ext-Toast-method-startTimer'>    /**
+</span>     * @private
+     */
+    startTimer: function () {
+        var timeout = this.getTimeout();
+        if (this._timeoutID) {
+            Ext.undefer(this._timeoutID);
+        }
+
+        if (!Ext.isEmpty(timeout)) {
+            this._timeoutID = Ext.defer(this.onTimeout.bind(this), timeout);
+        } else {
+            this.onTimeout();
+        }
+    },
+
+<span id='Ext-Toast-method-stopTimer'>    stopTimer: function () {
+</span>        Ext.undefer(this._timeoutID);
+        this._timeoutID = null;
+    },
+
+<span id='Ext-Toast-method-next'>    /**
+</span>     * @method
+     * @private
+     */
+    next: Ext.emptyFn,
+
+<span id='Ext-Toast-method-getIsAnimating'>    getIsAnimating: function () {
+</span>        var messageContainer = this.getMessage();
+        return (messageContainer &amp;&amp; Ext.Animator.hasRunningAnimations(messageContainer)) || Ext.Animator.hasRunningAnimations(this);
+    },
+
+<span id='Ext-Toast-method-showToast'>    /**
+</span>     * @private
+     */
+    showToast: function (config) {
+        var me = this,
+            message = config.message,
+            timeout = config.timeout,
+            messageContainer = me.getMessage(),
+            msgAnimation = me.getMessageAnimation();
+
+        // If the toast has already been rendered and is visible on the screen
+        if (me.isRendered() &amp;&amp; me.isHidden() === false) {
+            messageContainer.onAfter({
+                // After the hide is complete
+                hiddenchange: function () {
+                    me.setMessage(message);
+                    me.setTimeout(timeout);
+                    messageContainer.onAfter({
+                        scope: me,
+                        // After the show is complete
+                        hiddenchange: function () {
+                            me.startTimer();
+                        },
+                        single: true
+                    });
+                    messageContainer.show(msgAnimation);
+                },
+                scope: me,
+                single: true
+            });
+
+            messageContainer.hide(msgAnimation);
+        } else {
+            Ext.util.InputBlocker.blockInputs();
+
+            //if it has not been added to a container, add it to the Viewport.
+            if (!me.getParent() &amp;&amp; Ext.Viewport) {
+                Ext.Viewport.add(me);
+            }
+
+            me.setMessage(message);
+            me.setTimeout(timeout);
+            me.startTimer();
+            me.show({
+                animation: null,
+                alignment: {
+                    component: document.body,
+                    alignment: &#39;t-t&#39;,
+                    options: {
+                        offset: [0, 20]
+                    }
+                }
+            });
+        }
+    },
+
+<span id='Ext-Toast-method-beforeHide'>    /**
+</span>     * @private
+     */
+    beforeHide: function (animation) {
+        this.callParent(arguments);
+
+        // If the message is animating cancel this hide
+        if (this.getIsAnimating()) {
+            return false;
+        }
+
+        this.stopTimer();
+        if (!this.next()) {
+            return false;
+        }
+    },
+
+<span id='Ext-Toast-method-onTimeout'>    /**
+</span>     * @private
+     */
+    onTimeout: function () {
+        if (this._timeoutID !== null) {
+            this.hide();
+        }
+    },
+
+<span id='Ext-Toast-method-doDestroy'>    doDestroy: function() {
+</span>        this.stopTimer();
+        this.callParent();
+    }
+}, function (Toast) {
+    var _queue = [];
+
+    function getInstance() {
+        if (!Ext.Toast._instance) {
+            Ext.Toast._instance = Ext.create(&#39;Ext.Toast&#39;);
+        }
+        return Ext.Toast._instance;
+    }
+
+    //&lt;debug&gt;
+<span id='Ext-Toast-method-getQueueCount'>    /**
+</span>     * @member Ext.Toast
+     * @method getQueueCount
+     * @private
+     * Provided for unit tests
+     * @returns {Number}
+     */
+    Toast.prototype.getQueueCount = function() {
+        return _queue.length;
+    };
+    //&lt;/debug&gt;
+
+    Toast.prototype.next = function () {
+        var config = _queue.shift();
+
+        if (config) {
+            this.showToast(config);
+        }
+
+        return !config;
+    };
+
+<span id='Ext-Toast-method-destroy'>    /**
+</span>     * Destroys any Toast components and elements, freeing the resources.
+     *
+     * They will be created again upon calling Ext.toast().
+     */
+    Ext.Toast.destroy = function() {
+        if (Ext.Toast._instance) {
+            Ext.Toast._instance.destroy();
+            Ext.Toast._instance = null;
+        }
+    };
+    Ext.toast = function (message, timeout) {
+        var toast = getInstance(),
+            maxQueue = Ext.Toast.prototype.config.maxQueue,
+            config = message;
+
+        if (Ext.isString(message)) {
+            config = {
+                message: message,
+                timeout: timeout
+            };
+        }
+
+        //&lt;debug&gt;
+        if (!config) {
+            throw new Error(&quot;Toast requires a message&quot;);
+        }
+        //&lt;/debug&gt;
+
+        if (config.timeout === undefined) {
+            config.timeout = Ext.Toast.prototype.config.timeout;
+        }
+
+        _queue.push(config);
+
+        if (_queue.length &gt; maxQueue) {
+            _queue.shift();
+        }
+
+        if (!toast.isRendered() || toast.isHidden()) {
+            toast.next();
+        }
+
+        return toast;
+    }
+});
+
+</pre>
+</body>
+</html>

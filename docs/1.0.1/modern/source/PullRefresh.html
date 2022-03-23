@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-pullrefresh-PullRefresh'>/**
+</span> * This {@link Ext.Component#cfg!plugins plugin} adds pull to refresh functionality to the
+ * {@link Ext.dataview.List list} component.
+ *
+ * ## Example
+ *
+ *      @example
+ *      Ext.create({
+ *          xtype: &#39;list&#39;,
+ *          fullscreen: true,
+ *
+ *          plugins: {
+ *              pullrefresh: {
+ *                  pullText: &#39;Pull down for more new Tweets!&#39;
+ *              }
+ *          },
+ *
+ *          itemTpl: [
+ *              &#39;&lt;img src=&quot;{img}&quot; alt=&quot;{name} photo&quot; /&gt;&#39;,
+ *              &#39;&lt;div class=&quot;tweet&quot;&gt;&lt;b&gt;{name}:&lt;/b&gt; {text}&lt;/div&gt;&#39;
+ *          ],
+ *
+ *          store: [{
+ *              name: &#39;Bill&#39;,
+ *              img: &#39;https://www.sencha.com/forum/images/statusicon/forum_new-48.png&#39;,
+ *              text: &#39;JavaScript development&#39;
+ *          }]
+ *      });
+ */
+Ext.define(&#39;Ext.dataview.pullrefresh.PullRefresh&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: &#39;plugin.pullrefresh&#39;,
+    alternateClassName: &#39;Ext.plugin.PullRefresh&#39;,
+
+    mixins: [
+        &#39;Ext.mixin.ConfigProxy&#39;
+    ],
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-property-proxyConfig'>    proxyConfig: {
+</span>        widget: [
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-lastUpdatedDateFormat'>            /**
+</span>             * @cfg {String} lastUpdatedDateFormat
+             * The format to be used on the last updated date.
+             */
+            &#39;lastUpdatedDateFormat&#39;,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-lastUpdatedText'>            /**
+</span>             * @cfg {String} lastUpdatedText
+             * The text to be shown in front of the last updated time.
+             */
+            &#39;lastUpdatedText&#39;,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-loadedText'>            /**
+</span>             * @cfg {String} loadedText
+             * The text that will be when data has been loaded.
+             */
+            &#39;loadedText&#39;,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-loadingText'>            /**
+</span>             * @cfg {String} loadingText
+             * The text that will be shown while the list is refreshing.
+             */
+            &#39;loadingText&#39;,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-pullText'>            /**
+</span>             * @cfg {String} pullText
+             * The text that will be shown while you are pulling down.
+             */
+            &#39;pullText&#39;,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-releaseText'>            /**
+</span>             * @cfg {String} releaseText
+             * The text that will be shown after you have pulled down enough to show the
+             * release message.
+             */
+            &#39;releaseText&#39;
+        ]
+    },
+
+    config: {
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-autoSnapBack'>        /**
+</span>         * @cfg {Boolean} autoSnapBack
+         * Determines whether the pulldown should automatically snap back after data has
+         * been loaded. If `false` call {@link #snapBack} to manually snap the pulldown back.
+         */
+        autoSnapBack: true,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-mergeData'>        /**
+</span>         * @cfg {Boolean} mergeData
+         * `true` to insert new records into the store and to replace the data for
+         * any incoming records that exist.
+         *
+         * `false` to completely overwrite store data with the fetched response.
+         *
+         * @since 6.2.1
+         */
+        mergeData: true,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-overlay'>        /**
+</span>         * @cfg {Boolean} overlay
+         * `false` to move the list down to display the refresh indicator. `true` to float
+         * the indicator over the top of the list with no movement.
+         *
+         * @since 6.2.1
+         */
+        overlay: false,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-snappingAnimationDuration'>        /**
+</span>         * @cfg {Number} snappingAnimationDuration
+         * The duration for snapping back animation after the data has been refreshed
+         */
+        snappingAnimationDuration: 300,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-activateOffset'>        //--------------------------
+</span>        // Private
+
+        activateOffset: 0.75,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-widget'>        widget: {
+</span>            lazy: true,
+            $value: {
+                xtype: &#39;pullrefreshbar&#39;
+            }
+        },
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-lastUpdated'>        /**
+</span>         * @private
+         */
+        lastUpdated: new Date(),
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-list'>        /**
+</span>         * @cfg {Ext.dataview.List} list
+         * The list to which this PullRefresh plugin is connected.
+         * This will usually by set automatically when configuring the list with this plugin.
+         * @private
+         */
+        list: null,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-overshotMaxDistance'>        overshotMaxDistance: 50,
+</span>
+<span id='Ext-dataview-pullrefresh-PullRefresh-cfg-state'>        /**
+</span>         * @private
+         */
+        state: &#39;pulling&#39;
+    },
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-method-init'>    init: function (list) {
+</span>        this.setList(list);
+    },
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-method-destroy'>    destroy: function () {
+</span>        this.setList(null);
+        this.callParent();
+    },
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-method-createWidget'>    createWidget: function (config) {
+</span>        var ret = this.mergeProxiedConfigs(&#39;widget&#39;, config);
+
+        // Since widget can be set as a string we&#39;ll lose all our properties that
+        // we place in the config, so bolt on hidden here.
+        ret.hidden = true;
+
+        return ret;
+    },
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-property-privates'>    privates: {
+</span>        overlayCls: Ext.baseCSSPrefix + &#39;pullrefresh-overlay&#39;,
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-method-fetchLatest'>        /**
+</span>         * Attempts to load the newest posts via the attached List&#39;s Store&#39;s Proxy
+         * @private
+         */
+        fetchLatest: function() {
+            this.getList().getStore().fetch({
+                page: 1,
+                start: 0,
+                callback: this.onLatestFetched,
+                scope: this
+            });
+        },
+
+        reset: function() {
+            var me = this,
+                widget = me.getWidget();
+
+            widget.setHidden(true);
+            widget.setHeight(null);
+            widget.setMinHeight(null);
+
+            me.$measuredHeight = null;
+        },
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-method-snapBack'>        /**
+</span>         * Snaps the List back to the top after a pullrefresh is complete
+         * @param {Boolean} force Force the snapback to occur regardless of state {optional}
+         * @private
+         */
+        snapBack: function (force) {
+            var me = this,
+                widget = me.getWidget(),
+                state = me.getState(),
+                hideAnimation = widget.getHideAnimation(),
+                duration = me.getSnappingAnimationDuration();
+
+            if (state === &#39;loaded&#39; || force) {
+                if (!hideAnimation) {
+                    widget.el.animate({
+                        preserveEndState: true,
+                        duration: duration,
+                        to: {
+                            height: 0
+                        },
+                        callback: function() {
+                            me.onSnapBackEnd(true);
+                        }
+                    });
+                } else {
+                    me.onSnapBackEnd();
+                }
+            }
+        },
+
+        //--------------------
+        // Event handlers
+
+        onDragEnd: function() {
+            var me = this,
+                state = me.getState(),
+                widget = me.getWidget(),
+                overshotMaxDistance = me.getOvershotMaxDistance();
+
+            if (me.running) {
+                me.running = false;
+                if (state === &#39;holding&#39;) {
+                    if (overshotMaxDistance) {
+                        widget.el.animate({
+                            duration: 75,
+                            preserveEndState: true,
+                            to: {
+                                height: me.$measuredHeight
+                            },
+                            callback: function() {
+                                me.setState(&#39;loading&#39;);
+                                me.fetchLatest();
+                            }
+                        });
+                    } else {
+                        me.setState(&#39;loading&#39;);
+                        me.fetchLatest();
+                    }
+                } else {
+                    me.snapBack(true, false);
+                }
+            }
+        },
+
+        onDragMove: function(e) {
+            var me = this,
+                list = me.getList(),
+                widget = me.getWidget(),
+                listHeight = list.el.getHeight(),
+                pullHeight = me.$measuredHeight,
+                activateOffset = me.getActivateOffset() * pullHeight,
+                overshotMaxDistance = me.getOvershotMaxDistance(),
+                offset, overshot, overshotRange;
+
+            if (me.running) {
+                e.stopEvent();
+                offset = e.getXY()[1] - me.startY;
+                widget.setHidden(offset &lt;= 0);
+
+                if (offset &gt; 0 &amp;&amp; offset &lt; pullHeight) {
+                    me.setState(&#39;pulling&#39;);
+                    widget.setHeight(offset);
+                }
+                else if (overshotMaxDistance &amp;&amp; offset &gt;= pullHeight) {
+                    overshotRange = listHeight - pullHeight;
+                    overshot = ((offset - pullHeight) / overshotRange);
+                    widget.setHeight(pullHeight + (overshot * overshotMaxDistance));
+                }
+
+                // widget.setPull(Math.min(1, offset / activateOffset));
+                widget.setPull(offset / activateOffset);
+
+                if (offset &gt;= activateOffset) {
+                    me.setState(&#39;holding&#39;);
+                }
+            }
+        },
+
+        onDragStart: function(e) {
+            var me = this,
+                list = me.getList(),
+                widget = me.getWidget(),
+                dy;
+
+            if (me.running) {
+                e.stopEvent();
+                return;
+            }
+
+            if (!me.$measuredHeight) {
+                widget.setHidden(false);
+                me.$measuredHeight = widget.el.getHeight();
+                widget.setMinHeight(0);
+                widget.setHidden(true);
+            }
+
+            dy = e.deltaY;
+
+            if (list.getScrollable().getPosition().y === 0 &amp;&amp; dy &gt; 0 &amp;&amp; dy &gt; e.deltaX) {
+                widget.setHidden(false);
+                me.running = true;
+                widget.setHeight(0);
+                e.stopEvent();
+            }
+        },
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-method-onLatestFetched'>        /**
+</span>         * Called after fetchLatest has finished grabbing data. Matches any returned
+         * records against what is already in the Store. If there is an overlap, updates
+         * the existing records with the new data and inserts the new items at the front
+         * of the Store. If there is no overlap, insert the new records anyway and record
+         * that there&#39;s a break in the timeline between the new and the old records.
+         * @private
+         */
+        onLatestFetched: function(newRecords, operation, success) {
+            var me = this,
+                list = me.getList(),
+                store = list.getStore(),
+                length, toInsert,
+                oldRecords, newRecord, oldRecord, i;
+
+            if (success) {
+                if (me.getMergeData()) {
+                    oldRecords = store.getData();
+                    toInsert = [];
+                    length = newRecords.length;
+
+                    for (i = 0; i &lt; length; i++) {
+                        newRecord = newRecords[i];
+                        oldRecord = oldRecords.getByKey(newRecord.getId());
+
+                        if (oldRecord) {
+                            oldRecord.set(newRecord.getData());
+                        } else {
+                            toInsert.push(newRecord);
+                        }
+                    }
+
+                    store.insert(0, toInsert);
+                } else {
+                    store.loadRecords(newRecords);
+                }
+
+                me.setLastUpdated(new Date());
+            }
+            me.setState(&#39;loaded&#39;);
+            list.fireEvent(&#39;latestfetched&#39;, me, toInsert || newRecords);
+
+            if (me.getAutoSnapBack()) {
+                me.snapBack(true);
+            }
+        },
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-method-onSnapBackEnd'>        /**
+</span>         * Called when PullRefresh has been snapped back to the top
+         * @private
+         */
+        onSnapBackEnd: function(preventAnim) {
+            var me = this,
+                widget = me.getWidget();
+
+            if (preventAnim) {
+                widget.hide(null);
+                me.setState(&#39;pulling&#39;);
+                me.reset();
+            } else {
+                widget.hide();
+                widget.on(&#39;hide&#39;, function() {
+                    me.setState(&#39;pulling&#39;);
+                    me.reset();
+                }, me, {single: true});
+            }
+        },
+
+        onTouchStart: function(e) {
+            this.startY = e.getXY()[1];
+        },
+
+        //-------------------------
+        // Configs
+
+        // lastUpdated
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-method-updateLastUpdated'>        /**
+</span>         * @private
+         */
+        updateLastUpdated: function (value) {
+            var widget = this.getWidget();
+
+            if (widget) {
+                widget.setLastUpdated(value);
+            }
+        },
+
+        // list
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-method-updateList'>        /**
+</span>         * @private
+         */
+        updateList: function (list, oldList) {
+            var me = this,
+                widget = me.widget;
+
+            if (oldList) {
+                oldList.el.un({
+                    scope: me,
+                    touchstart: &#39;onTouchStart&#39;,
+                    dragstart: &#39;onDragStart&#39;,
+                    drag: &#39;onDragMove&#39;,
+                    dragend: &#39;onDragEnd&#39;
+                });
+            }
+
+            if (list) {
+                list.el.on({
+                    scope: me,
+                    touchstart: &#39;onTouchStart&#39;,
+                    dragstart: &#39;onDragStart&#39;,
+                    drag: &#39;onDragMove&#39;,
+                    dragend: &#39;onDragEnd&#39;
+                });
+
+                if (widget) {
+                    list.insert(0, widget);
+                }
+            }
+        },
+
+        // overlay
+
+        updateOverlay: function (overlay) {
+            var widget = this.getWidget();
+
+            if (widget) {
+                widget.el.toggleCls(this.overlayCls, overlay);
+                widget.setTop(overlay ? 0 : null);
+            }
+        },
+
+        // state
+
+<span id='Ext-dataview-pullrefresh-PullRefresh-method-updateState'>        /**
+</span>         * @private
+         */
+        updateState: function (value) {
+            var widget = this.getWidget();
+
+            if (widget) {
+                widget.setState(value);
+            }
+        },
+
+        // widget
+
+        applyWidget: function (config, existing) {
+            return Ext.updateWidget(existing, config, this, &#39;createWidget&#39;);
+        },
+
+        updateWidget: function (widget) {
+            var me = this,
+                list, overlay;
+
+            // since we&#39;re lazy we store the reference to allow easy peeking
+            me.widget = widget;
+
+            if (widget) {
+                overlay = me.getOverlay();
+                me.updateOverlay(overlay);
+
+                widget.setLastUpdated(me.getLastUpdated());
+                widget.setState(me.getState());
+
+                list = me.getList();
+
+                if (list) {
+                    list.insert(0, widget);
+                }
+            }
+        }
+    } // privates
+});
+</pre>
+</body>
+</html>

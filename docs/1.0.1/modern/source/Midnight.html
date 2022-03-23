@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;Ext.chart.theme.Midnight&#39;, {
+    extend: &#39;Ext.chart.theme.Base&#39;,
+    singleton: true,
+    alias: [
+        &#39;chart.theme.midnight&#39;,
+        &#39;chart.theme.Midnight&#39;
+    ],
+    config: {
+        colors: [
+            &#39;#a837ff&#39;,
+            &#39;#4ac0f2&#39;,
+            &#39;#ff4d35&#39;,
+            &#39;#ff8809&#39;,
+            &#39;#61c102&#39;,
+            &#39;#ff37ea&#39;
+        ],
+
+        chart: {
+            defaults: {
+                captions: {
+                    title: {
+                        docked: &#39;top&#39;,
+                        padding: 5,
+                        style: {
+                            textAlign: &#39;center&#39;,
+                            fontFamily: &#39;default&#39;,
+                            fontWeight: &#39;bold&#39;,
+                            fillStyle: &#39;rgb(224, 224, 227)&#39;,
+                            fontSize: &#39;default*1.6&#39;
+                        }
+                    },
+                    subtitle: {
+                        docked: &#39;top&#39;,
+                        style: {
+                            textAlign: &#39;center&#39;,
+                            fontFamily: &#39;default&#39;,
+                            fontWeight: &#39;normal&#39;,
+                            fillStyle: &#39;rgb(224, 224, 227)&#39;,
+                            fontSize: &#39;default*1.3&#39;
+                        }
+                    },
+                    credits: {
+                        docked: &#39;bottom&#39;,
+                        padding: 5,
+                        style: {
+                            textAlign: &#39;left&#39;,
+                            fontFamily: &#39;default&#39;,
+                            fontWeight: &#39;lighter&#39;,
+                            fillStyle: &#39;rgb(224, 224, 227)&#39;,
+                            fontSize: &#39;default&#39;
+                        }
+                    }
+                },
+                background: &#39;rgb(52, 52, 53)&#39;
+            }
+        },
+
+        axis: {
+            defaults: {
+                style: {
+                    strokeStyle: &#39;rgb(224, 224, 227)&#39;
+                },
+                label: {
+                    fillStyle: &#39;rgb(224, 224, 227)&#39;
+                },
+                title: {
+                    fillStyle: &#39;rgb(224, 224, 227)&#39;
+                },
+                grid: {
+                    strokeStyle: &#39;rgb(112, 112, 115)&#39;
+                }
+            }
+        },
+
+        series: {
+            defaults: {
+                label: {
+                    fillStyle: &#39;rgb(224, 224, 227)&#39;
+                }
+            }
+        },
+
+        sprites: {
+            text: {
+                fillStyle: &#39;rgb(224, 224, 227)&#39;
+            }
+        },
+
+        legend: {
+            label: {
+                fillStyle: &#39;white&#39;
+            },
+            border: {
+                lineWidth: 2,
+                fillStyle: &#39;rgba(255, 255, 255, 0.3)&#39;,
+                strokeStyle: &#39;rgb(150, 150, 150)&#39;
+            },
+            background: &#39;rgb(52, 52, 53)&#39;
+        }
+    }
+});</pre>
+</body>
+</html>

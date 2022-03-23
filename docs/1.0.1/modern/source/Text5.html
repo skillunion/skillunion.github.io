@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-field-Text'>/**
+</span> * 
+ */
+Ext.define(&#39;SU.field.Text&#39;, {
+    override: &#39;Ext.field.Text&#39;,
+
+    config: {
+<span id='Ext-field-Text-cfg-maskRe'>        /**
+</span>         * @cfg {RegExp} maskRe optional
+         * RegExp маска вводимых символов
+         */
+        maskRe: undefined,
+
+<span id='Ext-field-Text-cfg-maskRawValue'>        /**
+</span>         * @cfg {Boolaen} maskRawValue=false
+         * применяется совместно с maskRe,
+         * true - проверка всего введенного значения
+         */
+        maskRawValue: false
+    },
+
+<span id='SU-field-Text-method-initialize'>    initialize: function () {
+</span>        var me = this;
+
+        me.callParent(arguments);
+
+        if (me.getMaskRe()) {
+            me.mon(me.el, &#39;keypress&#39;, me.filterKeys, me);
+        }
+    },
+
+<span id='Ext-field-Text-method-filterKeys'>    filterKeys: function (e) {
+</span>
+        if (e.ctrlKey &amp;&amp; !e.altKey || e.isSpecialKey()) return;
+
+        var charCode = String.fromCharCode(e.getCharCode()),
+            raw = this.getValue() || &#39;&#39;,
+            value = this.getMaskRawValue() ? raw + charCode : charCode;
+
+        if (!this.getMaskRe().test(value)) {
+            e.stopEvent();
+        }
+    }
+});
+</pre>
+</body>
+</html>

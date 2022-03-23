@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-plugin-SortableList'>/**
+</span> * The SortableList plugin gives your list items the ability to be reordered by tapping and
+ * dragging elements within the item.
+ *
+ * The list-sortablehandle is not added to your tpl by default, so it&#39;s important that you
+ * manually include it. It&#39;s also important to recognize that list-items are not draggable
+ * themselves.  You must add an element to the itemTpl for it to be dragged.
+ *
+ *     Ext.Viewport.add({
+ *          xtype: &#39;list&#39;,
+ *          infinite: true,
+ *          plugins: {
+ *              sortablelist: true
+ *          },
+ *          itemTpl: &#39;&lt;span class=&quot;myStyle &#39; + Ext.baseCSSPrefix + &#39;list-sortablehandle&quot;&gt;&lt;/span&gt;{text}&#39;,
+ *          data: [{
+ *              text: &#39;Item 1&#39;
+ *          }, {
+ *              text: &#39;Item 2&#39;
+ *          }, {
+ *              text: &#39;Item 3&#39;
+ *          }]
+ *     });
+ *
+ * The CSS for MyStyle can be anything that creates an element to tap and drag.  For this
+ * example we made a simple rectangle like so:
+ *
+ *      .myStyle{
+ *          width:30px;
+ *          height:20px;
+ *          background:gray;
+ *          float:left;
+ *      }
+ *
+ * Note: You must have infinite set to &#39;true&#39; when using the SortableList plugin.
+ *
+ */
+Ext.define(&#39;Ext.dataview.plugin.SortableList&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: &#39;plugin.sortablelist&#39;,
+    alternateClassName: &#39;Ext.plugin.SortableList&#39;,
+
+    requires: [
+        &#39;Ext.drag.Source&#39;,
+        &#39;Ext.drag.proxy.Original&#39;
+    ],
+
+    config: {
+<span id='Ext-dataview-plugin-SortableList-cfg-list'>        list: null,
+</span>
+<span id='Ext-dataview-plugin-SortableList-cfg-source'>        source: {
+</span>            xclass: &#39;Ext.drag.Source&#39;,
+            handle: &#39;.&#39; + Ext.baseCSSPrefix + &#39;list-sortablehandle&#39;,
+            constrain: {
+                vertical: true
+            },
+            proxy: {
+                getElement: function(info) {
+                    return this.getSource().list.mapToItem(info.initialEvent).el;
+                }
+            }
+        }
+    },
+
+<span id='Ext-dataview-plugin-SortableList-method-init'>    init: function(list) {
+</span>        this.setList(list);
+    },
+
+<span id='Ext-dataview-plugin-SortableList-method-updateList'>    updateList: function(list) {
+</span>        var source;
+
+        if (list) {
+            source = this.getSource();
+            if (source) {
+                source.list = list;
+                source.setElement(list.getRenderTarget());
+            }
+        }
+    },
+
+<span id='Ext-dataview-plugin-SortableList-method-applySource'>    applySource: function(source) {
+</span>        if (source) {
+            source = Ext.create(source);
+        }
+        return source;
+    },
+
+<span id='Ext-dataview-plugin-SortableList-method-updateSource'>    updateSource: function(source, oldSource) {
+</span>        var list = this.getList();
+
+        Ext.destroy(oldSource);
+
+        if (source) {
+            source.on({
+                scope: this,
+                dragstart: &#39;onDragStart&#39;,
+                dragmove: &#39;onDrag&#39;,
+                dragend: &#39;onDragEnd&#39;
+            });
+
+            if (list) {
+                source.list = list;
+                source.setElement(list.getRenderTarget());
+            }
+        }
+    },
+
+<span id='Ext-dataview-plugin-SortableList-method-onDragStart'>    onDragStart: function(source, info) {
+</span>        var list = this.getList(),
+            item = list.mapToItem(info.initialEvent);
+
+        item.addCls(Ext.baseCSSPrefix + &#39;item-no-ripple&#39;);
+
+        // Clear the translate since drag uses left/top
+        item.translate(0, 0);
+        info.item = item;
+        info.startIndex = item.getRecordIndex();
+        info.listTop = list.getRenderTarget().getTop();
+        info.itemHeight = item.el.measure(&#39;h&#39;);
+        info.halfHeight = info.itemHeight / 2;
+
+        list.stickItem(item, {
+            floated: true
+        });
+    },
+
+<span id='Ext-dataview-plugin-SortableList-method-onDrag'>    onDrag: function(source, info) {
+</span>        var list = this.getList(),
+            top = Math.max(0, info.cursor.current.y - info.listTop),
+            idx = list.bisectPosition(top + info.halfHeight),
+            o = {};
+
+        o[idx] = info.itemHeight;
+        info.index = idx;
+
+        list.setGaps(o);
+    },
+
+<span id='Ext-dataview-plugin-SortableList-method-onDragEnd'>    onDragEnd: function(source, info) {
+</span>        var me = this,
+            list = me.getList(),
+            item = info.item,
+            style = info.item.el.dom.style,
+            compareItem = list.mapToItem(info.index),
+            top, pos;
+
+        item.getTranslatable().on(&#39;animationend&#39;, function() {
+            if (me.destroyed) {
+                return;
+            }
+
+            var store = list.getStore(),
+                startIndex = info.startIndex,
+                index = compareItem ? compareItem.getRecordIndex() : list.getStore().getCount(),
+                rec = item.getRecord();
+
+            list.stickItem(item);
+            list.setGaps(null);
+
+            if (startIndex !== index) {
+                store.insert(index, rec);
+                index = store.indexOf(rec);
+
+                // Since we&#39;ve moved the item, it may have changed, grab it again
+                item = list.mapToItem(rec);
+                list.fireEvent(&#39;dragsort&#39;, list, item, index);
+            }
+            item.removeCls(Ext.baseCSSPrefix + &#39;item-no-ripple&#39;);
+        }, me, {single: true});
+
+        if (!compareItem) {
+            pos = list.mapToItem(info.index - 1).$y1;
+        } else {
+            pos = compareItem.$y0;
+        }
+
+        // Dragging uses left/top, so make it translate instead
+        top = item.element.getTop(true);
+        style.left = style.top = &#39;&#39;;
+        item.translate(0, top);
+        item.translate(null, pos, {duration: 100});
+    }
+});
+</pre>
+</body>
+</html>

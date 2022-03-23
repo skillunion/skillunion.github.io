@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-pullrefresh-Bar'>/**
+</span> * @since 6.5.0
+ */
+Ext.define(&#39;Ext.dataview.pullrefresh.Bar&#39;, {
+    extend: &#39;Ext.dataview.pullrefresh.Item&#39;,
+    xtype: &#39;pullrefreshbar&#39;,
+
+<span id='Ext-dataview-pullrefresh-Bar-property-baseCls'>    baseCls: Ext.baseCSSPrefix + &#39;pullrefreshbar&#39;,
+</span>
+    cachedConfig: {
+<span id='Ext-dataview-pullrefresh-Bar-cfg-lastUpdatedDateFormat'>        /**
+</span>         * @cfg {String} lastUpdatedDateFormat
+         * The format to be used on the last updated date.
+         * @locale
+         */
+        lastUpdatedDateFormat: &#39;m/d/Y h:iA&#39;,
+
+<span id='Ext-dataview-pullrefresh-Bar-cfg-lastUpdatedText'>        /**
+</span>         * @cfg {String} lastUpdatedText
+         * The text to be shown in front of the last updated time.
+         * @locale
+         */
+        lastUpdatedText: &#39;Last Updated:\xA0&#39;,
+
+<span id='Ext-dataview-pullrefresh-Bar-cfg-loadedText'>        /**
+</span>         * @cfg {String} loadedText
+         * The text that will be when data has been loaded.
+         * @locale
+         */
+        loadedText: &#39;Loaded.&#39;,
+
+<span id='Ext-dataview-pullrefresh-Bar-cfg-loadingText'>        /**
+</span>         * @cfg {String} loadingText
+         * The text that will be shown while the list is refreshing.
+         * @locale
+         */
+        loadingText: &#39;Loading...&#39;,
+
+<span id='Ext-dataview-pullrefresh-Bar-cfg-mode'>        /**
+</span>         * @cfg {&#39;message&#39;/&#39;spinner&#39;} mode
+         * Set to `&#39;message&#39;` to display information messages or `&#39;spinner&#39;` to display
+         * a progress spinner.
+         */
+        mode: &#39;message&#39;,
+
+<span id='Ext-dataview-pullrefresh-Bar-cfg-pullText'>        /**
+</span>         * @cfg {String} pullText
+         * The text that will be shown while you are pulling down.
+         * @locale
+         */
+        pullText: &#39;Pull down to refresh...&#39;,
+
+<span id='Ext-dataview-pullrefresh-Bar-cfg-releaseText'>        /**
+</span>         * @cfg {String} releaseText
+         * The text that will be shown after you have pulled down enough to show the release message.
+         * @locale
+         */
+        releaseText: &#39;Release to refresh...&#39;
+    },
+
+<span id='Ext-dataview-pullrefresh-Bar-cfg-hidden'>    hidden: true,
+</span><span id='Ext-dataview-pullrefresh-Bar-property-showInEmptyState'>    showInEmptyState: null,
+</span><span id='Ext-dataview-pullrefresh-Bar-property-scrollDock'>    scrollDock: &#39;start&#39;,
+</span>
+<span id='Ext-dataview-pullrefresh-Bar-property-template'>    template: [{
+</span>        cls: Ext.baseCSSPrefix + &#39;font-icon &#39; + Ext.baseCSSPrefix + &#39;pullrefreshbar-arrow&#39;
+    }, {
+        cls: Ext.baseCSSPrefix + &#39;pullrefreshbar-loading-wrap&#39;,
+
+        children: [{
+            cls: Ext.baseCSSPrefix + &#39;pullrefreshbar-loading &#39; +
+                 Ext.baseCSSPrefix + &#39;loading-spinner&#39;,
+
+            children: [{
+                tag: &#39;span&#39;,
+                cls: Ext.baseCSSPrefix + &#39;loading-top&#39;
+            }, {
+                tag: &#39;span&#39;,
+                cls: Ext.baseCSSPrefix + &#39;loading-right&#39;
+            }, {
+                tag: &#39;span&#39;,
+                cls: Ext.baseCSSPrefix + &#39;loading-bottom&#39;
+            }, {
+                tag: &#39;span&#39;,
+                cls: Ext.baseCSSPrefix + &#39;loading-left&#39;
+            }]
+        }]
+    }, {
+        cls: Ext.baseCSSPrefix + &#39;pullrefreshbar-info-wrap&#39;,
+
+        children: [{
+            reference: &#39;infoMessageEl&#39;,
+            cls: Ext.baseCSSPrefix + &#39;pullrefreshbar-info-message&#39;
+        }, {
+            reference: &#39;infoUpdatedEl&#39;,
+            cls: Ext.baseCSSPrefix + &#39;pullrefreshbar-info-updated&#39;
+        }]
+    }],
+
+<span id='Ext-dataview-pullrefresh-Bar-property-privates'>    privates: {
+</span>        modeCls: Ext.baseCSSPrefix + &#39;pullrefreshbar-mode&#39;,
+
+        textMap: {
+            loaded: &#39;getLoadedText&#39;,
+            loading: &#39;getLoadingText&#39;,
+            pulling: &#39;getPullText&#39;,
+            holding: &#39;getReleaseText&#39;
+        },
+
+        updateLastUpdated: function(value) {
+            var me = this,
+                lastUpdated = value ? me.getLastUpdatedText() +
+                    Ext.util.Format.date(value, me.getLastUpdatedDateFormat()) : value;
+
+            me.infoUpdatedEl.setText(lastUpdated);
+        },
+
+        updateMode: function (value, oldValue) {
+            this.el.replaceCls(oldValue, value, this.modeCls);
+        },
+
+        updateState: function (state) {
+            var me = this,
+                fn = me.textMap[state],
+                text = fn &amp;&amp; me[fn]();
+
+            me.infoMessageEl.setText(text || &#39;&#39;);
+
+            this.callParent(arguments);
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-list-Location'>/**
+</span> * A location for a list. See the superclass for more details.
+ *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.list.Location&#39;, {
+    extend: &#39;Ext.dataview.Location&#39;,
+
+<span id='Ext-list-Location-property-isListLocation'>    /**
+</span>     * @property {Boolean} isListLocation
+     * @readonly
+     * `true` in this class to identify an object as an instantiated list Location, or subclass thereof.
+     */
+    isListLocation: true,
+
+<span id='Ext-list-Location-property-dataItem'>    /**
+</span>     * @property {Boolean} dataItem
+     * `true` if this item is backed by a record.
+     */
+    dataItem: false,
+
+<span id='Ext-list-Location-property-footer'>    /**
+</span>     * @property {Boolean} footer
+     * `true` if the {@link #child} is a {@link Ext.dataview.List#groupFooter}.
+     */
+    footer: false,
+
+<span id='Ext-list-Location-property-group'>    /**
+</span>     * @property {Ext.util.Group} [group]
+     * The group for this location, if it is a {@link #header} or {@link #footer}.
+     */
+    group: null,
+
+<span id='Ext-list-Location-property-header'>    /**
+</span>     * @property {Boolean} header
+     * `true` if the {@link #child} is a {@link Ext.dataview.List#groupHeader}.
+     */
+    header: false,
+
+<span id='Ext-list-Location-method-attach'>    attach: function(source) {
+</span>        var me = this,
+            item;
+
+        me.callParent([source]);
+
+        item = me.item;
+        if (item) {
+            me.header = item.$dataItem === &#39;header&#39;;
+            me.footer = item.$dataItem === &#39;footer&#39;;
+
+            if (me.header || me.footer) {
+                me.group = me.getGroup();
+            } else {
+                me.dataItem = true;
+            }
+        }
+    },
+
+<span id='Ext-list-Location-method-clone'>    clone: function() {
+</span>        var me = this,
+            ret = me.callParent();
+
+        ret.dataItem = me.dataItem;
+        ret.footer = me.footer;
+        ret.group = me.group;
+        ret.header = me.header;
+
+        return ret;
+    },
+
+<span id='Ext-list-Location-method-equals'>    equals: function(other) {
+</span>        var me = this;
+
+        if (other &amp;&amp; other.isListLocation &amp;&amp; other.view === me.view) {
+            if (me.sourceElement) {
+                return other.sourceElement === me.sourceElement;
+            }
+            // We only get here if this location refers to an unrendered location.
+
+            // We&#39;ll always have a recordIndex (even if it&#39;s -1 due to virtual stores).
+            // Therefore it&#39;s valid to check both record indices.
+            // If they differ, the locations are not equal.
+            return me.recordIndex !== other.recordIndex;
+        }
+
+        return false;
+    }
+});</pre>
+</body>
+</html>

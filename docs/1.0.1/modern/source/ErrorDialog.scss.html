@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.x-error-dialog {
+    .x-error-icon {
+        margin: 5px;
+        background-repeat: no-repeat;
+        background-position: 32px center;
+        background-image: theme-background-image(&#39;errordialog-icons&#39;, &#39;png&#39;);
+        height: 32px;
+        width: 32px;
+
+        $i: 0;
+
+        @each $name in error, info, question, warning {
+            &amp;.ext-mb-#{$name} {
+                background-position: -32px * $i center;
+            }
+
+            $i: $i + 1;
+        }
+    }
+
+    .x-error-message {
+        /*	background-color: #fff; */
+        /*	border: 1px solid #555; */
+        padding: 2px;
+        margin: 5px;
+        white-space: pre-wrap;
+        color: $color;
+        user-select: text;
+        font-size: 14px;
+    }
+
+    .x-error-description {
+        /*background-color: #fff;*/
+        border: 1px solid #99bbe8;
+        white-space: pre-wrap;
+        color: $color;
+        user-select: text;
+        margin-top: 5px;
+        padding: 0 5px;
+    }
+}
+
+// theme-background-image(&#39;logo-white-60x60&#39;, &#39;png&#39;);
+</pre>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-sprite-Label'>/**
+</span> * @class Ext.chart.sprite.Label
+ * @extends Ext.draw.sprite.Text
+ *
+ * Sprite used to represent labels in series.
+ *
+ * Important: the actual default values are determined by the theme used.
+ * Please see the `label` config of the {@link Ext.chart.theme.Base#axis}.
+ */
+Ext.define(&#39;Ext.chart.sprite.Label&#39;, {
+    extend: &#39;Ext.draw.sprite.Text&#39;,
+    alternateClassName: &#39;Ext.chart.label.Label&#39;,
+    requires: [&#39;Ext.chart.modifier.Callout&#39;],
+
+    inheritableStatics: {
+<span id='Ext-chart-sprite-Label-static-property-def'>        def: {
+</span>            processors: {
+                callout: &#39;limited01&#39;,
+                // Meant to be set by the Callout modifier only.
+                calloutHasLine: &#39;bool&#39;,
+                // The position where the callout would end, if not for the label:
+                // callout stops at the bounding box of the label,
+                // so the actual point where the callout ends - calloutEndX/Y -
+                // is calculated by the Callout modifier.
+                calloutPlaceX: &#39;number&#39;,
+                calloutPlaceY: &#39;number&#39;,
+                // The start/end points used to render the callout line.
+                calloutStartX: &#39;number&#39;,
+                calloutStartY: &#39;number&#39;,
+                calloutEndX: &#39;number&#39;,
+                calloutEndY: &#39;number&#39;,
+
+                calloutColor: &#39;color&#39;,
+                calloutWidth: &#39;number&#39;,
+                calloutVertical: &#39;bool&#39;,
+                labelOverflowPadding: &#39;number&#39;,
+                display: &#39;enums(none,under,over,rotate,insideStart,insideEnd,inside,outside)&#39;,
+                orientation: &#39;enums(horizontal,vertical)&#39;,
+                renderer: &#39;default&#39;
+            },
+
+            defaults: {
+                callout: 0,
+                calloutHasLine: true,
+                calloutPlaceX: 0,
+                calloutPlaceY: 0,
+                calloutStartX: 0,
+                calloutStartY: 0,
+                calloutEndX: 0,
+                calloutEndY: 0,
+                calloutWidth: 1,
+                calloutVertical: false,
+                calloutColor: &#39;black&#39;,
+                labelOverflowPadding: 5,
+                display: &#39;none&#39;,
+                orientation: &#39;&#39;,
+                renderer: null
+            },
+
+            triggers: {
+                callout: &#39;transform&#39;,
+                calloutPlaceX: &#39;transform&#39;,
+                calloutPlaceY: &#39;transform&#39;,
+                labelOverflowPadding: &#39;transform&#39;,
+                calloutRotation: &#39;transform&#39;,
+                display: &#39;hidden&#39;
+            },
+
+            updaters: {
+                hidden: function (attr) {
+                    attr.hidden = (attr.display === &#39;none&#39;);
+                }
+            }
+        }
+    },
+
+    config: {
+<span id='Ext-chart-sprite-Label-cfg-fx'>        /**
+</span>         * @cfg {Object} fx Animation configuration.
+         */
+        animation: {
+            customDurations: {
+                callout: 200
+            }
+        },
+<span id='Ext-chart-sprite-Label-cfg-field'>        /**
+</span>         * @cfg {String} field The store record field used by the label sprite.
+         *
+         * Note: the label sprite is typically used indirectly (by a Ext.chart.MarkerHolder
+         * series sprite, via a Ext.chart.Markers sprite, where the latter is passed to the
+         * label renderer), so to get to the label field one has to do:
+         *
+         *     renderer: function (text, sprite, config, data, index) {
+         *         var field = sprite.getTemplate().getField();
+         *     }
+         *
+         * To get the actual label sprite instance one can use:
+         *
+         *     sprite.get(index)
+         *
+         */
+        field: null,
+<span id='Ext-chart-sprite-Label-cfg-calloutLine'>        /**
+</span>         * @cfg {Boolean|Object} calloutLine
+         *
+         * True to draw a line between the label and the chart with the default settings,
+         * or an Object that defines the &#39;color&#39;, &#39;width&#39; and &#39;length&#39; properties of the line.
+         * This config is only applicable when the label is displayed outside the chart.
+         *
+         * Default value: false.
+         */
+        calloutLine: true,
+
+<span id='Ext-chart-sprite-Label-cfg-hideLessThan'>        /**
+</span>         * @cfg {Number} [hideLessThan=20]
+         * Hides labels for pie slices with segment length less than this value (in pixels).
+         */
+        hideLessThan: 20
+    },
+
+<span id='Ext-chart-sprite-Label-method-applyCalloutLine'>    applyCalloutLine: function (calloutLine) {
+</span>        if (calloutLine) {
+            return Ext.apply({}, calloutLine);
+        }
+    },
+
+<span id='Ext-chart-sprite-Label-method-createModifiers'>    createModifiers: function () {
+</span>        var me = this,
+            mods = me.callParent(arguments);
+
+        mods.callout = new Ext.chart.modifier.Callout({sprite: me});
+        mods.animation.setUpper(mods.callout);
+        mods.callout.setUpper(mods.target);
+    },
+
+<span id='Ext-chart-sprite-Label-method-render'>    render: function (surface, ctx) {
+</span>        var me = this,
+            attr = me.attr,
+            calloutColor = attr.calloutColor;
+
+        ctx.save();
+        ctx.globalAlpha *= attr.callout;
+        if (ctx.globalAlpha &gt; 0 &amp;&amp; attr.calloutHasLine) {
+            if (calloutColor &amp;&amp; calloutColor.isGradient) {
+                calloutColor = calloutColor.getStops()[0].color;
+            }
+            ctx.strokeStyle = calloutColor;
+            ctx.fillStyle = calloutColor;
+            ctx.lineWidth = attr.calloutWidth;
+            ctx.beginPath();
+            ctx.moveTo(me.attr.calloutStartX, me.attr.calloutStartY);
+            ctx.lineTo(me.attr.calloutEndX, me.attr.calloutEndY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(me.attr.calloutStartX, me.attr.calloutStartY, 1 * attr.calloutWidth, 0, 2 * Math.PI, true);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(me.attr.calloutEndX, me.attr.calloutEndY, 1 * attr.calloutWidth, 0, 2 * Math.PI, true);
+            ctx.fill();
+        }
+        ctx.restore();
+
+        Ext.draw.sprite.Text.prototype.render.apply(me, arguments);
+    }
+});
+</pre>
+</body>
+</html>

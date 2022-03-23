@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-mixin-StoreWatcher'>/**
+</span> * This mixin is used to track and listen to the `store` of its `owner` component. The
+ * component must support a `storechange` event (as do grids and dataviews) as well as
+ * a `getStore` method.
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.mixin.StoreWatcher&#39;, {
+<span id='Ext-mixin-StoreWatcher-property-mixinId'>    mixinId: &#39;storewatcher&#39;,
+</span>
+    config: {
+<span id='Ext-mixin-StoreWatcher-cfg-dataSource'>        dataSource: null,
+</span>
+<span id='Ext-mixin-StoreWatcher-cfg-owner'>        /**
+</span>         * @cfg {Ext.Base} owner
+         */
+        owner: null,
+
+<span id='Ext-mixin-StoreWatcher-cfg-ownerListeners'>        /**
+</span>         * @cfg {Object} ownerListeners
+         * The events and associated handlers to which to listen on the `owner`.
+         */
+        ownerListeners: {
+            destroyable: true,
+            storechange: &#39;onStoreChange&#39;
+        },
+
+<span id='Ext-mixin-StoreWatcher-cfg-sourceListeners'>        /**
+</span>         * @cfg {Object} sourceListeners
+         * The events and associated handlers to which to listen on the `source` of the
+         * connected `store`. That is, these listeners are attached to the unfiltered
+         * collection. When `remoteFilter` is `true` there is no unfiltered collection so
+         * these listeners are attached to the only collection that exists (which is
+         * filtered by the server).
+         */
+        sourceListeners: null,
+
+<span id='Ext-mixin-StoreWatcher-cfg-store'>        store: null,
+</span>
+<span id='Ext-mixin-StoreWatcher-cfg-storeListeners'>        /**
+</span>         * @cfg {Object} storeListeners
+         * The events and associated handlers to which to listen on the `store` of the
+         * `owner`.
+         */
+        storeListeners: null
+    },
+
+<span id='Ext-mixin-StoreWatcher-method-afterClassMixedIn'>    afterClassMixedIn: function (targetClass) {
+</span>        var configurator = this.getConfigurator(),
+            prototype = targetClass.prototype,
+            config = {},
+            prop;
+
+        for (prop in configurator.configs) {
+            // For each of our configs, see if the class declared them as well. If so
+            // we need to merge their values on top of ours and remove them from the
+            // class prototype.
+            if (prototype.hasOwnProperty(prop)) {
+                config[prop] = prototype[prop];
+                delete prototype[prop];
+            }
+        }
+
+        targetClass.addConfig(config);
+    },
+
+<span id='Ext-mixin-StoreWatcher-method-onFilterChange'>    onFilterChange: function (store) {
+</span>        var source;
+
+        if (!store) {
+            source = null;
+        } else if (store.getDataSource) {
+            source = store.getDataSource();
+        } else {
+            source = store.getData();
+        }
+
+        this.setDataSource(source);
+    },
+
+<span id='Ext-mixin-StoreWatcher-method-onStoreChange'>    onStoreChange: function (comp, store) {
+</span>        this.setStore(store);
+    },
+
+    //---------------------------
+
+<span id='Ext-mixin-StoreWatcher-method-updateDataSource'>    // dataSource
+</span>
+    updateDataSource: function (source) {
+        this.syncListeners(source, &#39;$sourceListeners&#39;, &#39;getSourceListeners&#39;);
+    },
+
+<span id='Ext-mixin-StoreWatcher-method-updateOwner'>    // owner
+</span>
+    updateOwner: function (owner) {
+        this.syncListeners(owner, &#39;$ownerListeners&#39;, &#39;getOwnerListeners&#39;);
+
+        this.setStore(owner ? owner.getStore() : null);
+    },
+
+<span id='Ext-mixin-StoreWatcher-method-applyStore'>    // store
+</span>
+    applyStore: function (store) {
+        return (store &amp;&amp; !store.isEmptyStore) ? store : null;
+    },
+
+<span id='Ext-mixin-StoreWatcher-method-updateStore'>    updateStore: function (store) {
+</span>        this.syncListeners(store, &#39;$storeListeners&#39;, &#39;getStoreListeners&#39;);
+
+        this.onFilterChange(store);
+    },
+
+<span id='Ext-mixin-StoreWatcher-property-privates'>    privates: {
+</span>        syncListeners: function (instance, token, listeners) {
+            var me = this,
+                old = me[token];
+
+            if (old) {
+                me[token] = null;
+                old.destroy();
+            }
+
+            if (instance) {
+                listeners = me[listeners]();
+                listeners = Ext.applyIf({
+                    destroyable: true,
+                    scope: me
+                }, listeners);
+
+                me[token] = instance.on(listeners);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

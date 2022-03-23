@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}treecell {
+    &gt; .#{$prefix}inner-el {
+        display: flex;
+        align-items: center;
+    }
+
+    .#{$prefix}indent-el,
+    .#{$prefix}expander-el,
+    .#{$prefix}icon-el {
+        flex: 0 0 auto;
+    }
+
+    .#{$prefix}expander-el {
+        // Loading status may use a background image.
+        background-repeat: no-repeat;
+        background-position: 0 center;
+
+        .#{$prefix}expander-last &amp; {
+            order: 100;
+        }
+
+        .#{$prefix}expander-only &amp; {
+            cursor: pointer;
+        }
+    }
+
+    .#{$prefix}cell-expander &amp; {
+        cursor: pointer;
+    }
+
+    &amp;.#{$prefix}leaf .#{$prefix}expander-el {
+        visibility: hidden;
+    }
+
+    // When loading, show a spinner, and hide the icon
+    &amp;.#{$prefix}loading .#{$prefix}icon-el {
+        background: theme-background-image(&#39;tree/loading&#39;, &#39;gif&#39;) center no-repeat;
+        &amp;:before {
+            display: none;
+        }
+    }
+}
+
+.#{$prefix}treecell-body-el {
+    white-space: nowrap;
+    flex: 1;
+}
+
+.#{$prefix}treecell-tool-dock {
+    padding: 0 !important;
+}
+</pre>
+</body>
+</html>

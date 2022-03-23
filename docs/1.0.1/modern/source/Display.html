@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-Display'>/**
+</span> * A display-only text field which is not validated and not submitted. This is useful for when you want to display a
+ * value from a form&#39;s loaded data but do not want to allow the user to edit or submit that * value. The value can
+ * be optionally {@link #htmlEncode HTML encoded} if it contains HTML markup that you do not want * to be rendered.
+ *
+ * If you have more complex content, or need to include components within the displayed content, also consider using a
+ * {@link Ext.field.Container} instead.
+ *
+ * Example:
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         renderTo: Ext.getBody(),
+ *         width: 175,
+ *         height: 150,
+ *         bodyPadding: 10,
+ *         title: &#39;Final Score&#39;,
+ *         items: [{
+ *             xtype: &#39;displayfield&#39;,
+ *             fieldLabel: &#39;Home&#39;,
+ *             name: &#39;home_score&#39;,
+ *             value: &#39;10&#39;
+ *         }, {
+ *             xtype: &#39;displayfield&#39;,
+ *             fieldLabel: &#39;Visitor&#39;,
+ *             name: &#39;visitor_score&#39;,
+ *             value: &#39;11&#39;
+ *         }],
+ *         buttons: [{
+ *             text: &#39;Update&#39;
+ *         }]
+ *     });
+ *
+ * @since 6.5.1
+ */
+Ext.define(&#39;Ext.field.Display&#39;, {
+    extend: &#39;Ext.field.Field&#39;,
+    xtype: &#39;displayfield&#39;,
+    alternateClassName: &#39;Ext.form.Display&#39;,
+
+<span id='Ext-field-Display-property-submitValue'>    submitValue: false,
+</span><span id='Ext-field-Display-property-validateOnChange'>    validateOnChange: false,
+</span>
+<span id='Ext-field-Display-cfg-focusable'>    /**
+</span>     * @cfg {Boolean} focusable
+     * @private
+     */
+    focusable: false,
+
+<span id='Ext-field-Display-cfg-readOnly'>    /**
+</span>     * @cfg {Boolean} readOnly
+     * @private
+     */
+    readOnly: true,
+
+    config: {
+<span id='Ext-field-Display-cfg-encodeHtml'>        /**
+</span>         * @cfg {Boolean} encodeHtml
+         * Set to `false` to render HTML. Be aware this can be a security risk if the
+         * data presented is not properly filtered for malicious HTML tags.
+         */
+        encodeHtml: true,
+
+<span id='Ext-field-Display-cfg-renderer'>        /**
+</span>         * @cfg {Function/String} renderer
+         * A function to transform the raw value for display in the field.
+         *
+         *     Ext.create(&#39;Ext.form.Panel&#39;, {
+         *         renderTo: document.body,
+         *         width: 175,
+         *         bodyPadding: 10,
+         *         title: &#39;Final Score&#39;,
+         *         items: [{
+         *             xtype: &#39;displayfield&#39;,
+         *             fieldLabel: &#39;Grade&#39;,
+         *             name: &#39;final_grade&#39;,
+         *             value: 68,
+         *             renderer: function (value, field) {
+         *                 var color = (value &lt; 70) ? &#39;red&#39; : &#39;black&#39;;
+         *                 return &#39;&lt;span style=&quot;color:&#39; + color + &#39;;&quot;&gt;&#39; + value + &#39;&lt;/span&gt;&#39;;
+         *             }
+         *         }]
+         *     });
+         *
+         * @param {Object} value The raw field {@link #value}
+         * @param {Ext.form.field.Display} field The display field
+         * @return {String} displayValue The HTML string to be rendered
+         * @controllable
+         */
+        renderer: null
+    },
+
+<span id='Ext-field-Display-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;displayfield&#39;,
+</span>
+<span id='Ext-field-Display-cfg-scope'>    /**
+</span>     * @cfg {Object} scope
+     * The scope to execute the {@link #renderer} function. Defaults to `this` component.
+     */
+
+    initialize: function() {
+        this.callParent();
+        this.syncDom();
+    },
+
+<span id='Ext-field-Display-method-getBodyTemplate'>    /**
+</span>     * @private
+     */
+    getBodyTemplate: function() {
+        return [{
+            reference: &#39;inputElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;input-el&#39;
+        }];
+    },
+
+<span id='Ext-field-Display-method-updateValue'>    updateValue: function(newValue, oldValue) {
+</span>        this.callParent([ newValue, oldValue ]);
+        this.syncDom();
+    },
+
+<span id='Ext-field-Display-method-updateHtmlEncode'>    updateHtmlEncode: function() {
+</span>        this.syncDom();
+    },
+
+<span id='Ext-field-Display-method-updateRenderer'>    updateRenderer: function() {
+</span>        this.syncDom();
+    },
+
+<span id='Ext-field-Display-property-validate'>    validate: Ext.returnTrue,
+</span>
+<span id='Ext-field-Display-property-isValid'>    isValid: Ext.returnTrue,
+</span>
+<span id='Ext-field-Display-property-privates'>    privates: {
+</span>        getDisplayValue: function () {
+            var me = this,
+                value = Ext.valueFrom(me.getValue(), &#39;&#39;),
+                renderer = me.getRenderer();
+
+            if (renderer) {
+                value = Ext.callback(renderer, me.scope, [value, me], 0, me);
+            }
+
+            return value;
+        },
+
+        syncDom: function () {
+            var me = this,
+                dom = me.inputElement.dom,
+                value;
+
+            if (!me.isConfiguring) {
+                value = me.getDisplayValue();
+
+                if (me.getEncodeHtml()) {
+                    dom.textContent = value;
+                } else {
+                    dom.innerHTML = value;
+                }
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

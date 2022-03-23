@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}menuitem {
+    display: flex;
+    // vertical layout to support contained &quot;separator&quot; element
+    flex-direction: column;
+
+    .#{$prefix}body-el {
+        position: relative;
+        display: flex;
+        align-items: center;
+        max-width: 100%;
+
+        // prevent gray background on tap in mobile webkit
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        text-decoration: none;
+        outline: 0;
+    }
+
+    .#{$prefix}text-el {
+        flex: 1 1 auto;
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .#{$prefix}arrow-el {
+        display: none;
+    }
+
+    &amp;.#{$prefix}has-arrow .#{$prefix}arrow-el {
+        display: flex;
+    }
+
+    .#{$prefix}icon-wrap-el {
+        display: none;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    &amp;.#{$prefix}indented .#{$prefix}left-icon-wrap-el {
+        display: flex;
+        visibility: hidden;
+    }
+
+    &amp;.#{$prefix}has-left-icon .#{$prefix}left-icon-wrap-el,
+    &amp;.#{$prefix}has-right-icon .#{$prefix}right-icon-wrap-el {
+        display: flex;
+        visibility: visible;
+    }
+
+    &amp;:first-child .#{$prefix}menuseparator {
+        display: none;
+    }
+}
+</pre>
+</body>
+</html>

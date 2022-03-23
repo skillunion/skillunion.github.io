@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-wrapper-BoxDock'>/**
+</span> *
+ */
+Ext.define(&#39;Ext.layout.wrapper.BoxDock&#39;, {
+    config: {
+<span id='Ext-layout-wrapper-BoxDock-cfg-direction'>        direction: &#39;horizontal&#39;,
+</span><span id='Ext-layout-wrapper-BoxDock-cfg-element'>        element: {
+</span>            className: Ext.baseCSSPrefix + &#39;dock&#39;
+        },
+<span id='Ext-layout-wrapper-BoxDock-cfg-innerWrapper'>        innerWrapper: null,
+</span><span id='Ext-layout-wrapper-BoxDock-cfg-container'>        container: null,
+</span><span id='Ext-layout-wrapper-BoxDock-cfg-manageBorders'>        manageBorders: null
+</span>    },
+
+<span id='Ext-layout-wrapper-BoxDock-property-positionMap'>    positionMap: {
+</span>        top: &#39;start&#39;,
+        left: &#39;start&#39;,
+        bottom: &#39;end&#39;,
+        right: &#39;end&#39;
+    },
+
+<span id='Ext-layout-wrapper-BoxDock-property-managedBordersCls'>    managedBordersCls: Ext.baseCSSPrefix + &#39;managed-borders&#39;,
+</span>
+<span id='Ext-layout-wrapper-BoxDock-method-constructor'>    constructor: function(config) {
+</span>        this.items = {
+            start: [],
+            end: []
+        };
+
+        this.itemsCount = 0;
+
+        this.initConfig(config);
+    },
+
+<span id='Ext-layout-wrapper-BoxDock-method-addItems'>    addItems: function(items) {
+</span>        var i, ln, item;
+
+        for (i = 0, ln = items.length; i &lt; ln; i++) {
+            item = items[i];
+            this.addItem(item);
+        }
+    },
+
+<span id='Ext-layout-wrapper-BoxDock-method-addItem'>    addItem: function(item) {
+</span>        var docked = item.getDocked(),
+            position = this.positionMap[docked],
+            wrapper = item.$dockWrapper,
+            container = this.getContainer(),
+            index = container.indexOf(item),
+            element = item.element,
+            items = this.items,
+            sideItems = items[position],
+            i, ln, sibling, referenceElement, siblingIndex;
+
+        if (wrapper) {
+            wrapper.removeItem(item);
+        }
+
+        item.$dockWrapper = this;
+        item.addCls(Ext.baseCSSPrefix + &#39;dock-item&#39;);
+        item.addCls(Ext.baseCSSPrefix + &#39;docked-&#39; + docked);
+
+        for (i = 0, ln = sideItems.length; i &lt; ln; i++) {
+            sibling = sideItems[i];
+            siblingIndex = container.indexOf(sibling);
+
+            if (siblingIndex &gt; index) {
+                referenceElement = sibling.element;
+                sideItems.splice(i, 0, item);
+                break;
+            }
+        }
+
+        if (!referenceElement) {
+            sideItems.push(item);
+            referenceElement = this.getInnerWrapper().getElement();
+        }
+
+        this.itemsCount++;
+
+        if (position === &#39;start&#39;) {
+            element.insertBefore(referenceElement);
+        }
+        else {
+            element.insertAfter(referenceElement);
+        }
+    },
+
+<span id='Ext-layout-wrapper-BoxDock-method-removeItem'>    removeItem: function(item, oldDocked) {
+</span>        var me = this,
+            position = oldDocked || item.getDocked(),
+            items = me.items[me.positionMap[position]];
+
+        Ext.Array.remove(items, item);
+        item.element.detach();
+        delete item.$dockWrapper;
+        item.removeCls(Ext.baseCSSPrefix + &#39;dock-item&#39;);
+        item.removeCls(Ext.baseCSSPrefix + &#39;docked-&#39; + position);
+
+        if (--me.itemsCount === 0) {
+            me.destroy();
+        }
+    },
+
+<span id='Ext-layout-wrapper-BoxDock-method-getItemsSlice'>    getItemsSlice: function(index) {
+</span>        var container = this.getContainer(),
+            items = this.items,
+            slice = [],
+            sideItems, i, ln, item;
+
+        for (sideItems = items.start, i = 0, ln = sideItems.length; i &lt; ln; i++) {
+            item = sideItems[i];
+            if (container.indexOf(item) &gt; index) {
+                slice.push(item);
+            }
+        }
+
+        for (sideItems = items.end, i = 0, ln = sideItems.length; i &lt; ln; i++) {
+            item = sideItems[i];
+            if (container.indexOf(item) &gt; index) {
+                slice.push(item);
+            }
+        }
+
+        return slice;
+    },
+
+<span id='Ext-layout-wrapper-BoxDock-method-applyElement'>    applyElement: function(element) {
+</span>        return Ext.Element.create(element);
+    },
+
+<span id='Ext-layout-wrapper-BoxDock-method-updateElement'>    updateElement: function(element) {
+</span>        element.addCls(Ext.baseCSSPrefix + &#39;dock-&#39; + this.getDirection());
+    },
+
+<span id='Ext-layout-wrapper-BoxDock-method-updateInnerWrapper'>    updateInnerWrapper: function(innerWrapper, oldInnerWrapper) {
+</span>        if (oldInnerWrapper) {
+            innerWrapper.getElement().replace(oldInnerWrapper.getElement(), false);
+            oldInnerWrapper.$outerWrapper = null;
+        } else {
+            this.getElement().append(innerWrapper.getElement());
+        }
+
+        innerWrapper.setManageBorders(this.getManageBorders());
+        innerWrapper.$outerWrapper = this;
+    },
+
+<span id='Ext-layout-wrapper-BoxDock-method-updateManageBorders'>    updateManageBorders: function(manageBorders) {
+</span>        var me = this,
+            innerWrapper = me.getInnerWrapper();
+
+        me.getElement().toggleCls(me.managedBordersCls, manageBorders);
+
+        if (innerWrapper) {
+            innerWrapper.setManageBorders(manageBorders);
+        }
+    },
+
+<span id='Ext-layout-wrapper-BoxDock-method-destroy'>    destroy: function() {
+</span>        var me = this,
+            innerWrapper = me.getInnerWrapper(),
+            outerWrapper = me.$outerWrapper,
+            innerWrapperElement;
+
+        if (innerWrapper) {
+            if (outerWrapper) {
+                outerWrapper.setInnerWrapper(innerWrapper);
+            } else {
+                innerWrapperElement = innerWrapper.getElement();
+                if (!innerWrapperElement.destroyed) {
+                    innerWrapperElement.replace(me.getElement());
+                }
+                delete innerWrapper.$outerWrapper;
+            }
+        }
+
+        delete me.$outerWrapper;
+
+        me.unlink([&#39;_element&#39;]);
+
+        me.callParent();
+    }
+});
+</pre>
+</body>
+</html>

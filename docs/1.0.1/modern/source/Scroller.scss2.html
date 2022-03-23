@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}boxscroller {
+    display: flex;
+    overflow: hidden;
+
+    &amp;.#{$prefix}tool-align-start &gt; .#{$prefix}tool {
+        align-self: flex-start;
+    }
+
+    &amp;.#{$prefix}tool-align-end &gt; .#{$prefix}tool {
+        align-self: flex-end;
+    }
+
+    &amp;.#{$prefix}tool-align-center &gt; .#{$prefix}tool {
+        align-self: center;
+    }
+
+    &amp;.#{$prefix}tool-align-stretch {
+        &amp;.#{$prefix}horizontal &gt; .#{$prefix}tool {
+            height: auto !important;
+        }
+
+        &amp;.#{$prefix}vertical &gt; .#{$prefix}tool {
+            width: auto !important;
+        }
+
+        &gt; .#{$prefix}tool {
+            align-self: stretch;
+        }
+    }
+}
+
+.#{$prefix}boxscroller-body {
+    display: flex;
+    overflow: hidden;
+    align-items: flex-start;
+    flex: 1 1 auto;
+    box-sizing: content-box;
+
+    &gt; .#{$prefix}body-el {
+        flex: none;
+    }
+}
+
+.#{$prefix}boxscroller {
+    &amp;.#{$prefix}horizontal {
+        flex-direction: row;
+
+        .#{$prefix}boxscroller-body {
+            // hide the scrollbar
+            padding-bottom: 100px;
+            margin-bottom: -100px;
+
+            &gt; .#{$prefix}body-el {
+                min-width: 100%;
+                padding-left: 0;
+                padding-right: 0;
+            }
+        }
+    }
+
+    &amp;.#{$prefix}vertical {
+        flex-direction: column;
+
+        .#{$prefix}boxscroller-body {
+            // hide the scrollbar
+            padding-right: 100px;
+            margin-right: -100px;
+
+            &gt; .#{$prefix}body-el {
+                min-height: 100%;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+        }
+    }
+}</pre>
+</body>
+</html>

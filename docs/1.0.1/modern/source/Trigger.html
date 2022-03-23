@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-trigger-Trigger'>/**
+</span> * Text Field {@link Ext.field.Text#triggers trigger} widget.
+ */
+Ext.define(&#39;Ext.field.trigger.Trigger&#39;, {
+    extend: &#39;Ext.field.trigger.Base&#39;,
+    xtype: &#39;trigger&#39;,
+    alias: &#39;trigger.trigger&#39;,
+
+    requires: [
+        &#39;Ext.util.ClickRepeater&#39;
+    ],
+
+    config: {
+<span id='Ext-field-trigger-Trigger-cfg-handler'>        /**
+</span>         * @cfg {Function/String} handler
+         * Function to run when trigger is clicked or tapped.
+         * @controllable
+         */
+        handler: null,
+
+<span id='Ext-field-trigger-Trigger-cfg-iconCls'>        /**
+</span>         * @cfg iconCls
+         * @inheritdoc Ext.Button#cfg-iconCls
+         */
+        iconCls: null,
+
+<span id='Ext-field-trigger-Trigger-cfg-repeat'>        /**
+</span>         * @cfg {Boolean/Object} repeat
+         * `true` to attach a {@link Ext.util.ClickRepeater tap repeater} to the trigger,
+         * or a config object for a tap repeater.
+         */
+        repeat: null,
+
+<span id='Ext-field-trigger-Trigger-cfg-scope'>        /**
+</span>         * @cfg {Object} scope
+         * Execution context for the {@link #handler} function.
+         */
+        scope: null,
+
+<span id='Ext-field-trigger-Trigger-cfg-focusOnTap'>        /**
+</span>         * @cfg {Boolean} focusOnTap
+         * If `true`, the field will be focused upon tap of the trigger.
+         *
+         * To show the keyboard, tap the input field while it is focused.
+         */
+        focusOnTap: true
+    },
+
+<span id='Ext-field-trigger-Trigger-property-interactiveCls'>    interactiveCls: Ext.baseCSSPrefix + &#39;interactive&#39;,
+</span>
+<span id='Ext-field-trigger-Trigger-property-template'>    /**
+</span>     * @property template
+     * @inheritdoc
+     */
+    template: [{
+        reference: &#39;iconElement&#39;,
+        classList: [
+            Ext.baseCSSPrefix + &#39;icon-el&#39;,
+            Ext.baseCSSPrefix + &#39;font-icon&#39;
+        ]
+    }],
+
+<span id='Ext-field-trigger-Trigger-method-constructor'>    constructor: function(config) {
+</span>        var me = this,
+            repeat;
+
+        me.callParent([config]);
+
+        repeat = me.getRepeat();
+
+        if (repeat) {
+            me.repeater = new Ext.util.ClickRepeater(Ext.apply({
+                target: me,
+                preventDefault: true,
+                listeners: {
+                    mousedown: &#39;onClickRepeaterTouchStart&#39;,
+                    mouseup: &#39;onClickRepeaterTouchEnd&#39;,
+                    click: &#39;onClickRepeaterClick&#39;,
+                    scope: me
+                }
+            }, repeat));
+        } else {
+            me.element.on({
+                click: &#39;onClick&#39;,
+                mousedown: &#39;onMouseDown&#39;,
+                scope: me
+            });
+        }
+    },
+
+<span id='Ext-field-trigger-Trigger-method-doDestroy'>    doDestroy: function() {
+</span>        Ext.destroyMembers(this, &#39;repeater&#39;);
+        this.callParent();
+    },
+
+<span id='Ext-field-trigger-Trigger-method-onClickRepeaterClick'>     onClickRepeaterClick: function(clickRepeater, e) {
+</span>        this.onClick(e);
+    },
+
+<span id='Ext-field-trigger-Trigger-method-onClick'>    onClick: function(e) {
+</span>        var me = this,
+            handler = !me.getDisabled() &amp;&amp; me.getHandler(),
+            field = me.getField(),
+            focusEl;
+
+        if (field) {
+            if (e.pointerType !== &#39;mouse&#39;) {
+                // Do not allow the default focusing behaviour to follow on *after* the
+                // hander has run and this event finishes.
+                e.preventDefault();
+
+                if (me.getFocusOnTap()) {
+                    focusEl = field.getFocusTrap ? field.getFocusTrap() : field.getFocusEl();
+
+                    if (focusEl.dom !== document.activeElement) {
+                        focusEl.focus();
+                    }
+                }
+            }
+            if (handler) {
+                Ext.callback(handler, me.getScope(), [field, me, e], null, field);
+            }
+        }
+    },
+
+<span id='Ext-field-trigger-Trigger-method-onMouseDown'>    onMouseDown: function(e) {
+</span>        if (e.pointerType === &#39;mouse&#39;) {
+            var field = this.getFocusOnTap() &amp;&amp; this.getField();
+
+            // Focus the field on mousedown. Touch events do it on tap.
+            if (field) {
+                field.focus();
+            }
+
+            e.preventDefault();
+        }
+    },
+
+<span id='Ext-field-trigger-Trigger-method-onClickRepeaterTouchStart'>    onClickRepeaterTouchStart: function(clickRepeater, e) {
+</span>        this.onMouseDown(e);
+    },
+
+<span id='Ext-field-trigger-Trigger-method-onClickRepeaterTouchEnd'>    onClickRepeaterTouchEnd: function(clickRepeater, e) {
+</span>        var me = this,
+            field = me.field;
+
+        Ext.callback(me.endHandler, me.scope, [field, me, e], 0, field);
+    },
+
+<span id='Ext-field-trigger-Trigger-method-updateHandler'>    updateHandler: function(handler) {
+</span>        this.toggleCls(this.interactiveCls, !!handler);
+    },
+
+<span id='Ext-field-trigger-Trigger-method-updateIconCls'>    updateIconCls: function(iconCls, oldIconCls) {
+</span>        this.iconElement.replaceCls(oldIconCls, iconCls);
+    }
+});</pre>
+</body>
+</html>

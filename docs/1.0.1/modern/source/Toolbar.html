@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Toolbar'>/**
+</span> * {@link Ext.Toolbar}s are most commonly used as docked items as within a {@link Ext.Container}. They can be docked either `top` or `bottom` using the {@link #docked} configuration.
+ *
+ * They allow you to insert items (normally {@link Ext.Button buttons}) and also add a {@link #title}.
+ *
+ * The {@link #defaultType} of {@link Ext.Toolbar} is {@link Ext.Button}.
+ *
+ * You can alternatively use {@link Ext.TitleBar} if you want the title to automatically adjust the size of its items.
+ *
+ * ## Examples
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.Container&#39;, {
+ *         fullscreen: true,
+ *         layout: {
+ *             type: &#39;vbox&#39;,
+ *             pack: &#39;center&#39;
+ *         },
+ *         items: [
+ *             {
+ *                 xtype : &#39;toolbar&#39;,
+ *                 docked: &#39;top&#39;,
+ *                 title: &#39;My Toolbar&#39;
+ *             },
+ *             {
+ *                 xtype: &#39;container&#39;,
+ *                 defaults: {
+ *                     xtype: &#39;button&#39;,
+ *                     margin: &#39;10 10 0 10&#39;
+ *                 },
+ *                 items: [
+ *                     {
+ *                         text: &#39;Toggle docked&#39;,
+ *                         handler: function() {
+ *                             var toolbar = Ext.ComponentQuery.query(&#39;toolbar&#39;)[0],
+ *                                 newDocked = (toolbar.getDocked() === &#39;top&#39;) ? &#39;bottom&#39; : &#39;top&#39;;
+ *
+ *                             toolbar.setDocked(newDocked);
+ *                         }
+ *                     },
+ *                     {
+ *                         text: &#39;Toggle UI&#39;,
+ *                         handler: function() {
+ *                             var toolbar = Ext.ComponentQuery.query(&#39;toolbar&#39;)[0],
+ *                                 newUi = (toolbar.getUi() === &#39;light&#39;) ? &#39;dark&#39; : &#39;light&#39;;
+ *
+ *                             toolbar.setUi(newUi);
+ *                         }
+ *                     },
+ *                     {
+ *                         text: &#39;Change title&#39;,
+ *                         handler: function() {
+ *                             var toolbar = Ext.ComponentQuery.query(&#39;toolbar&#39;)[0],
+ *                                 titles = [&#39;My Toolbar&#39;, &#39;Ext.Toolbar&#39;, &#39;Configurations are awesome!&#39;, &#39;Beautiful.&#39;],
+                                   //internally, the title configuration gets converted into a {@link Ext.Title} component,
+                                   //so you must get the title configuration of that component
+ *                                 title = toolbar.getTitle().getTitle(),
+ *                                 newTitle = titles[titles.indexOf(title) + 1] || titles[0];
+ *
+ *                             toolbar.setTitle(newTitle);
+ *                         }
+ *                     }
+ *                 ]
+ *             }
+ *         ]
+ *     });
+ *
+ * ## Notes
+ *
+ * You must use a HTML5 doctype for {@link #docked} `bottom` to work. To do this, simply add the following code to the HTML file:
+ *
+ *     &lt;!doctype html&gt;
+ *
+ * So your index.html file should look a little like this:
+ *
+ *     &lt;!doctype html&gt;
+ *     &lt;html&gt;
+ *         &lt;head&gt;
+ *             &lt;title&gt;MY application title&lt;/title&gt;
+ *             ...
+ *
+ */
+Ext.define(&#39;Ext.Toolbar&#39;, {
+    extend: &#39;Ext.Container&#39;,
+    xtype : &#39;toolbar&#39;,
+
+    requires: [
+        &#39;Ext.Button&#39;,
+        &#39;Ext.Title&#39;,
+        &#39;Ext.Spacer&#39;,
+        &#39;Ext.layout.Box&#39;
+    ],
+
+<span id='Ext-Toolbar-property-isToolbar'>    /**
+</span>     * @private
+     */
+    isToolbar: true,
+
+    config: {
+<span id='Ext-Toolbar-cfg-title'>        /**
+</span>         * @cfg {String/Ext.Title} title
+         * The title of the toolbar.
+         * @accessor
+         */
+        title: null,
+
+<span id='Ext-Toolbar-cfg-defaultType'>        /**
+</span>         * @cfg {String} defaultType
+         * The default xtype to create.
+         * @accessor
+         */
+        defaultType: &#39;button&#39;,
+
+<span id='Ext-Toolbar-cfg-defaultButtonUI'>        /**
+</span>         * @cfg {String}
+         * A default {@link Ext.Component#ui ui} to use for {@link Ext.Button Button} items.
+         */
+        defaultButtonUI: null,
+
+<span id='Ext-Toolbar-cfg-docked'>        /**
+</span>         * @cfg {String} docked
+         * The docked position for this {@link Ext.Toolbar}.
+         * If you specify `left` or `right`, the {@link #layout} configuration will automatically change to a `vbox`. It&#39;s also
+         * recommended to adjust the {@link #width} of the toolbar if you do this.
+         * @accessor
+         */
+
+<span id='Ext-Toolbar-cfg-minHeight'>        /**
+</span>         * @cfg {Number/String} minHeight
+         * The minimum height height of the Toolbar.
+         * @accessor
+         */
+        minHeight: null,
+
+<span id='Ext-Toolbar-cfg-layout'>        /**
+</span>         * @cfg {Object/String} layout Configuration for this Container&#39;s layout. Example:
+         *
+         *     Ext.create(&#39;Ext.Container&#39;, {
+         *         layout: {
+         *             type: &#39;hbox&#39;,
+         *             align: &#39;middle&#39;
+         *         },
+         *         items: [
+         *             {
+         *                 xtype: &#39;panel&#39;,
+         *                 flex: 1,
+         *                 style: &#39;background-color: red;&#39;
+         *             },
+         *             {
+         *                 xtype: &#39;panel&#39;,
+         *                 flex: 2,
+         *                 style: &#39;background-color: green&#39;
+         *             }
+         *         ]
+         *     });
+         *
+         * __Note:__ If you set the {@link #docked} configuration to `left` or `right`, the default layout will change from the
+         * `hbox` to a `vbox`.
+         *
+         * @accessor
+         */
+        layout: {
+            type: &#39;box&#39;,
+            align: &#39;center&#39;
+        }
+    },
+
+    statics: {
+<span id='Ext-Toolbar-static-property-shortcuts'>        shortcuts: {
+</span>            &#39;-&gt;&#39;: true
+        }
+    },
+
+<span id='Ext-Toolbar-cfg-autoSize'>    autoSize: null,
+</span>
+<span id='Ext-Toolbar-cfg-border'>    border: false,
+</span>
+<span id='Ext-Toolbar-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;toolbar&#39;,
+</span>
+<span id='Ext-Toolbar-method-constructor'>    constructor: function(config) {
+</span>        config = config || {};
+
+        if (config.docked == &#39;left&#39; || config.docked == &#39;right&#39;) {
+            config.layout = Ext.apply({
+                type: &#39;box&#39;,
+                align: &#39;stretch&#39;,
+                vertical: true
+            }, config.layout);
+        }
+
+        this.callParent([config]);
+    },
+
+<span id='Ext-Toolbar-method-applyTitle'>    /**
+</span>     * @private
+     */
+    applyTitle: function(title) {
+        if (typeof title == &#39;string&#39;) {
+            title = {
+                title: title,
+                centered : true
+            };
+        }
+
+        return Ext.factory(title, Ext.Title, this.getTitle());
+    },
+
+<span id='Ext-Toolbar-method-updateTitle'>    /**
+</span>     * @private
+     */
+    updateTitle: function(newTitle, oldTitle) {
+        if (newTitle) {
+            this.add(newTitle);
+        }
+
+        if (oldTitle) {
+            oldTitle.destroy();
+        }
+    },
+
+<span id='Ext-Toolbar-method-showTitle'>    /**
+</span>     * Shows the title, if it exists.
+     */
+    showTitle: function() {
+        var title = this.getTitle();
+
+        if (title) {
+            title.show();
+        }
+    },
+
+<span id='Ext-Toolbar-method-hideTitle'>    /**
+</span>     * Hides the title, if it exists.
+     */
+    hideTitle: function() {
+        var title = this.getTitle();
+
+        if (title) {
+            title.hide();
+        }
+    },
+
+<span id='Ext-Toolbar-method-getTitle'>    /**
+</span>     * Returns an {@link Ext.Title} component.
+     * @member Ext.Toolbar
+     * @method getTitle
+     * @return {Ext.Title}
+     */
+
+<span id='Ext-Toolbar-method-setTitle'>    /**
+</span>     * Use this to update the {@link #title} configuration.
+     * @member Ext.Toolbar
+     * @method setTitle
+     * @param {String/Ext.Title} title You can either pass a String, or a config/instance of {@link Ext.Title}.
+     */
+
+    onItemAdd: function(item, index) {
+        var defaultButtonUI = this.getDefaultButtonUI();
+
+        if (defaultButtonUI) {
+            if (item.isSegmentedButton) {
+                if (item.getDefaultUI() == null) {
+                    item.setDefaultUI(defaultButtonUI);
+                }
+            } else if (item.isButton &amp;&amp; (item.getUi() == null)) {
+                item.setUi(defaultButtonUI);
+            }
+        }
+
+        this.callParent([item, index]);
+    },
+
+<span id='Ext-Toolbar-method-factoryItem'>    factoryItem: function (config) {
+</span>        if (config === &#39;-&gt;&#39;) {
+            config = {
+                xtype: &#39;component&#39;,
+                flex: 1
+            };
+        }
+        return this.callParent([config]);
+    }
+});
+
+</pre>
+</body>
+</html>

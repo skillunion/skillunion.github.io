@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-Cartesian-method-constructor'><span id='Ext-chart-series-Cartesian'>/**
+</span></span> * @abstract
+ * @class Ext.chart.series.Cartesian
+ * @extends Ext.chart.series.Series
+ *
+ * Common base class for series implementations that plot values using cartesian coordinates.
+ *
+ * @constructor
+ */
+Ext.define(&#39;Ext.chart.series.Cartesian&#39;, {
+    extend: &#39;Ext.chart.series.Series&#39;,
+    config: {
+<span id='Ext-chart-series-Cartesian-cfg-xField'>        /**
+</span>         * @cfg {String} xField
+         * The field used to access the x axis value from the items from the data source.
+         */
+        xField: null,
+
+<span id='Ext-chart-series-Cartesian-cfg-yField'>        /**
+</span>         * @cfg {String|String[]} yField
+         * The field(s) used to access the y-axis value(s) of the items from the data source.
+         */
+        yField: null,
+
+<span id='Ext-chart-series-Cartesian-cfg-xAxis'>        /**
+</span>         * @cfg {Ext.chart.axis.Axis|Number|String}
+         * xAxis The chart axis the series is bound to in the &#39;X&#39; direction.
+         * Normally, this would be set automatically by the series.
+         * For charts with multiple x-axes, this defines which x-axis is used by the series.
+         * It refers to either axis&#39; ID or the (zero-based) index of the axis
+         * in the chart&#39;s {@link Ext.chart.AbstractChart#axes axes} config.
+         */
+        xAxis: null,
+
+<span id='Ext-chart-series-Cartesian-cfg-yAxis'>        /**
+</span>         * @cfg {Ext.chart.axis.Axis|Number|String}
+         * yAxis The chart axis the series is bound to in the &#39;Y&#39; direction.
+         * Normally, this would be set automatically by the series.
+         * For charts with multiple y-axes, this defines which y-axis is used by the series.
+         * It refers to either axis&#39; ID or the (zero-based) index of the axis
+         * in the chart&#39;s {@link Ext.chart.AbstractChart#axes axes} config.
+         */
+        yAxis: null
+    },
+
+<span id='Ext-chart-series-Cartesian-property-directions'>    directions: [&#39;X&#39;, &#39;Y&#39;],
+</span>
+<span id='Ext-chart-series-Cartesian-property-fieldCategoryX'>    /**
+</span>     * @private
+     *
+     * Tells which store record fields should be used for a specific axis direction. E.g. for
+     *
+     *     fieldCategory&lt;direction&gt;: [&#39;&lt;fieldConfig1&gt;&#39;, &#39;&lt;fieldConfig2&gt;&#39;, ...]
+     *
+     * the field names from the following configs will be used:
+     *
+     *     series.&lt;fieldConfig1&gt;Field, series.&lt;fieldConfig2&gt;Field, ...
+     *
+     * See {@link Ext.chart.series.StackedCartesian#getFields}.
+     *
+     */
+    fieldCategoryX: [&#39;X&#39;],
+<span id='Ext-chart-series-Cartesian-property-fieldCategoryY'>    fieldCategoryY: [&#39;Y&#39;],
+</span>
+<span id='Ext-chart-series-Cartesian-method-applyXAxis'>    applyXAxis: function (newAxis, oldAxis) {
+</span>        return this.getChart().getAxis(newAxis) || oldAxis;
+    },
+
+<span id='Ext-chart-series-Cartesian-method-applyYAxis'>    applyYAxis: function (newAxis, oldAxis) {
+</span>        return this.getChart().getAxis(newAxis) || oldAxis;
+    },
+
+<span id='Ext-chart-series-Cartesian-method-updateXAxis'>    updateXAxis: function (axis) {
+</span>        axis.processData(this);
+    },
+
+<span id='Ext-chart-series-Cartesian-method-updateYAxis'>    updateYAxis: function (axis) {
+</span>        axis.processData(this);
+    },
+
+<span id='Ext-chart-series-Cartesian-method-coordinateX'>    coordinateX: function () {
+</span>        return this.coordinate(&#39;X&#39;, 0, 2);
+    },
+
+<span id='Ext-chart-series-Cartesian-method-coordinateY'>    coordinateY: function () {
+</span>        return this.coordinate(&#39;Y&#39;, 1, 2);
+    },
+
+<span id='Ext-chart-series-Cartesian-method-getItemForPoint'>    getItemForPoint: function (x, y) {
+</span>        var me = this,
+            sprite = me.getSprites()[0],
+            store = me.getStore(),
+            point;
+
+        if (sprite &amp;&amp; !me.getHidden()) {
+            point = sprite.getNearestDataPoint(x, y);
+        }
+
+        return point ? {
+            series: me,
+            sprite: sprite,
+            category: me.getItemInstancing() ? &#39;items&#39; : &#39;markers&#39;,
+            index: point.index,
+            record: store.getData().items[point.index],
+            field: me.getYField(),
+            distance: point.distance
+        } : null;
+    },
+
+<span id='Ext-chart-series-Cartesian-method-createSprite'>    createSprite: function () {
+</span>        var me = this,
+            sprite = me.callParent(),
+            chart = me.getChart(),
+            xAxis = me.getXAxis();
+
+        sprite.setAttributes({
+            flipXY: chart.getFlipXY(),
+            xAxis: xAxis
+        });
+        if (sprite.setAggregator &amp;&amp; xAxis &amp;&amp; xAxis.getAggregator) {
+            if (xAxis.getAggregator) {
+                sprite.setAggregator({strategy: xAxis.getAggregator()});
+            } else {
+                sprite.setAggregator({});
+            }
+        }
+        return sprite;
+    },
+
+<span id='Ext-chart-series-Cartesian-method-getSprites'>    getSprites: function () {
+</span>        var me = this,
+            chart = this.getChart(),
+            sprites = me.sprites;
+
+        if (!chart) {
+            return Ext.emptyArray;
+        }
+
+        if (!sprites.length) {
+            me.createSprite();
+        }
+
+        return sprites;
+    },
+
+<span id='Ext-chart-series-Cartesian-method-getXRange'>    getXRange: function () {
+</span>        return [this.dataRange[0], this.dataRange[2]];
+    },
+
+<span id='Ext-chart-series-Cartesian-method-getYRange'>    getYRange: function () {
+</span>        return [this.dataRange[1], this.dataRange[3]];
+    }
+});</pre>
+</body>
+</html>

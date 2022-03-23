@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}list {
+    overflow: hidden;
+
+    .#{$prefix}list-body-el {
+        width: 100% !important;
+        display: flex;
+        flex-direction: column;  // vbox
+    }
+
+    .#{$prefix}list-outer-ct {
+        flex: 1 1 auto;
+        position: relative;
+        width: 100%;
+
+        // We set this in order to lower it and its sub-tree below any positioned
+        // items that we might add to the List.
+        z-index: 0;
+    }
+
+    .#{$prefix}list-inner-ct {
+        // need this so that items w/width:100% size to this el&#39;s width
+        position: relative;
+        min-width: 100%;
+    }
+}
+
+.#{$prefix}list-inner-ct.#{$prefix}infinite &gt; * {
+    position: absolute;
+    width: 100%;
+}
+
+.#{$prefix}list.#{$prefix}inline .#{$prefix}listitem {
+    display: inline-block;
+}
+
+.#{$prefix}list.#{$prefix}nowrap .#{$prefix}listitem {
+    white-space: nowrap;
+}
+</pre>
+</body>
+</html>

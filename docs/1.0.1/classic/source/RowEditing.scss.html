@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}grid-row-editor-wrap {
+    position: absolute;
+    overflow: visible;
+    // Floating editor&#39;s z-index must be higher than z-index of focused grid-cell-inner
+    z-index: 2;
+}
+
+.#{$prefix}grid-row-editor {
+    position: absolute;
+
+    // Needs z-index:0 to avoid visual issues with clipped editor obscuring scrollbars
+    z-index: 0;
+}
+
+.#{$prefix}grid-row-editor-buttons {
+    position: absolute;
+    white-space: nowrap;
+}</pre>
+</body>
+</html>

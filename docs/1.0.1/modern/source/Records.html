@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-selection-Records'>/**
+</span> * A class which encapsulates a collections of records defining a selection in a {@link Ext.dataview.DataView}
+ *
+ */
+Ext.define(&#39;Ext.dataview.selection.Records&#39;, {
+    extend: &#39;Ext.dataview.selection.Rows&#39;,
+    alias: &#39;selection.records&#39;,
+
+<span id='Ext-dataview-selection-Records-property-isRecords'>    /**
+</span>     * @property {Boolean} isRecords
+     * This property indicates the this selection represents selected records.
+     * @readonly
+     */
+    isRecords: true,
+
+    config: {
+<span id='Ext-dataview-selection-Records-cfg-selected'>        /**
+</span>         * @cfg {Ext.util.Collection} selected
+         * A {@link Ext.util.Collection} instance, or configuration object used to create
+         * the collection of selected records.
+         * @readonly
+         */
+        selected: null
+    },
+
+<span id='Ext-dataview-selection-Records-method-constructor'>    //&lt;debug&gt;
+</span>    constructor: function(config) {
+        this.callParent([config]);
+        var selected = this.getSelected();
+        if (!(selected &amp;&amp; selected.isCollection)) {
+            Ext.raise(&#39;An Ext.dataview.selection.Records object MUST be configured with a &quot;selected&quot; Collection&#39;);
+        }
+    },
+    //&lt;/debug&gt;
+
+<span id='Ext-dataview-selection-Records-method-clone'>    //-------------------------------------------------------------------------
+</span>    // Base Selection API
+
+    clone: function() {
+        return new this.self({
+            selectionModel: this.getSelectionModel(),
+            selected: this.getSelected()
+        });
+    },
+
+<span id='Ext-dataview-selection-Records-method-addRowRange'>    //-------------------------------------------------------------------------
+</span>    // Methods unique to this type of Selection
+
+    addRowRange: function(start, end, keepExisting, suppressEvent) {
+        //&lt;debug&gt;
+        if (typeof start !== &#39;number&#39; || typeof end !== &#39;number&#39;) {
+            Ext.raise(&#39;addRange must be called with a [start, end] row index *EXCLUSIVE* range&#39;);
+        }
+        //&lt;/debug&gt;
+
+        // swap values
+        if (start &gt; end) {
+            var tmp = end;
+            end = start;
+            start = tmp;
+        }
+
+        // Maintainer: The Store getRange API is historically inclusive
+        this.add(this.getSelectionModel().getStore().getRange(start, end - 1), keepExisting, suppressEvent);
+    },
+
+<span id='Ext-dataview-selection-Records-method-removeRowRange'>    removeRowRange: function(start, end, suppressEvent) {
+</span>        //&lt;debug&gt;
+        if (typeof start !== &#39;number&#39; || typeof end !== &#39;number&#39;) {
+            Ext.raise(&#39;addRange must be called with a [start, end] row index *EXCLUSIVE* range&#39;);
+        }
+        //&lt;/debug&gt;
+
+        // swap values
+        if (start &gt; end) {
+            var tmp = end;
+            end = start;
+            start = tmp;
+        }
+
+        // Maintainer: The Store getRange API is historically inclusive
+        this.remove(this.getSelectionModel().getStore().getRange(start, end - 1), suppressEvent);
+    },
+
+<span id='Ext-dataview-selection-Records-method-add'>    add: function(records, keepExisting, suppressEvent) {
+</span>        records = Ext.Array.from(records);
+        //&lt;debug&gt; Ensure they are all records
+        for (var i = 0, ln = records.length; i &lt; ln; i++) {
+            if (!records[i].isEntity) {
+                Ext.raise(&#39;add must be called with records or an array of records&#39;);
+            }
+        }
+        //&lt;/debug&gt;
+
+        var me = this,
+            selected = me.getSelected(),
+            selectionCount = selected.getCount(),
+            args = [keepExisting ? selectionCount : 0, keepExisting ? 0 : selectionCount, records];
+
+        // Potentially remove existing records, and append the selected record(s) atomically.
+        // The selModel will react to successful removal as an observer.
+        // The selModel will need to know at that time whether the event is suppressed.
+        selected.suppressEvent = suppressEvent;
+        selected.splice.apply(selected, args);
+        selected.suppressEvent = false;
+    },
+
+<span id='Ext-dataview-selection-Records-method-remove'>    remove: function(records, suppressEvent) {
+</span>        records = Ext.Array.from(records);
+        //&lt;debug&gt; Ensure they are all records
+        for (var i = 0, ln = records.length; i &lt; ln; i++) {
+            if (!records[i].isEntity) {
+                Ext.raise(&#39;add must be called with records or an array of records&#39;);
+            }
+        }
+        //&lt;/debug&gt;
+
+        var selected = this.getSelected();
+
+        // If the selection model is deselectable: false, which means there must
+        // always be a selection, reject deselection of the last record.
+        if (!this.getSelectionModel().getDeselectable() &amp;&amp; selected.getCount() === 1) {
+            Ext.Array.remove(records, selected.first());
+        }
+
+        if (records.length) {
+            selected.suppressEvent = suppressEvent;
+            selected.remove(records);
+            selected.suppressEvent = false;
+        }
+    },
+
+<span id='Ext-dataview-selection-Records-method-isSelected'>    /**
+</span>     * Returns `true` if the passed {@link Ext.data.Model record} is selected.
+     * @param {Ext.data.Model} record The record to test.
+     * @return {Boolean} `true` if the passed {@link Ext.data.Model record} is selected.
+     */
+    isSelected: function (record) {
+        if (!record || !record.isModel) {
+            return false;
+        }
+
+        return !!this.getSelected().byInternalId.get(record.internalId);
+    },
+
+<span id='Ext-dataview-selection-Records-method-getRecords'>    /**
+</span>     * Returns the records selected.
+     * @return {Ext.data.Model[]} The records selected.
+     */
+    getRecords: function() {
+        return this.getSelected().getRange();
+    },
+
+<span id='Ext-dataview-selection-Records-method-selectAll'>    selectAll: function(suppressEvent) {
+</span>        var selected = this.getSelected();
+        selected.suppressEvent = suppressEvent;
+        selected.add(this.getSelectionModel().getStore().getRange());
+        selected.suppressEvent = false;
+    },
+
+<span id='Ext-dataview-selection-Records-method-getFirstRowIndex'>    /**
+</span>     * @return {Number} The row index of the first row in the range or zero if no range.
+     */
+    getFirstRowIndex: function() {
+        return this.getCount() ? this.view.getStore().indexOf(this.getSelected().first()) : 0;
+    },
+
+<span id='Ext-dataview-selection-Records-method-getLastRowIndex'>    /**
+</span>     * @return {Number} The row index of the last row in the range or -1 if no range.
+     */
+    getLastRowIndex: function() {
+        return this.getCount() ? this.view.getStore().indexOf(this.getSelected().last()) : -1;
+    },
+
+<span id='Ext-dataview-selection-Records-method-eachRow'>    eachRow: function(fn, scope) {
+</span>        var selectedRecords = this.getSelected();
+
+        if (selectedRecords) {
+            selectedRecords.each(fn, scope || this);
+        }
+    },
+
+<span id='Ext-dataview-selection-Records-method-eachColumn'>    eachColumn: function(fn, scope) {
+</span>        var columns = this.view.getHeaderContainer().getVisibleColumns(),
+            len = columns.length,
+            i;
+
+        // If we have any records selected, then all visible columns are selected.
+        if (this.getSelected().getCount()) {
+            for (i = 0; i &lt; len; i++) {
+                if (fn.call(this || scope, columns[i], i) === false) {
+                    return;
+                }
+            }
+        }
+    },
+
+<span id='Ext-dataview-selection-Records-method-eachCell'>    eachCell: function(fn, scope) {
+</span>        var me = this,
+            selection = me.getSelected(),
+            view = me.view,
+            columns = view.getHeaderContainer().getVisibleColumns(),
+            colCount,
+            i,
+            j,
+            baseLocation, location,
+            abort = false;
+
+        if (columns) {
+            colCount = columns.length;
+            baseLocation = new Ext.grid.Location(view);
+
+            // Use Collection#each instead of copying the entire dataset into an array and iterating that.
+            if (selection) {
+                selection.each(function(record) {
+                    location = baseLocation.clone({
+                        record: record
+                    });
+                    for (i = 0; i &lt; colCount; i++) {
+                        location = location.cloneForColumn(columns[i]);
+                        if (fn.call(scope || me, location, location.columnIndex, location.recordIndex) === false) {
+                            abort = true;
+                            return false;
+                        }
+                    }
+                });
+            }
+        }
+    },
+
+<span id='Ext-dataview-selection-Records-method-beginUpdate'>    /**
+</span>     * This method is called to indicate the start of multiple changes to the selected record set.
+     *
+     * Internally this method increments a counter that is decremented by `{@link #endUpdate}`. It
+     * is important, therefore, that if you call `beginUpdate` directly you match that
+     * call with a call to `endUpdate` or you will prevent the collection from updating
+     * properly.
+     */
+    beginUpdate: function() {
+        this.getSelected().beginUpdate();
+    },
+
+<span id='Ext-dataview-selection-Records-method-endUpdate'>    /**
+</span>     * This method is called after modifications are complete on a selected row set. For details
+     * see `{@link #beginUpdate}`.
+     */
+    endUpdate: function() {
+        this.getSelected().endUpdate();
+    },
+
+<span id='Ext-dataview-selection-Records-property-privates'>    //-------------------------------------------------------------------------
+</span>
+    privates: {
+<span id='Ext-dataview-selection-Records-method-clear'>        /**
+</span>         * @private
+         */
+        clear: function(suppressEvent) {
+            var selected = this.getSelected(),
+                spliceArgs;
+
+            if (selected) {
+                spliceArgs = [0, selected.getCount()];
+
+                // Enforce the selection model&#39;s deselectable: false by re-adding the last selected record
+                if (!this.getSelectionModel().getDeselectable()) {
+                    spliceArgs[2] = selected.last();
+                }
+
+                // The SelectionModel is observer of the Collection and it will update the view.
+                selected.suppressEvent = suppressEvent;
+                selected.splice.apply(selected, spliceArgs);
+                selected.suppressEvent = false;
+            }
+        },
+
+        addRecordRange: function(start, end) {
+            var tmp = end;
+
+            if (start &gt; end) {
+                end = start;
+                start = tmp;
+            }
+            this.getSelected().add(this.view.getStore().getRange(start, end || start));
+        },
+
+        removeRecordRange: function(start, end) {
+            var tmp = end;
+
+            if (start &gt; end) {
+                end = start;
+                start = tmp;
+            }
+            this.getSelected().remove(this.view.getStore().getRange(start, end || start));
+        },
+
+        onSelectionFinish: function() {
+            var me = this,
+                range = me.getContiguousSelection();
+
+            if (range) {
+                me.getSelectionModel().onSelectionFinish(me,
+                    new Ext.grid.Location(me.view, {record: range[0], column: 0}),
+                    new Ext.grid.Location(me.view, {record: range[1], column: me.view.getHeaderContainer().getVisibleColumns().length - 1}));
+            } else {
+                me.getSelectionModel().onSelectionFinish(me);
+            }
+        },
+
+<span id='Ext-dataview-selection-Records-method-getContiguousSelection'>        /**
+</span>         * @return {Array} `[startRowIndex, endRowIndex]` if the selection represents a visually contiguous set of rows.
+         * The SelectionReplicator is only enabled if there is a contiguous block.
+         * @private
+         */
+        getContiguousSelection: function() {
+            var store = this.view.getStore(),
+                selection, len, i;
+
+            selection = Ext.Array.sort(this.getSelected().getRange(), function(r1, r2) {
+                return store.indexOf(r1) - store.indexOf(r2);
+            });
+            len = selection.length;
+            if (len) {
+                if (len === 1 &amp;&amp; store.indexOf(selection[0]) === -1) {
+                    return false;
+                }
+                for (i = 1; i &lt; len; i++) {
+                    if (store.indexOf(selection[i]) !== store.indexOf(selection[i - 1]) + 1) {
+                        return false;
+                    }
+                }
+                return [store.indexOf(selection[0]), store.indexOf(selection[len - 1])];
+            }
+        },
+
+        // We MUST override the Rows class&#39;s implementation because that imposes a
+        // clean Ext.util.Spans instance, and the Records class needs to pass the value
+        // unchanged through to the updater.
+        applySelected: function(selected) {
+            //&lt;debug&gt;
+            if (!selected) {
+                Ext.raise(&quot;The selection model&#39;s own selected Collection must always be passed into a Records Selection&quot;);
+            }
+            //&lt;/debug&gt;
+
+            return selected;
+        },
+
+<span id='Ext-dataview-selection-Records-method-refresh'>        /**
+</span>         * Called when the store is reloaded, or the data is mutated to synchronize the
+         * selected collection with what is now in the store.
+         */
+        refresh: function() {
+            var me = this,
+                view = me.view,
+                selModel = me.getSelectionModel(),
+                storeCollection = view.getStore().getData(),
+                filterFn = storeCollection.getFilters().getFilterFn(),
+                ignoredFilter = selModel.ignoredFilter,
+                selected = me.getSelected(),
+                lastSelected = selModel.getLastSelected(),
+                newLastSelected,
+                selections,
+                toDeselect = [],
+                toReselect = [],
+                selectionLength, i, rec,
+                matchingSelection;
+
+            // Uncover the unfiltered selection if it&#39;s there.
+            // We only want to prune from the selection records which are
+            // *really* no longer in the store.
+            if (ignoredFilter) {
+                if (ignoredFilter.getDisabled()) {
+                    ignoredFilter = null;
+                } else {
+                    ignoredFilter.setDisabled(true);
+                    storeCollection = storeCollection.getSource() || storeCollection;
+                }
+            }
+
+            // Update the lastSelected instance with the new version from the store if any.
+            if (lastSelected) {
+                newLastSelected = storeCollection.get(storeCollection.getKey(lastSelected));
+
+                // We are using the unfiltered source collection, so we must
+                // filter using all filters except the ignored filter.
+                // This is to accommodate a ComboBox&#39;s primaryFilter which must not
+                // evict selected records from the selection.
+                if (newLastSelected &amp;&amp; ignoredFilter &amp;&amp; !filterFn(newLastSelected)) {
+                    newLastSelected = null;
+                }
+            }
+
+            // If there is a current selection, build the toDeselect and toReselect lists
+            if (me.getCount()) {
+                selections = selected.getRange();
+                selectionLength = selections.length;
+
+                for (i = 0; i &lt; selectionLength; i++) {
+                    rec = selections[i];
+                    matchingSelection = storeCollection.get(storeCollection.getKey(rec));
+
+                    // If we are using the unfiltered source because of having to ignore only one
+                    // filter, then test the filter condition here with that one filter disabled.
+                    // Evict the record if it still does not pass the filter.
+                    if (matchingSelection &amp;&amp; ignoredFilter &amp;&amp; !filterFn(matchingSelection)) {
+                        matchingSelection = null;
+                    }
+
+                    if (matchingSelection) {
+                        if (matchingSelection !== rec) {
+                            toDeselect.push(rec);
+                            toReselect.push(matchingSelection);
+                        }
+                    } else {
+                        toDeselect.push(rec);
+                    }
+                }
+
+                // Give the view an opportunity to intervene in the selection model refresh.
+                // BoundLists remove any interactively added &quot;isEntered&quot; records from the
+                // toDeselect array because they are outside the scope of the field&#39;s supplied Store.
+                if (view.beforeSelectionRefresh) {
+                    view.beforeSelectionRefresh(toDeselect, toReselect);
+                }
+
+                // Update the selected Collection.
+                // Records which are no longer present will be in the toDeselect list
+                // Records which have the same id which have returned will be in the toSelect list.
+                // The SelectionModel will react to successful removal as an observer.
+                // It will need to know at that time whether the event is suppressed.
+                selected.suppressEvent = true;
+                selected.splice(selected.getCount(), toDeselect, toReselect);
+                selected.suppressEvent = false;
+            }
+
+            if (ignoredFilter) {
+                ignoredFilter.setDisabled(false);
+            }
+
+            // Keep any lastSelected up to date with what&#39;s now in the store
+            selModel.setLastSelected(newLastSelected || toReselect[toReselect.length - 1] || null);
+        }
+    }
+});
+</pre>
+</body>
+</html>

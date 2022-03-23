@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-widgets-Avatar'>/**
+</span> * @class SU.widgets.Avatar
+ */
+
+@include avatar-ui(
+    $color: $avatar-color,
+    $background-color: $avatar-background-color,
+    $background-color-inner: $avatar-background-color-inner,
+    $border-color: $avatar-border-color,
+    $border-width: $avatar-border-width,
+    $border-style: $avatar-border-style,
+    $border-radius: $avatar-border-radius,
+    $box-shadow: $avatar-box-shadow,
+    $font-weight: $avatar-font-weight,
+    $font-size: $avatar-font-size,
+    $line-height: $avatar-line-height,
+    $font-family: $avatar-font-family,
+    $text-transform: $avatar-text-transform
+);
+
+@if $avatar-plain-ui {
+    @include avatar-ui(map-merge((ui: plain), $avatar-plain-ui)...);
+}
+</pre>
+</body>
+</html>

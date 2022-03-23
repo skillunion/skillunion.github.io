@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-axis-Axis3D'>/**
+</span> * @class Ext.chart.axis.Axis3D
+ * @extends Ext.chart.axis.Axis
+ * @xtype axis3d
+ *
+ * Defines a 3D axis for charts.
+ *
+ * A 3D axis has the same properties as the regular {@link Ext.chart.axis.Axis axis},
+ * plus a notion of depth. The depth of the 3D axis is determined automatically
+ * based on the depth of the bound series.
+ *
+ * This type of axis has the following limitations compared to the regular axis class:
+ * - supported {@link Ext.chart.axis.Axis#position positions} are &#39;left&#39; and &#39;bottom&#39; only;
+ * - floating axes are not supported.
+ *
+ * At the present moment only {@link Ext.chart.series.Bar3D} series can make use of the 3D axis.
+ */
+Ext.define(&#39;Ext.chart.axis.Axis3D&#39;, {
+    extend: &#39;Ext.chart.axis.Axis&#39;,
+    xtype: &#39;axis3d&#39;,
+
+    requires: [
+        &#39;Ext.chart.axis.sprite.Axis3D&#39;
+    ],
+
+    config: {
+<span id='Ext-chart-axis-Axis3D-cfg-depth'>        /**
+</span>         * @private
+         * The depth of the axis. Determined automatically.
+         */
+        depth: 0
+
+<span id='Ext-chart-axis-Axis3D-cfg-position'>        /**
+</span>         * @cfg {String} position
+         * Where to set the axis. Available options are `left` and `bottom`.
+         */
+    },
+
+<span id='Ext-chart-axis-Axis3D-method-onSeriesChange'>    onSeriesChange: function (chart) {
+</span>        var me = this,
+            eventName = &#39;depthchange&#39;,
+            listenerName = &#39;onSeriesDepthChange&#39;,
+            i, series;
+
+        function toggle(action) {
+            var boundSeries = me.boundSeries;
+            for (i = 0; i &lt; boundSeries.length; i++) {
+                series = boundSeries[i];
+                series[action](eventName, listenerName, me);
+            }
+        }
+
+        // Remove &#39;depthchange&#39; listeners from old bound series, if any.
+        toggle(&#39;un&#39;);
+
+        me.callParent(arguments);
+
+        // Add &#39;depthchange&#39; listeners to new bound series.
+        toggle(&#39;on&#39;);
+    },
+
+<span id='Ext-chart-axis-Axis3D-method-onSeriesDepthChange'>    onSeriesDepthChange: function (series, depth) {
+</span>        var me = this,
+            maxDepth = depth,
+            boundSeries = me.boundSeries,
+            i, item;
+
+        if (depth &gt; me.getDepth()) {
+            maxDepth = depth;
+        } else {
+            for (i = 0; i &lt; boundSeries.length; i++) {
+                item = boundSeries[i];
+                if (item !== series &amp;&amp; item.getDepth) {
+                    depth = item.getDepth();
+                    if (depth &gt; maxDepth) {
+                        maxDepth = depth;
+                    }
+                }
+            }
+        }
+        me.setDepth(maxDepth);
+    },
+
+<span id='Ext-chart-axis-Axis3D-method-updateDepth'>    updateDepth: function (depth) {
+</span>        var me = this,
+            sprites = me.getSprites(),
+            attr = {depth: depth};
+
+        if (sprites &amp;&amp; sprites.length) {
+            sprites[0].setAttributes(attr);
+        }
+        if (me.gridSpriteEven &amp;&amp; me.gridSpriteOdd) {
+            me.gridSpriteEven.getTemplate().setAttributes(attr);
+            me.gridSpriteOdd.getTemplate().setAttributes(attr);
+        }
+    },
+
+<span id='Ext-chart-axis-Axis3D-method-getGridAlignment'>    getGridAlignment: function () {
+</span>        switch (this.getPosition()) {
+            case &#39;left&#39;:
+            case &#39;right&#39;:
+                return &#39;horizontal3d&#39;;
+            case &#39;top&#39;:
+            case &#39;bottom&#39;:
+                return &#39;vertical3d&#39;;
+        }
+    }
+
+});</pre>
+</body>
+</html>

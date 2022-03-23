@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-util-translatable-Component'>/**
+</span> * @class Ext.util.translatable.Component
+ * @private
+ */
+
+Ext.define(&#39;Ext.util.translatable.Component&#39;, {
+    extend: &#39;Ext.util.translatable.CssTransform&#39;,
+
+    alias: &#39;translatable.component&#39;, // also configures Factoryable
+    
+    config: {
+<span id='Ext-util-translatable-Component-cfg-component'>        component: null
+</span>    },
+
+<span id='Ext-util-translatable-Component-method-doTranslate'>    doTranslate: function(x, y) {
+</span>        var component = this.getComponent();
+
+        if (component.getFloated()) {
+            component.setX(x);
+            component.setY(y);
+        } else if (component.isPositioned()) {
+            component.setLeft(x);
+            component.setTop(y);
+        } else {
+            this.callParent([x, y]);
+        }
+    },
+
+<span id='Ext-util-translatable-Component-method-syncPosition'>    syncPosition: function() {
+</span>        var component = this.getComponent(),
+            result;
+
+        if (component.getFloated()) {
+            result = [component.getX(), component.getY()];
+        } else if (component.isPositioned()) {
+            result = [component.getLeft(), component.getTop()];
+        } else {
+            result = this.callParent();
+        }
+        this.x = result[0];
+        this.y = result[1];
+        return result;
+    }
+});
+</pre>
+</body>
+</html>

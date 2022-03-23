@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-axis-Numeric'>/**
+</span> * @class Ext.chart.axis.Numeric
+ * @extends Ext.chart.axis.Axis
+ *
+ * An axis to handle numeric values. This axis is used for quantitative data as
+ * opposed to the category axis. You can set minimum and maximum values to the
+ * axis so that the values are bound to that. If no values are set, then the
+ * scale will auto-adjust to the values.
+ *
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;cartesian&#39;, 
+ *        renderTo: document.body,
+ *        width: 600,
+ *        height: 400,
+ *        store: {
+ *            fields: [&#39;name&#39;, &#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;],
+ *            data: [{
+ *                &#39;name&#39;: 1,
+ *                &#39;data1&#39;: 10,
+ *                &#39;data2&#39;: 12,
+ *                &#39;data3&#39;: 14
+ *            }, {
+ *                &#39;name&#39;: 2,
+ *                &#39;data1&#39;: 7,
+ *                &#39;data2&#39;: 8,
+ *                &#39;data3&#39;: 16
+ *            }, {
+ *                &#39;name&#39;: 3,
+ *                &#39;data1&#39;: 5,
+ *                &#39;data2&#39;: 2,
+ *                &#39;data3&#39;: 14
+ *            }, {
+ *                &#39;name&#39;: 4,
+ *                &#39;data1&#39;: 2,
+ *                &#39;data2&#39;: 14,
+ *                &#39;data3&#39;: 6
+ *            }, {
+ *                &#39;name&#39;: 5,
+ *                &#39;data1&#39;: 27,
+ *                &#39;data2&#39;: 38,
+ *                &#39;data3&#39;: 36
+ *            }]
+ *        },
+ *        axes: {
+ *            type: &#39;numeric&#39;,
+ *            position: &#39;left&#39;,
+ *            minimum: 0,
+ *            fields: [&#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;],
+ *            title: &#39;Sample Values&#39;,
+ *            grid: {
+ *                odd: {
+ *                    opacity: 1,
+ *                    fill: &#39;#F2F2F2&#39;,
+ *                    stroke: &#39;#DDD&#39;,
+ *                    &#39;lineWidth&#39;: 1
+ *                }
+ *            }
+ *        },
+ *        series: {
+ *            type: &#39;area&#39;,
+ *            subStyle: {
+ *                fill: [&#39;#0A3F50&#39;, &#39;#30BDA7&#39;, &#39;#96D4C6&#39;]
+ *            },
+ *            xField: &#39;name&#39;,
+ *            yField: [&#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;]
+ *        }
+ *     });
+ *
+ * In this example we create an axis of Numeric type. We set a minimum value so that
+ * even if all series have values greater than zero, the grid starts at zero. We bind
+ * the axis onto the left part of the surface by setting _position_ to _left_.
+ * We bind three different store fields to this axis by setting _fields_ to an array.
+ * We set the title of the axis to _Number of Hits_ by using the _title_ property.
+ * We use a _grid_ configuration to set odd background rows to a certain style and even rows
+ * to be transparent/ignored.
+ *
+ */
+Ext.define(&#39;Ext.chart.axis.Numeric&#39;, {
+    extend: &#39;Ext.chart.axis.Axis&#39;,
+<span id='Ext-chart-axis-Numeric-property-type'>    type: &#39;numeric&#39;,
+</span>    alias: [
+        &#39;axis.numeric&#39;,
+        &#39;axis.radial&#39; // legacy charts compatibility
+    ],
+    requires: [
+        &#39;Ext.chart.axis.layout.Continuous&#39;,
+        &#39;Ext.chart.axis.segmenter.Numeric&#39;
+    ],
+    config: {
+<span id='Ext-chart-axis-Numeric-cfg-layout'>        layout: &#39;continuous&#39;,
+</span>
+<span id='Ext-chart-axis-Numeric-cfg-segmenter'>        segmenter: &#39;numeric&#39;,
+</span>
+<span id='Ext-chart-axis-Numeric-cfg-aggregator'>        aggregator: &#39;double&#39;
+</span>    }
+});
+</pre>
+</body>
+</html>

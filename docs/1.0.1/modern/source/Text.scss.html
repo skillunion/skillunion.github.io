@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}textfield {
+    .#{$prefix}input-wrap-el {
+        flex: 1 1 auto;
+        display: flex;
+        overflow: hidden;
+    }
+
+    .#{$prefix}underline-el {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+
+        &amp;:before,
+        &amp;:after {
+            content: &#39;&#39;;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+        }
+    }
+
+    &amp;.#{$prefix}animate-underline {
+        .#{$prefix}underline-el:before {
+            transform: scaleX(0);
+        }
+
+        &amp;.#{$prefix}focused .#{$prefix}underline-el:before {
+            transform: scaleX(1);
+        }
+    }
+
+    .#{$prefix}input-el {
+        background-color: transparent;
+        color: inherit;
+        outline: none;
+        border: 0;
+        margin: 0;
+        // Overrides the browsers default size for the input element, allowing it to
+        // be shrunk by the owning layout.  The default size of the field body is
+        // determined by $textfield-body-width
+        width: 0;
+        flex: 1 1 auto;
+
+        // IE11 does not respect line-height on input elements. To workaround the issue
+        // we use content-box model and set min-height in addition to line-height
+        box-sizing: content-box;
+
+        &amp;::-ms-clear {
+            display: none;
+        }
+    }
+
+    &amp;.#{$prefix}text-align-left .#{$prefix}input-el {
+         text-align: left;
+    }
+
+    &amp;.#{$prefix}text-align-center .#{$prefix}input-el {
+        text-align: center;
+    }
+
+    &amp;.#{$prefix}text-align-right .#{$prefix}input-el {
+        text-align: right;
+    }
+
+    .#{$prefix}before-input-el,
+    .#{$prefix}after-input-el {
+        display: flex;
+    }
+
+    &amp;.#{$prefix}label-align-placeholder .#{$prefix}label-el {
+        position: relative;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    &amp;.#{$prefix}label-align-placeholder .#{$prefix}input-el {
+        &amp;::-webkit-input-placeholder {
+            opacity: 1;
+            transition: opacity .4s;
+        }
+
+        &amp;::-moz-placeholder {
+            opacity: 1;
+            transition: opacity .4s;
+        }
+
+        &amp;:-ms-input-placeholder {
+            opacity: 1;
+            transition: opacity .4s;
+        }
+    }
+
+    &amp;.#{$prefix}label-align-placeholder.#{$prefix}label-inside .#{$prefix}input-el {
+        &amp;::-webkit-input-placeholder {
+            opacity: 0;
+        }
+
+        &amp;::-moz-placeholder {
+            opacity: 0;
+        }
+
+        &amp;:-ms-input-placeholder {
+            opacity: 0;
+        }
+    }
+}
+
+
+
+
+</pre>
+</body>
+</html>

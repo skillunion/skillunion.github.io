@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">// @tag core
+
+<span id='Ext-GlobalEvents'>/**
+</span> * @class Ext.GlobalEvents
+ */
+
+Ext.define(&#39;Ext.overrides.GlobalEvents&#39;, {
+    override: &#39;Ext.GlobalEvents&#39;,
+
+<span id='Ext-GlobalEvents-event-resumelayouts'>    /**
+</span>     * @event resumelayouts
+     * Fires after global layout processing has been resumed in {@link
+     * Ext.Component#resumeLayouts}.
+     */
+    
+    attachListeners: function() {
+        var me = this,
+            docElement, bufferedFn;
+        
+        // In IE9- when using legacy onresize event via attachEvent or onresize property,
+        // the event may fire for *content size changes* as well as actual document view
+        // size changes. See this: https://msdn.microsoft.com/en-us/library/ms536959(v=vs.85).aspx
+        // and this: http://stackoverflow.com/questions/1852751/window-resize-event-firing-in-internet-explorer
+        // The amount of these events firing all at once can be entirely staggering, and they
+        // often happen during layouts so we have to be über careful to execute as few JavaScript
+        // statements as possible to improve overall framework performance.
+        if (Ext.isIE8) {
+            docElement = Ext.getDoc().dom.documentElement;
+            bufferedFn = Ext.Function.createBuffered(me.fireResize, me.resizeBuffer, me);
+            
+            Ext.getWin().dom.attachEvent(&#39;onresize&#39;, function() {
+                if (docElement.clientWidth  !== Ext.GlobalEvents.curWidth ||
+                    docElement.clientHeight !== Ext.GlobalEvents.curHeight) {
+                    bufferedFn();
+                }
+            });
+        }
+        
+        me.callParent();
+    },
+
+<span id='Ext-GlobalEvents-property-deprecated'>    deprecated: {
+</span>        5: {
+            methods: {
+                addListener: function(ename, fn, scope, options, order, caller, eventOptions) {
+                    var name,
+                        readyFn;
+
+                    // The &quot;ready&quot; event was removed from Ext.globalEvents in 5.0 in favor of
+                    // Ext.onReady().  This function adds compatibility for the ready event
+
+                    if (ename === &#39;ready&#39;) {
+                        readyFn = fn;
+                    } else if (typeof ename !== &#39;string&#39;) {
+                        for (name in ename) {
+                            if (name === &#39;ready&#39;) {
+                                readyFn = ename[name];
+                            }
+                        }
+                    }
+
+                    if (readyFn) {
+                        //&lt;debug&gt;
+                        Ext.log.warn(&quot;Ext.on(&#39;ready&#39;, fn) is deprecated.  Please use Ext.onReady(fn) instead.&quot;);
+                        //&lt;/debug&gt;
+                        Ext.onReady(readyFn);
+                    }
+
+                    this.callParent([ename, fn, scope, options, order, caller, eventOptions]);
+                }
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

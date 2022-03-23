@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-cell-Boolean'>/**
+</span> * This class displays a boolean value in a {@link Ext.grid.Grid grid} cell. This cell type
+ * is typically used by specifying {@link Ext.grid.column.Boolean} column type.
+ *
+ * {@link Ext.grid.Row Rows} create cells based on the {@link Ext.grid.column.Column#cell}
+ * config. Application code would rarely create cells directly.
+ */
+Ext.define(&#39;Ext.grid.cell.Boolean&#39;, {
+    extend: &#39;Ext.grid.cell.Text&#39;,
+    xtype: &#39;booleancell&#39;,
+
+<span id='Ext-grid-cell-Boolean-property-isBooleanCell'>    isBooleanCell: true,
+</span>
+    config: {
+<span id='Ext-grid-cell-Boolean-cfg-falseText'>        /**
+</span>         * @cfg {String} falseText
+         * The string to display when the value is falsey (but not undefined).
+         * @locale
+         */
+        falseText: &#39;False&#39;,
+
+<span id='Ext-grid-cell-Boolean-cfg-trueText'>        /**
+</span>         * @cfg {String} trueText
+         * The string to display when the value is not falsey.
+         * @locale
+         */
+        trueText: &#39;True&#39;,
+
+<span id='Ext-grid-cell-Boolean-cfg-undefinedText'>        /**
+</span>         * @cfg {String} undefinedText
+         * The string to display when the column value is `undefined`.
+         * @locale
+         */
+        undefinedText: &#39;\xA0&#39;
+    },
+
+<span id='Ext-grid-cell-Boolean-method-updateColumn'>    updateColumn: function (column, oldColumn) {
+</span>        this.callParent([ column, oldColumn ]);
+
+        if (column &amp;&amp; column.isBooleanColumn) {
+            var text = column.getFalseText();
+
+            if (text !== null) {
+                this.setFalseText(text);
+            }
+
+            text = column.getTrueText();
+            if (text !== null) {
+                this.setTrueText(text);
+            }
+
+            text = column.getUndefinedText();
+            if (text !== null) {
+                this.setUndefinedText(text);
+            }
+        }
+    },
+
+<span id='Ext-grid-cell-Boolean-method-updateFalseText'>    updateFalseText: function () {
+</span>        if (!this.isConfiguring) {
+            this.writeValue();
+        }
+    },
+
+
+<span id='Ext-grid-cell-Boolean-method-updateTrueText'>    updateTrueText: function () {
+</span>        if (!this.isConfiguring) {
+            this.writeValue();
+        }
+    },
+
+<span id='Ext-grid-cell-Boolean-method-updateUndefinedText'>    updateUndefinedText: function () {
+</span>        if (!this.isConfiguring) {
+            this.writeValue();
+        }
+    },
+
+<span id='Ext-grid-cell-Boolean-method-formatValue'>    formatValue: function (value) {
+</span>        var me = this;
+
+        if (value === undefined) {
+            value = me.getUndefinedText();
+        }
+        else if (!value || value === &#39;false&#39;) {
+            value = me.getFalseText();
+        }
+        else {
+            value = me.getTrueText();
+        }
+
+        return value;
+    }
+});
+</pre>
+</body>
+</html>

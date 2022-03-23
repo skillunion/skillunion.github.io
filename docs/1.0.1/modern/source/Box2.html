@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-Box'>/**
+</span> * Box is a superclass for the two box layouts:
+ *
+ * * {@link Ext.layout.HBox hbox}
+ * * {@link Ext.layout.VBox vbox}
+ *
+ * Box itself is never used directly, but its subclasses provide flexible arrangement of
+ * child components inside a {@link Ext.Container Container}.
+ *
+ * ## Horizontal Box
+ *
+ * HBox allows you to easily lay out child components horizontally. It can size items based
+ * on a fixed width or a fraction of the total width available, enabling you to achieve
+ * flexible layouts that expand or contract to fill the space available.
+ *
+ * See the {@link Ext.layout.HBox HBox layout docs} for more information on using hboxes.
+ *
+ * ## Vertical Box
+ *
+ * VBox allows you to easily lay out child components vertically. It can size items based
+ * on a fixed height or a fraction of the total height available, enabling you to achieve
+ * flexible layouts that expand or contract to fill the space available.
+ *
+ * See the {@link Ext.layout.VBox VBox layout docs} for more information on using vboxes.
+ */
+Ext.define(&#39;Ext.layout.Box&#39;, {
+    extend: &#39;Ext.layout.Auto&#39;,
+    alias: &#39;layout.box&#39;,
+
+<span id='Ext-layout-Box-property-isBox'>    isBox: true,
+</span>
+    config: {
+<span id='Ext-layout-Box-cfg-orient'>        orient: &#39;horizontal&#39;,
+</span>
+<span id='Ext-layout-Box-cfg-align'>        /**
+</span>         * @cfg {String} align
+         * Controls how the child items of the container are aligned. Acceptable
+         * configuration values for this property are:
+         *
+         * - ** start ** : child items are packed together at left side of container
+         * - ** center ** : child items are packed together at mid-width of container
+         * - ** end ** : child items are packed together at right side of container
+         * - **stretch** : child items are stretched vertically to fill the height of the
+         *  container
+         *
+         * @accessor
+         */
+        align: &#39;stretch&#39;,
+
+<span id='Ext-layout-Box-cfg-constrainAlign'>        /**
+</span>         * @cfg {Boolean} constrainAlign
+         * Limits the size of {@link #align aligned} components to the size of the container.
+         *
+         * In order for this option to work in Safari, the container must have
+         * {@link Ext.Container#autoSize autoSize} set to `false`.
+         */
+        constrainAlign: false,
+
+<span id='Ext-layout-Box-cfg-pack'>        /**
+</span>         * @cfg {String} pack
+         * Controls how the child items of the container are packed together. Acceptable
+         * configuration values for this property are:
+         *
+         * - ** start ** : child items are packed together at left side of container
+         * - ** center ** : child items are packed together at mid-width of container
+         * - ** end ** : child items are packed together at right side of container
+         * - ** space-between ** : child items are distributed evenly with the first
+         * item at the start and the last item at the end
+         * - ** space-around ** : child items are distributed evenly with equal space
+         * around them
+         * - ** justify ** : behaves the same as `space-between` for backward compatibility.
+         *
+         * @accessor
+         */
+        pack: &#39;start&#39;,
+
+<span id='Ext-layout-Box-cfg-vertical'>        /**
+</span>         * @cfg {Boolean} vertical
+         * `true` to layout items vertically, otherwise horizontally.
+         *
+         * @since 6.2.0
+         */
+        vertical: false,
+
+<span id='Ext-layout-Box-cfg-reverse'>        /**
+</span>         * @cfg {Boolean} reverse
+         * `true` to reverse the natural layout direction.
+         * - When vertical, items are laid out bottom to top.
+         * - When horizontal (assuming LTR), items are laid out right to left.
+         *
+         * @since 6.5.0
+         */
+        reverse: false,
+
+        // @cmd-auto-dependency { defaultType: &quot;Ext.layout.overflow.Scroller&quot; }
+<span id='Ext-layout-Box-cfg-overflow'>        /**
+</span>         * @cfg {Object/String} overflow Configuration for this layout&#39;s overflow. Example:
+         *
+         *     Ext.create(&#39;Ext.Container&#39;, {
+         *         layout: {
+         *             type: &#39;hbox&#39;,
+         *             overflow: &#39;scroller&#39;
+         *         }
+         *     });
+         *
+         * @accessor
+         * @since 6.5.1
+         */
+        overflow: null,
+
+<span id='Ext-layout-Box-cfg-wrap'>        /**
+</span>         * @cfg {true/false/&#39;nowrap&#39;/&#39;wrap&#39;/&#39;wrap-reverse} [wrap=false]
+         * `true` to wrap items onto multiple lines when the container overflows.
+         * Can also be a string value for CSS `flex-wrap`.
+         *
+         * @since 6.5.1
+         */
+        wrap: null
+    },
+
+<span id='Ext-layout-Box-property-cls'>    cls: Ext.baseCSSPrefix + &#39;layout-box&#39;,
+</span><span id='Ext-layout-Box-property-baseItemCls'>    baseItemCls: Ext.baseCSSPrefix + &#39;layout-box-item&#39;,
+</span><span id='Ext-layout-Box-property-constrainAlignCls'>    constrainAlignCls: Ext.baseCSSPrefix + &#39;constrain-align&#39;,
+</span><span id='Ext-layout-Box-property-flexedCls'>    flexedCls: Ext.baseCSSPrefix + &#39;flexed&#39;,
+</span>
+<span id='Ext-layout-Box-property-wrapClsMap'>    wrapClsMap: {
+</span>        true: Ext.baseCSSPrefix + &#39;wrap&#39;,
+        &#39;wrap&#39;: Ext.baseCSSPrefix + &#39;wrap&#39;,
+        &#39;wrap-reverse&#39;: Ext.baseCSSPrefix + &#39;wrap-reverse&#39;
+    },
+
+<span id='Ext-layout-Box-property-boxRe'>    //&lt;debug&gt;
+</span>    boxRe: /^(?:box|hbox|vbox)$/,
+<span id='Ext-layout-Box-property-orientMap'>    //&lt;/debug&gt;
+</span>
+    orientMap: {
+        horizontal: {
+            sizeProp: &#39;width&#39;,
+            containerCls: [
+                Ext.baseCSSPrefix + &#39;layout-hbox&#39;,
+                Ext.baseCSSPrefix + &#39;horizontal&#39;
+            ],
+            itemCls: Ext.baseCSSPrefix + &#39;layout-hbox-item&#39;
+        },
+        vertical: {
+            sizeProp: &#39;height&#39;,
+            containerCls: [
+                Ext.baseCSSPrefix + &#39;layout-vbox&#39;,
+                Ext.baseCSSPrefix + &#39;vertical&#39;
+            ],
+            itemCls: Ext.baseCSSPrefix + &#39;layout-vbox-item&#39;
+        }
+    },
+
+<span id='Ext-layout-Box-method-constructor'>    constructor: function(config) {
+</span>        var me = this;
+
+        me.callParent([config]);
+        me.positionSortFn = me.positionSortFn.bind(me);
+    },
+
+<span id='Ext-layout-Box-method-setConfig'>    setConfig: function (name, value, options) {
+</span>        var config = name,
+            type;
+
+        // We override setConfig to accept config objects of {type:&#39;box&#39;},  {type:&#39;hbox&#39;}
+        // and {type:&#39;vbox&#39;} and adjust the &quot;vertical&quot; config properly.
+
+        if (name) {
+            if (typeof name === &#39;string&#39;) {
+                config = {};
+                config[name] = value;
+            }
+            else {
+                Ext.apply({}, name);
+                options = value;
+            }
+
+            type = config.type;
+            delete config.type;
+
+            //&lt;debug&gt;
+            if (type &amp;&amp; !this.boxRe.test(type)) {
+                Ext.raise(&#39;Cannot change layout from &#39;+this.$className+&#39; to &quot;&#39;+type+&#39;&quot;&#39;);
+            }
+            //&lt;/debug&gt;
+
+            if (config.vertical == null) {
+                if (type === &#39;vbox&#39;) {
+                    config.vertical = true;
+                }
+                else if (type === &#39;hbox&#39;) {
+                    config.vertical = false;
+                }
+            }
+
+            this.callParent([ config, options ]);
+        }
+
+        return this;
+    },
+
+<span id='Ext-layout-Box-method-destroy'>    destroy: function() {
+</span>        Ext.destroy(this.getOverflow());
+        this.positionSortFn = null;
+        this.callParent();
+    },
+
+<span id='Ext-layout-Box-method-updateContainer'>    updateContainer: function(container, oldContainer) {
+</span>        var listener = {
+            flexchange: &#39;onItemFlexChange&#39;,
+            scope: this,
+            delegate: &#39;&gt; component&#39;
+        };
+
+        this.callParent([container, oldContainer]);
+
+        if (container) {
+            container.on(listener);
+        }
+
+        if (oldContainer) {
+            oldContainer.un(listener);
+        }
+    },
+
+<span id='Ext-layout-Box-method-updateVertical'>    updateVertical: function(vertical) {
+</span>        this.setOrient(vertical ? &#39;vertical&#39; : &#39;horizontal&#39;);
+    },
+
+<span id='Ext-layout-Box-method-applyOrient'>    //&lt;debug&gt;
+</span>    applyOrient: function (orient) {
+        if (orient !== &#39;horizontal&#39; &amp;&amp; orient !== &#39;vertical&#39;) {
+            Ext.log.error(&quot;Invalid box orient of: &#39;&quot; + orient
+                + &quot;&#39;, must be either &#39;horizontal&#39; or &#39;vertical&#39;&quot;);
+        }
+        return orient;
+    },
+<span id='Ext-layout-Box-method-updateOrient'>    //&lt;/debug&gt;
+</span>
+    updateOrient: function (orient, oldOrient) {
+        var me = this,
+            container = me.getContainer(),
+            overflow = me.getOverflow(),
+            renderTarget = container.getRenderTarget(),
+            innerItems = container.innerItems,
+            len = innerItems.length,
+            map = me.orientMap,
+            newMap = map[orient],
+            oldMap = map[oldOrient],
+            vertical = orient === &#39;vertical&#39;,
+            i, itemCls, item;
+
+        me.sizePropertyName = newMap.sizeProp;
+
+        if (oldOrient) {
+            renderTarget.removeCls(oldMap.containerCls);
+            for (i = 0; i &lt; len; ++i) {
+                innerItems[i].removeCls(oldMap.itemCls);
+            }
+        }
+
+        renderTarget.addCls(newMap.containerCls);
+
+        me.itemCls = itemCls = [me.baseItemCls, newMap.itemCls];
+        for (i = 0; i &lt; len; ++i) {
+            item = innerItems[i];
+            item.addCls(itemCls);
+        }
+
+        me.setVertical(vertical);
+
+        me.positionFn = vertical ? &#39;getTop&#39; : &#39;getLeft&#39;;
+
+        if (overflow) {
+            overflow.setVertical(vertical);
+        }
+    },
+
+<span id='Ext-layout-Box-method-updateConstrainAlign'>    updateConstrainAlign: function(constrainAlign) {
+</span>        this.getContainer().getRenderTarget().toggleCls(this.constrainAlignCls,
+            constrainAlign);
+    },
+
+<span id='Ext-layout-Box-method-onItemInnerStateChange'>    onItemInnerStateChange: function (item, isInner) {
+</span>        var me = this,
+            flex;
+
+        me.callParent(arguments);
+
+        if (isInner) {
+            flex = item.getFlex();
+
+            if (flex) {
+                me.setItemFlex(item, flex);
+            }
+        } else {
+            me.setItemFlex(item, null);
+        }
+    },
+
+<span id='Ext-layout-Box-method-onItemFlexChange'>    onItemFlexChange: function (item, flex) {
+</span>        if (item.isInnerItem()) {
+            this.setItemFlex(item, flex);
+        }
+    },
+
+<span id='Ext-layout-Box-method-setItemFlex'>    /**
+</span>     * Sets the flex of an item in this box layout.
+     * @param {Ext.Component} item The item of this layout which you want to update the
+     * flex of.
+     * @param {Object} flex The flex to set on this method
+     */
+    setItemFlex: function (item, flex) {
+        var el = item.el,
+            type = typeof flex,
+            isNumber = (type === &#39;number&#39;),
+            isString = (type === &#39;string&#39;),
+            parts, grow;
+
+        if (!flex || isNumber || isString) {
+            if (isNumber) {
+                grow = flex;
+                flex = flex + &#39; &#39; + flex;
+            } else if (isString) {
+                parts = Ext.String.splitWords(flex);
+                grow = parts[0];
+
+                if (parts.length === 1) {
+                    flex = grow + &#39; &#39; + grow;
+                }
+            }
+
+            el.setStyle(&#39;flex&#39;, flex);
+        } else {
+            grow = flex.grow;
+
+            el.setStyle({
+                flexGrow: grow,
+                flexShrink: flex.shrink,
+                flexBasis: flex.basis
+            });
+        }
+
+        item.toggleCls(this.flexedCls, !!grow);
+    },
+
+<span id='Ext-layout-Box-method-convertPosition'>    convertPosition: function (position) {
+</span>        var positionMap = this.positionMap;
+
+        if (positionMap.hasOwnProperty(position)) {
+            return positionMap[position];
+        }
+
+        return position;
+    },
+
+<span id='Ext-layout-Box-method-applyAlign'>    applyAlign: function (align) {
+</span>        return this.convertPosition(align);
+    },
+
+<span id='Ext-layout-Box-method-updateAlign'>    updateAlign: function (align, oldAlign) {
+</span>        this.getContainer().getRenderTarget().swapCls(align, oldAlign, true,
+            Ext.baseCSSPrefix + &#39;align&#39;);
+    },
+
+<span id='Ext-layout-Box-method-applyPack'>    applyPack: function (pack) {
+</span>        return this.convertPosition(pack);
+    },
+
+<span id='Ext-layout-Box-method-updatePack'>    updatePack: function (pack, oldPack) {
+</span>        this.getContainer().getRenderTarget().swapCls(pack, oldPack, true,
+            Ext.baseCSSPrefix + &#39;pack&#39;);
+    },
+
+<span id='Ext-layout-Box-method-updateReverse'>    updateReverse: function(reverse) {
+</span>        this.getContainer().getRenderTarget().toggleCls(Ext.baseCSSPrefix + &#39;reverse&#39;,
+            reverse);
+    },
+
+<span id='Ext-layout-Box-method-ensureVisible'>    /**
+</span>     * Scrolls the specified item into view.
+     *
+     * @param {Ext.Widget} [item] The item to be scrolled into view
+     *
+     * @param {Object} [options] An object containing options to modify the operation.
+     *
+     * @param {Ext.Widget} [options.item] The item to be scrolled into view
+     * @param {Boolean} [options.animation] Pass `true` to animate the row into view.
+     * @param {Number} [options.offset] Offset to scroll to from the last fully visible
+     * items on either side.
+     * Positive numbers will scroll to the bottom or right side.
+     * Negative numbers will scroll to the top or left side.
+     * @param {&#39;min&#39;/&#39;max&#39;} [options.scroll=&#39;min&#39;] A value of &#39;min&#39; will scroll the item to the nearest
+     * edge that will make it visible.
+     * A value of &#39;max&#39; will scroll the item to the furthest edge that will make it visible
+     */
+    ensureVisible: function(item, options) {
+        if (!item.isWidget) {
+            options = item;
+            item = options.item;
+        }
+        
+        if (options &amp;&amp; !isNaN(options.offset)) {
+            item = this.getItemByOffset(options.offset);
+        }
+
+        var me = this,
+            container = this.getContainer(),
+            scrollable = container.getScrollable(),
+            scrollerTarget = scrollable.getElement(),
+            vertical = me.getVertical(),
+            targetInfo = me.getItemInfo(scrollerTarget),
+            itemInfo = me.getItemInfo(item),
+            oversized = itemInfo.size &gt; targetInfo.size,
+            scroll = (options &amp;&amp; options.scroll) || &#39;min&#39;,
+            delta, deltaX, deltaY;
+
+        if (me._currentEnsureVisibleItem === item &amp;&amp; scrollable.translatable.isAnimating) {
+            return;
+        }
+
+        if (scroll === &#39;min&#39;) {
+            if ((!oversized &amp;&amp; (itemInfo.start &lt; targetInfo.start)) ||
+                    (oversized &amp;&amp; (itemInfo.start &gt; targetInfo.start))) {
+                delta = itemInfo.start - targetInfo.start;
+            } else if ((!oversized &amp;&amp; (itemInfo.end &gt; targetInfo.end)) ||
+                    (oversized &amp;&amp; itemInfo.end &lt; targetInfo.end)) {
+                delta = itemInfo.end - targetInfo.end;
+            } else if (oversized &amp;&amp; itemInfo.start &lt; targetInfo.start &amp;&amp;
+                    itemInfo.end &gt; targetInfo.end) {
+                delta = itemInfo.start - targetInfo.start;
+            }
+        } else {
+            // Move to Previous page
+            if (itemInfo.start &lt; targetInfo.start) {
+                delta = itemInfo.end - targetInfo.end;
+            } else { //Move to Next page
+                delta = itemInfo.start - targetInfo.start;
+            }
+        }
+
+        if (delta) {
+            deltaX = !vertical ? delta : null;
+            deltaY = vertical ? delta : null;
+
+            me._currentEnsureVisibleItem = item;
+            scrollable.scrollBy(deltaX, deltaY, options.animation);
+        }
+    },
+
+<span id='Ext-layout-Box-method-getItemByOffset'>    /**
+</span>     * Determine which item is forward/backward inside the layout by offset
+     * @param indexOffset offset to be used to determine which item to scroll to
+     * an offset of -1 will find the first item off the top/left side
+     * where an offset of 2 will find the second item off the bottom/right side
+     *
+     * @private
+     */
+    getItemByOffset: function(indexOffset) {
+        var me = this,
+            container = this.getContainer(),
+            scrollerTarget = container.getScrollable().getElement(),
+            targetInfo = me.getItemInfo(scrollerTarget),
+            items = container.getInnerItems(),
+            len = items.length,
+            minFrontDistance = -Infinity,
+            minEndDistance = -Infinity,
+            startIndex = 0,
+            endIndex = len - 1,
+            index, i, itemFrontDistance, itemEndDistance,
+            item, itemInfo;
+
+        if (!indexOffset) {
+            return;
+        }
+
+        items.sort(me.positionSortFn);
+
+        for (i = 0; i &lt; len; i++) {
+            item = items[i];
+            itemInfo = me.getItemInfo(item);
+            itemFrontDistance = itemInfo.start - targetInfo.start;
+            itemEndDistance = targetInfo.end - itemInfo.end;
+
+            if ((itemFrontDistance &gt; minFrontDistance) &amp;&amp; (itemFrontDistance &lt; 0) &amp;&amp;
+                    itemEndDistance &gt; 0) {
+                minFrontDistance = itemFrontDistance;
+                startIndex = i;
+            }
+
+            if ((itemEndDistance &gt; minEndDistance) &amp;&amp; (itemEndDistance &lt; 0) &amp;&amp;
+                    itemFrontDistance &gt; 0) {
+                minEndDistance = itemEndDistance;
+                endIndex = i;
+                break;
+            }
+        }
+
+        if (indexOffset &gt; 0) {
+            indexOffset--;
+            index = endIndex += indexOffset;
+            if (endIndex &gt;= len) {
+                index = len - 1;
+            }
+        } else {
+            indexOffset++;
+            index = startIndex += indexOffset;
+            if (startIndex &lt; 0) {
+                index = 0;
+            }
+        }
+
+        return items[index];
+    },
+
+
+<span id='Ext-layout-Box-method-getItemInfo'>    getItemInfo: function (item) {
+</span>        var me = this,
+            vertical = me.getVertical(),
+            el = item.el;
+
+        return {
+            start: el[vertical  ? &#39;getTop&#39; : &#39;getLeft&#39;](),
+            end: el[vertical ? &#39;getBottom&#39; : &#39;getRight&#39;](),
+            size: el[vertical ? &#39;getHeight&#39; : &#39;getWidth&#39;]()
+        };
+    },
+
+<span id='Ext-layout-Box-method-createOverflow'>    createOverflow: function(config) {
+</span>        return Ext.apply({
+            owner: this,
+            vertical: this.getVertical()
+        }, config);
+    },
+
+<span id='Ext-layout-Box-method-applyOverflow'>    applyOverflow: function(config, existing) {
+</span>        return Ext.Factory.layoutOverflow.update(existing, config, this, &#39;createOverflow&#39;);
+	},
+
+<span id='Ext-layout-Box-method-updateWrap'>    updateWrap: function(wrap, oldWrap) {
+</span>        var me = this,
+            el = me.getContainer().getRenderTarget(),
+            map = me.wrapClsMap,
+            cls;
+
+        if (oldWrap) {
+            cls = map[oldWrap];
+
+            if (cls) {
+                el.removeCls(cls);
+            }
+        }
+
+        if (wrap) {
+            cls = map[wrap];
+
+            if (cls) {
+                el.addCls(cls);
+            }
+        }
+    },
+
+<span id='Ext-layout-Box-property-privates'>    privates: {
+</span>        positionSortFn: function (a, b) {
+            var fn = this.positionFn;
+            a = a.el[fn]();
+            b = b.el[fn]();
+            if (a &lt; b) {
+                return -1;
+            } else if (b &lt; a) {
+                return 1;
+            }
+            return 0;
+        }
+    }
+});
+</pre>
+</body>
+</html>

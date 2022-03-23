@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-field-Captcha'>/**
+</span> * CaptchaField для Google reCAPTCHA v2
+ * 
+ * Для подключения добавить в файл `app.json` в секцию js
+ * 
+ *     {
+ *         &quot;path&quot;: &#39;https://www.google.com/recaptcha/api.js?render=explicit&#39;,
+ *         &quot;remote&quot;: true
+ *     } 
+ * 
+ * Чтобы начать работу, вам нужно будет зарегистрировать 
+ * свой сайт {@link https://www.google.com/recaptcha/admin/create на этой странице}, 
+ * выбрав опции `reCAPTCHA v2` и `Флажок &quot;Я не робот&quot;`.
+ * 
+ */
+Ext.define(&#39;SU.field.Captcha&#39;, {
+    extend: &#39;Ext.field.Field&#39;,
+    alternateClassName: [&#39;Ext.field.Captcha&#39;, &#39;Ext.form.field.Captcha&#39;],
+    xtype: &#39;captchafield&#39;,
+
+    config: {
+
+<span id='SU-field-Captcha-cfg-siteKey'>        /**
+</span>         * @cfg {String} siteKey (required)
+         * ключ в HTML-коде, который ваш сайт передает на устройства пользователей
+         */
+        siteKey: undefined,
+
+<span id='SU-field-Captcha-cfg-theme'>        /**
+</span>         * @cfg {String} theme
+         * тема reCAPTCHA `light` или `dark`
+         */
+        theme: &#39;dark&#39;,
+
+<span id='SU-field-Captcha-cfg-render'>        /**
+</span>         * @cfg {String} render
+         * oload or explicit
+         */
+        //render: &#39;explicit&#39;
+    },
+
+<span id='SU-field-Captcha-property-isField'>    isField: true,
+</span>
+<span id='SU-field-Captcha-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;capchafield&#39;,
+</span><span id='SU-field-Captcha-property-capchaCls'>    capchaCls: &#39;g-recaptcha&#39;,
+</span>
+<span id='SU-field-Captcha-property-isCaptchaValid'>    isCaptchaValid: false,
+</span>
+<span id='SU-field-Captcha-method-initialize'>    initialize: function () {
+</span>        var me = this,
+            po, s;
+
+        me.callParent(arguments);
+
+        if (window.grecaptcha) {
+            grecaptcha.ready(Ext.bind(me.renderGCaptcha, me));
+        } else {
+            me.addCls(&#39;x-grecaptcha-error&#39;);
+        }
+
+    },
+
+<span id='SU-field-Captcha-method-getBodyTemplate'>    getBodyTemplate: function () {
+</span>        return [
+            {
+                reference: &#39;captchaElement&#39;,
+                cls: this.capchaCls
+            }
+        ];
+    },
+
+<span id='SU-field-Captcha-method-updateSiteKey'>    updateSiteKey: function (value) {
+</span>        this.captchaElement.dom.dataset.sitekey = value;
+    },
+
+<span id='SU-field-Captcha-method-updateTheme'>    updateTheme: function (value) {
+</span>        this.captchaElement.dom.dataset.theme = value;
+    },
+
+<span id='SU-field-Captcha-method-renderGCaptcha'>    renderGCaptcha: function () {
+</span>        var me = this;
+
+        grecaptcha.render(me.captchaElement.id, {
+            &#39;callback&#39;: function (response) { me.verifyCallback.call(me, response) },
+            &#39;expired-callback&#39;: function () { me.onRecaptchaExpired.call(me) },
+            &#39;error-callback&#39;: function () { me.onErrorCallback.call(me) }
+        });
+    },
+
+<span id='SU-field-Captcha-method-verifyCallback'>    verifyCallback: function (response) {
+</span>        var me = this;
+
+        me.isCaptchaValid = (response.length &gt; 0);
+        if (me.isCaptchaValid) {
+            me.setValue(response);
+            me.fireEvent(&#39;recaptchavalid&#39;, me);
+        } else {
+            me.setValue();
+            me.fireEvent(&#39;recaptchainvalid&#39;, me);
+        }
+    },
+
+<span id='SU-field-Captcha-method-onRecaptchaExpired'>    onRecaptchaExpired: function () {
+</span>        var me = this;
+
+        me.isCaptchaValid = false;
+        me.setValue();
+        me.fireEvent(&#39;recaptchaexpired&#39;, me);
+    },
+
+<span id='SU-field-Captcha-method-onErrorCallback'>    onErrorCallback: function () {
+</span>        var me = this;
+
+        me.isCaptchaValid = false;
+        me.setValue();
+        this.fireEvent(&#39;recaptchaerror&#39;, me);
+    },
+
+<span id='SU-field-Captcha-method-validate'>    validate: function () {
+</span>        var me = this;
+        return me.isDisabled() || me.isCaptchaValid;
+    }
+
+});
+</pre>
+</body>
+</html>

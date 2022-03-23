@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-draw-sprite-Rect'>/**
+</span> * @class Ext.draw.sprite.Rect
+ * @extends Ext.draw.sprite.Path
+ *
+ * A sprite that represents a rectangle.
+ *
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;draw&#39;, 
+ *        renderTo: document.body,
+ *        width: 600,
+ *        height: 400,
+ *        sprites: [{
+ *            type: &#39;rect&#39;,
+ *            x: 50,
+ *            y: 50,
+ *            width: 100,
+ *            height: 100,
+ *            fillStyle: &#39;#1F6D91&#39;
+ *        }]
+ *     });
+ */
+Ext.define(&#39;Ext.draw.sprite.Rect&#39;, {
+    extend: &#39;Ext.draw.sprite.Path&#39;,
+    alias: &#39;sprite.rect&#39;,
+<span id='Ext-draw-sprite-Rect-property-type'>    type: &#39;rect&#39;,
+</span>    inheritableStatics: {
+<span id='Ext-draw-sprite-Rect-static-property-def'>        def: {
+</span>            processors: {
+<span id='Ext-draw-sprite-Rect-cfg-x'>                /**
+</span>                 * @cfg {Number} [x=0] The position of the sprite on the x-axis.
+                 */
+                x: &#39;number&#39;,
+
+<span id='Ext-draw-sprite-Rect-cfg-y'>                /**
+</span>                 * @cfg {Number} [y=0] The position of the sprite on the y-axis.
+                 */
+                y: &#39;number&#39;,
+
+<span id='Ext-draw-sprite-Rect-cfg-width'>                /**
+</span>                 * @cfg {Number} [width=8] The width of the sprite.
+                 */
+                width: &#39;number&#39;,
+
+<span id='Ext-draw-sprite-Rect-cfg-height'>                /**
+</span>                 * @cfg {Number} [height=8] The height of the sprite.
+                 */
+                height: &#39;number&#39;,
+
+<span id='Ext-draw-sprite-Rect-cfg-radius'>                /**
+</span>                 * @cfg {Number} [radius=0] The radius of the rounded corners.
+                 */
+                radius: &#39;number&#39;
+            },
+            aliases: {
+
+            },
+            triggers: {
+                x: &#39;path&#39;,
+                y: &#39;path&#39;,
+                width: &#39;path&#39;,
+                height: &#39;path&#39;,
+                radius: &#39;path&#39;
+            },
+            defaults: {
+                x: 0,
+                y: 0,
+                width: 8,
+                height: 8,
+                radius: 0
+            }
+        }
+    },
+
+<span id='Ext-draw-sprite-Rect-method-updatePlainBBox'>    updatePlainBBox: function (plain) {
+</span>        var attr = this.attr;
+
+        plain.x = attr.x;
+        plain.y = attr.y;
+        plain.width = attr.width;
+        plain.height = attr.height;
+    },
+
+<span id='Ext-draw-sprite-Rect-method-updateTransformedBBox'>    updateTransformedBBox: function (transform, plain) {
+</span>        this.attr.matrix.transformBBox(plain, this.attr.radius, transform);
+    },
+
+<span id='Ext-draw-sprite-Rect-method-updatePath'>    updatePath: function (path, attr) {
+</span>        var x = attr.x,
+            y = attr.y,
+            width = attr.width,
+            height = attr.height,
+            radius = Math.min(attr.radius, Math.abs(height) * 0.5, Math.abs(width) * 0.5);
+
+        if (radius === 0) {
+            path.rect(x, y, width, height);
+        } else {
+            path.moveTo(x + radius, y);
+            path.arcTo(x + width, y, x + width, y + height, radius);
+            path.arcTo(x + width, y + height, x, y + height, radius);
+            path.arcTo(x, y + height, x, y, radius);
+            path.arcTo(x, y, x + radius, y, radius);
+            path.closePath();
+        }
+    }
+});</pre>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Video'>/**
+</span> * Provides a simple Container for HTML5 Video.
+ *
+ * ## Notes
+ *
+ * - There are quite a few issues with the `&lt;video&gt;` tag on Android devices. On Android 2+, the video will
+ * appear and play on first attempt, but any attempt afterwards will not work.
+ *
+ * ## Useful Properties
+ *
+ * - {@link #url}
+ * - {@link #autoPause}
+ * - {@link #autoResume}
+ *
+ * ## Useful Methods
+ *
+ * - {@link #method-pause}
+ * - {@link #method-play}
+ * - {@link #toggle}
+ *
+ * ## Example
+ *
+ *     var panel = Ext.create(&#39;Ext.Panel&#39;, {
+ *         fullscreen: true,
+ *         layout: &#39;fit&#39;,
+ *         items: [
+ *             {
+ *                 xtype    : &#39;video&#39;,
+ *                 url      : &#39;porsche911.mov&#39;,
+ *                 posterUrl: &#39;porsche.png&#39;
+ *             }
+ *         ]
+ *     });
+ */
+Ext.define(&#39;Ext.Video&#39;, {
+    extend: &#39;Ext.Media&#39;,
+    xtype: &#39;video&#39;,
+
+    config: {
+<span id='Ext-Video-cfg-url'>        /**
+</span>         * @cfg {String/Array} url
+         * Location of the video to play. This should be in H.264 format and in a .mov file format.
+         * @accessor
+         */
+
+<span id='Ext-Video-cfg-posterUrl'>        /**
+</span>         * @cfg {String} posterUrl
+         * Location of a poster image to be shown before showing the video.
+         * @accessor
+         */
+        posterUrl: null,
+
+<span id='Ext-Video-cfg-showPosterOnPause'>        /**
+</span>         * @cfg {Boolean} [showPosterOnPause=true] When paused, the {@link #posterUrl}
+         * will be shown. If set to `false`, the poster will not be shown when the video
+         * is paused.
+         *
+         * Showing a poster may save on device resources as the `&lt;video&gt;` element is
+         * resource intensive whereas the `&lt;img&gt;` is not as intensive. Not showing a poster
+         * may slow down parts of the application including scrolling as the device is
+         * repainting the screen.
+         *
+         * @since 6.5.0
+         */
+        showPosterOnPause: false
+    },
+
+<span id='Ext-Video-property-baseCls'>    baseCls: Ext.baseCSSPrefix + &#39;video&#39;,
+</span>
+<span id='Ext-Video-property-template'>    template: [{
+</span><span id='Ext-Video-property-ghost'>        /**
+</span>         * @property {Ext.dom.Element} ghost
+         * @private
+         */
+        reference: &#39;ghost&#39;,
+        classList: [Ext.baseCSSPrefix + &#39;video-ghost&#39;]
+    }, {
+        tag: &#39;video&#39;,
+        reference: &#39;media&#39;,
+        classList: [Ext.baseCSSPrefix + &#39;media&#39;]
+    }],
+
+<span id='Ext-Video-method-initialize'>    initialize: function() {
+</span>        var me = this;
+
+        me.callParent();
+
+        me.media.hide();
+
+        me.ghost.on({
+            tap: &#39;onGhostTap&#39;,
+            scope: me
+        });
+
+        me.media.on({
+            pause: &#39;onPause&#39;,
+            scope: me
+        });
+
+        if (Ext.os.is.Android4 || Ext.os.is.iPad) {
+            this.isInlineVideo = true;
+        }
+    },
+
+<span id='Ext-Video-method-applyUrl'>    applyUrl: function(url) {
+</span>        return [].concat(url);
+    },
+
+<span id='Ext-Video-method-updateUrl'>    updateUrl: function(newUrl) {
+</span>        var me = this,
+            media = me.media,
+            newLn = newUrl.length,
+            existingSources = media.query(&#39;source&#39;),
+            oldLn = existingSources.length,
+            i;
+
+        for (i = 0; i &lt; oldLn; i++) {
+            Ext.fly(existingSources[i]).destroy();
+        }
+
+        for (i = 0; i &lt; newLn; i++) {
+            media.appendChild(Ext.Element.create({
+                tag: &#39;source&#39;,
+                src: newUrl[i]
+            }));
+        }
+
+        if (me.isPlaying()) {
+            me.play();
+        }
+    },
+
+<span id='Ext-Video-method-onActivate'>    onActivate: function() {
+</span>        this.media.show();
+    },
+
+<span id='Ext-Video-method-onDeactivate'>    onDeactivate: function() {
+</span>        this.pause();
+        this.media.hide();
+        this.ghost.show();
+    },
+
+<span id='Ext-Video-method-onGhostTap'>    /**
+</span>     * @private
+     * Called when the {@link #ghost} element is tapped.
+     */
+    onGhostTap: function() {
+        var me = this,
+            media = this.media,
+            ghost = this.ghost;
+
+        media.show();
+        ghost.hide();
+        me.play();
+    },
+
+<span id='Ext-Video-method-onPause'>    /**
+</span>     * @private
+     * native video tag display only, move the media down so we can control the Viewport
+     */
+    onPause: function(e) {
+        this.callParent([e]);
+
+        // If the video is seeking, the browser may pause the video before setting
+        // the time to wherever the user clicked on.
+        if (!this.isInlineVideo &amp;&amp; !e.target.seeking &amp;&amp; this.getShowPosterOnPause()) {
+            this.media.hide();
+            this.ghost.show();
+        }
+    },
+
+<span id='Ext-Video-method-onPlay'>    /**
+</span>     * @private
+     * native video tag display only, move the media down so we can control the Viewport
+     */
+    onPlay: function(e) {
+        this.callParent([e]);
+
+        this.media.show();
+    },
+
+<span id='Ext-Video-method-updatePosterUrl'>    /**
+</span>     * Updates the URL to the poster, even if it is rendered.
+     * @param {Object} newUrl
+     */
+    updatePosterUrl: function(newUrl) {
+        var ghost = this.ghost;
+
+        if (ghost) {
+            ghost.setStyle(&#39;background-image&#39;, &#39;url(&#39; + newUrl + &#39;)&#39;);
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-pullrefresh-Spinner'>/**
+</span> * @since 6.5.0
+ */
+Ext.define(&#39;Ext.dataview.pullrefresh.Spinner&#39;, {
+    extend: &#39;Ext.dataview.pullrefresh.Item&#39;,
+    xtype: &#39;pullrefreshspinner&#39;,
+
+<span id='Ext-dataview-pullrefresh-Spinner-cfg-hideAnimation'>    hideAnimation: {
+</span>        type: &#39;popOut&#39;
+    },
+
+<span id='Ext-dataview-pullrefresh-Spinner-property-baseCls'>    baseCls: Ext.baseCSSPrefix + &#39;pullrefreshspinner&#39;,
+</span>
+<span id='Ext-dataview-pullrefresh-Spinner-property-template'>    template: [{
+</span>        cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-loading-wrap&#39;,
+
+        children: [{
+            cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-main &#39; + Ext.baseCSSPrefix + &#39;shadow&#39;,
+            reference: &#39;bodyEl&#39;,
+
+            children: [{
+                cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-loader-wrapper&#39;,
+
+                children: [{
+                    cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-arrow-wrapper&#39;,
+
+                    children: [{
+                        cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-arrow-main&#39;,
+                        reference: &#39;arrowEl&#39;
+                    }]
+                }, {
+                    cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-spinner-wrapper&#39;,
+                    reference: &#39;spinnerEl&#39;,
+
+                    children: [{
+                        cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-spinner-main&#39;,
+
+                        children: [{
+                            cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-spinner-left&#39;,
+
+                            children: [{
+                                cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-half-circle&#39;
+                            }]
+                        }, {
+                            cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-spinner-right&#39;,
+
+                            children: [{
+                                cls: Ext.baseCSSPrefix + &#39;pullrefreshspinner-half-circle&#39;
+                            }]
+                        }]
+                    }]
+                }]
+            }]
+        }]
+    }],
+
+<span id='Ext-dataview-pullrefresh-Spinner-property-privates'>    privates: {
+</span>        toggleDisplay: function(load) {
+            var me = this;
+
+            me.arrowEl.setVisible(!load);
+            me.spinnerEl.setVisible(load);
+        },
+
+        updatePull: function(pull) {
+            var me = this,
+                rotation = Math.floor(Math.min(pull, 3) * 100) - 110;
+
+            me.bodyEl.setOpacity(Math.min(1, pull));
+            me.arrowEl.dom.style.transform = &#39;rotate(&#39; + rotation + &#39;deg)&#39;;
+        },
+
+        updateState: function(state) {
+            var me = this;
+
+            me.toggleDisplay(me.isLoading(state));
+        }
+    }
+});
+</pre>
+</body>
+</html>

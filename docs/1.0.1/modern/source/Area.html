@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-Area'>/**
+</span> * @class Ext.chart.series.Area
+ * @extends Ext.chart.series.StackedCartesian
+ *
+ * Creates an Area Chart.
+ * 
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;cartesian&#39;, 
+ *        renderTo: document.body,
+ *        width: 600,
+ *        height: 400,
+ *        insetPadding: 40,
+ *        store: {
+ *            fields: [&#39;name&#39;, &#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;],
+ *            data: [{
+ *                name: &#39;metric one&#39;,
+ *                data1: 10,
+ *                data2: 12,
+ *                data3: 14
+ *            }, {
+ *                name: &#39;metric two&#39;,
+ *                data1: 7,
+ *                data2: 8,
+ *                data3: 16
+ *            }, {
+ *                name: &#39;metric three&#39;,
+ *                data1: 5,
+ *                data2: 2,
+ *                data3: 14
+ *            }, {
+ *                name: &#39;metric four&#39;,
+ *                data1: 2,
+ *                data2: 14,
+ *                data3: 6
+ *            }, {
+ *                name: &#39;metric five&#39;,
+ *                data1: 27,
+ *                data2: 38,
+ *                data3: 36
+ *            }]
+ *        },
+ *        axes: [{
+ *            type: &#39;numeric&#39;,
+ *            position: &#39;left&#39;,
+ *            fields: [&#39;data1&#39;],
+ *            grid: true,
+ *            minimum: 0
+ *        }, {
+ *            type: &#39;category&#39;,
+ *            position: &#39;bottom&#39;,
+ *            fields: [&#39;name&#39;]
+ *        }],
+ *        series: {
+ *            type: &#39;area&#39;,
+ *            subStyle: {
+ *                fill: [&#39;#0A3F50&#39;, &#39;#30BDA7&#39;, &#39;#96D4C6&#39;]
+ *            },
+ *            xField: &#39;name&#39;,
+ *            yField: [&#39;data1&#39;, &#39;data2&#39;, &#39;data3&#39;]
+ *        }
+ *     });
+ */
+Ext.define(&#39;Ext.chart.series.Area&#39;, {
+    extend: &#39;Ext.chart.series.StackedCartesian&#39;,
+    alias: &#39;series.area&#39;,
+<span id='Ext-chart-series-Area-property-type'>    type: &#39;area&#39;,
+</span>    
+<span id='Ext-chart-series-Area-property-seriesType'>    /**
+</span>     * @property seriesType
+     * @inheritdoc
+     */
+    seriesType: &#39;areaSeries&#39;,
+
+<span id='Ext-chart-series-Area-property-isArea'>    isArea: true,
+</span>
+    requires: [&#39;Ext.chart.series.sprite.Area&#39;],
+
+    config: {
+<span id='Ext-chart-series-Area-cfg-splitStacks'>        /**
+</span>         * @cfg splitStacks
+         * @inheritdoc
+         */
+        splitStacks: false
+
+<span id='Ext-chart-series-Area-cfg-renderer'>        /**
+</span>         * @cfg renderer
+         * @inheritdoc
+         * Area series renderers only affect markers.
+         * For styling individual segments with a renderer it is possible to use
+         * the Line series with {@link Ext.chart.series.Line#fill} config set to `true`,
+         * which makes Line series look like Area series.
+         */
+    }
+});
+</pre>
+</body>
+</html>

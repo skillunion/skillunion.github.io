@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-BoxPlot'>/**
+</span> * A box plot chart is a useful tool for visializing data distribution within datasets.
+ * For example, salary ranges for a set of occupations, or life expectancy for a set
+ * of countries. A single box with whiskers displays the following values for a dataset:
+ *
+ * * minimum
+ * * lower quartile (Q1)
+ * * median (Q2)
+ * * higher quartile (Q3)
+ * * maximum
+ *
+ * For example:
+ *
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;cartesian&#39;,
+ *        width: 400,
+ *        height: 400,
+ *        renderTo: Ext.getBody(),
+ *        insetPadding: &#39;20 20 10 10&#39;,
+ *        store: {
+ *            data: [{
+ *                category: &#39;Engineer IV&#39;,
+ *                low: 110, q1: 130, median: 175, q3: 200, high: 225
+ *            }, {
+ *                category: &#39;Market&#39;,
+ *                low: 75, q1: 125, median: 210, q3: 230, high: 255
+ *            }]
+ *        },
+ *        axes: [
+ *            {
+ *                type: &#39;numeric&#39;,
+ *                position: &#39;left&#39;,
+ *                renderer: function (axis, text) {
+ *                    return &#39;$&#39; + text + &#39; K&#39;
+ *                }
+ *            },
+ *            {
+ *                type: &#39;category&#39;,
+ *                position: &#39;bottom&#39;
+ *            }
+ *        ],
+ *        series: {
+ *            type: &#39;boxplot&#39;,
+ *            xField: &#39;category&#39;,
+ *            style: {
+ *                maxBoxWidth: 50,
+ *                lineWidth: 2
+ *            }
+ *        }
+ *     });
+ *
+ */
+Ext.define(&#39;Ext.chart.series.BoxPlot&#39;, {
+
+    extend: &#39;Ext.chart.series.Cartesian&#39;,
+
+    alias: &#39;series.boxplot&#39;,
+<span id='Ext-chart-series-BoxPlot-property-type'>    type: &#39;boxplot&#39;,
+</span><span id='Ext-chart-series-BoxPlot-property-seriesType'>    seriesType: &#39;boxplotSeries&#39;,
+</span><span id='Ext-chart-series-BoxPlot-property-isBoxPlot'>    isBoxPlot: true,
+</span>
+    requires: [
+        &#39;Ext.chart.series.sprite.BoxPlot&#39;,
+        &#39;Ext.chart.sprite.BoxPlot&#39;
+    ],
+
+    config: {
+
+<span id='Ext-chart-series-BoxPlot-cfg-itemInstancing'>        itemInstancing: {
+</span>            type: &#39;boxplot&#39;,
+            animation: {
+                // Setting the duration of these attributes to zero because
+                // the &#39;data&#39; attributes of the series sprite (MarkerHolder)
+                // will be animated instead, and then changes applied to
+                // the attributes of &#39;boxplot&#39; instances instantly.
+                customDurations: {
+                    x: 0,
+                    low: 0,
+                    q1: 0,
+                    median: 0,
+                    q3: 0,
+                    high: 0
+                }
+            }
+        },
+
+<span id='Ext-chart-series-BoxPlot-cfg-lowField'>        /**
+</span>         * @cfg {String} [lowField=&#39;low&#39;]
+         * The name of the store record field that represents the smallest value of a dataset.
+         */
+        lowField: &#39;low&#39;,
+
+<span id='Ext-chart-series-BoxPlot-cfg-q1Field'>        /**
+</span>         * @cfg {String} [q1Field=&#39;q1&#39;]
+         * The name of the store record field that represents the lower (1-st) quartile
+         * value of a dataset.
+         */
+        q1Field: &#39;q1&#39;,
+
+<span id='Ext-chart-series-BoxPlot-cfg-medianField'>        /**
+</span>         * @cfg {String} [medianField=&#39;median&#39;]
+         * The name of the store record field that represents the median of a dataset.
+         */
+        medianField: &#39;median&#39;,
+
+<span id='Ext-chart-series-BoxPlot-cfg-q3Field'>        /**
+</span>         * @cfg {String} [q3Field=&#39;q3&#39;]
+         * The name of the store record field that represents the upper (3-rd) quartile
+         * value of a dataset.
+         */
+        q3Field: &#39;q3&#39;,
+
+<span id='Ext-chart-series-BoxPlot-cfg-highField'>        /**
+</span>         * @cfg {String} [highField=&#39;high&#39;]
+         * The name of the store record field that represents the largest value of a dataset.
+         */
+        highField: &#39;high&#39;
+    },
+
+<span id='Ext-chart-series-BoxPlot-property-fieldCategoryY'>    fieldCategoryY: [&#39;Low&#39;, &#39;Q1&#39;, &#39;Median&#39;, &#39;Q3&#39;, &#39;High&#39;],
+</span>
+<span id='Ext-chart-series-BoxPlot-method-updateXAxis'>    updateXAxis: function (xAxis) {
+</span>        xAxis.setExpandRangeBy(0.5);
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

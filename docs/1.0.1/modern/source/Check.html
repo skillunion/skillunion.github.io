@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-cell-Check'>/**
+</span> * A Cell subclass which renders a checkbox in each column cell which toggles the truthiness
+ * of the associated data field on click.
+ *
+ * This class should not be directly instantiated.  Instances are created automatically
+ * when using a {@link Ext.grid.column.Check Check Column}.
+ */
+Ext.define(&#39;Ext.grid.cell.Check&#39;, {
+    extend: &#39;Ext.grid.cell.Base&#39;,
+    xtype: &#39;checkcell&#39;,
+
+    config: {
+<span id='Ext-grid-cell-Check-cfg-disabled'>        /**
+</span>         * @cfg {Boolean} disabled
+         * Whether or not this component is disabled
+         */
+        disabled: null
+    },
+
+<span id='Ext-grid-cell-Check-property-innerTemplate'>    innerTemplate: [{
+</span>        reference: &#39;checkboxElement&#39;,
+        tabIndex: -1,
+        cls:Ext.baseCSSPrefix + &#39;checkbox-el &#39; + Ext.baseCSSPrefix + &#39;font-icon&#39;
+    }],
+
+<span id='Ext-grid-cell-Check-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;checkcell&#39;,
+</span>
+<span id='Ext-grid-cell-Check-property-disabledCls'>    disabledCls: Ext.baseCSSPrefix + &#39;disabled&#39;,
+</span><span id='Ext-grid-cell-Check-property-checkedCls'>    checkedCls: Ext.baseCSSPrefix + &#39;checked&#39;,
+</span>
+<span id='Ext-grid-cell-Check-method-constructor'>    constructor: function(config) {
+</span>        this.callParent([config]);
+
+        this.checkboxElement.on(&#39;tap&#39;, &#39;onTap&#39;, this);
+    },
+
+<span id='Ext-grid-cell-Check-method-applyValue'>    applyValue: function(value) {
+</span>        return !!value;
+    },
+
+<span id='Ext-grid-cell-Check-method-updateValue'>    updateValue: function(value, oldValue) {
+</span>        var me = this,
+            column = me.getColumn();
+
+        me.el.toggleCls(me.checkedCls, !!value);
+
+        // Keep column header state up to date.
+        if (value) {
+            column.updateHeaderState();
+        } else {
+            column.setHeaderStatus(value);
+        }
+    },
+
+<span id='Ext-grid-cell-Check-method-updateColumn'>    updateColumn: function (column, oldColumn) {
+</span>        this.callParent([ column, oldColumn ]);
+
+        if (column) {
+            this.setDisabled(column.getDisabled());
+        }
+    },
+
+<span id='Ext-grid-cell-Check-method-applyDisabled'>    applyDisabled: function(disabled) {
+</span>        return Boolean(disabled);
+    },
+
+<span id='Ext-grid-cell-Check-method-updateDisabled'>    updateDisabled: function(disabled) {
+</span>        this.element.toggleCls(this.disabledCls, disabled);
+    },
+
+<span id='Ext-grid-cell-Check-method-disable'>    /**
+</span>     * Disables this CheckCell
+     */
+    disable: function() {
+       this.setDisabled(true);
+    },
+
+<span id='Ext-grid-cell-Check-method-enable'>    /**
+</span>     * Enables this CheckCell
+     */
+    enable: function() {
+        this.setDisabled(false);
+    },
+
+<span id='Ext-grid-cell-Check-method-onTap'>    onTap: function(e) {
+</span>        var me = this,
+            record = me.getRecord(),
+            column = me.getColumn(),
+            recordIndex = column.up(&#39;grid&#39;).getStore().indexOf(record),
+            checked;
+
+        if (record) {
+            checked = !column.isRecordChecked(record);
+            if (me.getDisabled()) {
+                return;
+            }
+
+            if (column.fireEvent(&#39;beforecheckchange&#39;, me, recordIndex, checked, record, e) !== false) {
+                if (me.getColumn().getStopSelection()) {
+                    e.stopSelection = true;
+                }
+
+                if (record) {
+                    column.setRecordChecked(record, checked, e);
+                }
+                if (column.hasListeners.checkchange) {
+                    column.fireEvent(&#39;checkchange&#39;, me, recordIndex, checked, record, e);
+                }
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

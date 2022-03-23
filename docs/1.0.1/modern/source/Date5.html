@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-Date'>/**
+</span> * This is a specialized field which shows a {@link Ext.picker.Date} when tapped. If it has a predefined value,
+ * or a value is selected in the {@link Ext.picker.Date}, it will be displayed like a normal {@link Ext.field.Text}
+ * (but not selectable/changable).
+ *
+ *     Ext.create(&#39;Ext.field.Date&#39;, {
+ *         label: &#39;Birthday&#39;,
+ *         value: new Date()
+ *     });
+ *
+ * {@link Ext.field.Date} fields are very simple to implement, and have no required configurations.
+ *
+ * ## Examples
+ *
+ * It can be very useful to set a default {@link #value} configuration on {@link Ext.field.Date} fields. In
+ * this example, we set the {@link #value} to be the current date. You can also use the {@link #setValue} method to
+ * update the value at any time.
+ *
+ *     @example
+ *     var form = Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         fullscreen: true,
+ *         referenceHolder: true,
+ *         items: [{
+ *             xtype: &#39;fieldset&#39;,
+ *             items: [{
+ *                 xtype: &#39;datefield&#39;,
+ *                 label: &#39;Birthday&#39;,
+ *                 reference: &#39;birthday&#39;,
+ *                 value: new Date()
+ *             }]
+ *         }, {
+ *             xtype: &#39;toolbar&#39;,
+ *             docked: &#39;bottom&#39;,
+ *             items: [{
+ *                 text: &#39;setValue&#39;,
+ *                 handler: function() {
+ *                     var field = form.lookup(&#39;birthday&#39;),
+ *                         y = Ext.Number.randomInt(1980, 2011),
+ *                         m = Ext.Number.randomInt(0, 11),
+ *                         d = Ext.Number.randomInt(1, 28);
+ *
+ *                     field.setValue(new Date(y, m, d));
+ *                 }
+ *             }]
+ *         }]
+ *     });
+ *
+ * When you need to retrieve the date from the {@link Ext.field.Date}, you can either use the {@link #getValue} or
+ * {@link #getFormattedValue} methods:
+ *
+ *     @example
+ *     var form = Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         fullscreen: true,
+ *         referenceHolder: true,
+ *         items: [{
+ *             xtype: &#39;fieldset&#39;,
+ *             items: [{
+ *                 xtype: &#39;datefield&#39;,
+ *                 label: &#39;Birthday&#39;,
+ *                 reference: &#39;birthday&#39;,
+ *                 value: new Date()
+ *             }]
+ *         }, {
+ *             xtype: &#39;toolbar&#39;,
+ *             docked: &#39;bottom&#39;,
+ *             items: [{
+ *                 text: &#39;getValue&#39;,
+ *                 handler: function() {
+ *                     var field = form.lookup(&#39;birthday&#39;);
+ *                     console.log(field.getValue());
+ *                 }
+ *             }, {
+ *                 text: &#39;getFormattedValue&#39;,
+ *                 handler: function() {
+ *                     var field = form.lookup(&#39;birthday&#39;);
+ *                     console.log(field.getFormattedValue());
+ *                 }
+ *             }]
+ *         }]
+ *     });
+ *
+ *
+ */
+Ext.define(&#39;Ext.field.Date&#39;, {
+    extend: &#39;Ext.field.Picker&#39;,
+
+    alternateClassName: [
+        &#39;Ext.form.DatePicker&#39;,
+        &#39;Ext.field.DatePicker&#39;
+    ],
+
+    xtype: [&#39;datefield&#39;, &#39;datepickerfield&#39;],
+
+    requires: [
+        &#39;Ext.data.validator.Date&#39;,
+        &#39;Ext.field.trigger.Date&#39;,
+        &#39;Ext.picker.Date&#39;,
+        &#39;Ext.panel.Date&#39;
+    ],
+
+<span id='Ext-field-Date-event-change'>    /**
+</span>     * @event change
+     * Fires when a date is selected
+     * @param {Ext.field.Date} this
+     * @param {Date} newDate The new date
+     * @param {Date} oldDate The old date
+     */
+
+    config: {
+<span id='Ext-field-Date-cfg-value'>        /**
+</span>         * @cfg {Object/Date} value
+         * Default value for the field and the internal {@link Ext.picker.Date} component.
+         * Accepts an object of &#39;year&#39;, &#39;month&#39; and &#39;day&#39; values, all of which should be
+         * numbers, or a {@link Date}.
+         *
+         * Example: {year: 1989, day: 1, month: 5} = 1st May 1989 or new Date()
+         */
+
+<span id='Ext-field-Date-cfg-destroyPickerOnHide'>        /**
+</span>         * @cfg {Boolean} destroyPickerOnHide
+         * Whether or not to destroy the picker widget on hide. This save memory if it&#39;s
+         * not used frequently, but increase delay time on the next show due to
+         * re-instantiation.
+         */
+        destroyPickerOnHide: false,
+
+<span id='Ext-field-Date-cfg-dateFormat'>        /**
+</span>         * @cfg {String} [dateFormat=Ext.util.Format.defaultDateFormat] The format to be
+         * used when displaying the date in this field. Accepts any valid date format. You
+         * can view formats over in the {@link Ext.Date} documentation.
+         */
+        dateFormat: &#39;&#39;,
+
+<span id='Ext-field-Date-cfg-minDate'>        /**
+</span>         * @cfg {Date/String} [minDate] The minimum allowed date value for this field.
+         * String value should conform to {@link #cfg!dateFormat}.
+         */
+        minDate: null,
+
+<span id='Ext-field-Date-cfg-maxDate'>        /**
+</span>         * @cfg {Date/String} [maxDate] The maximum allowed date value for this field.
+         * String value should conform to {@link #cfg!dateFormat}.
+         */
+        maxDate: null,
+
+<span id='Ext-field-Date-cfg-triggers'>        triggers: {
+</span>            expand: {
+                type: &#39;date&#39;
+            }
+        }
+    },
+
+<span id='Ext-field-Date-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;datepickerfield&#39;,
+</span><span id='Ext-field-Date-cfg-matchFieldWidth'>    matchFieldWidth: false,
+</span>
+<span id='Ext-field-Date-property-minDateMessage'>    /**
+</span>     * @property {String}
+     * The error message when the {@link #cfg!minDate} constraint has been violated.
+     * @locale
+     */
+    minDateMessage: &quot;The date in this field must be equal to or after {0}&quot;,
+
+<span id='Ext-field-Date-property-maxDateMessage'>    /**
+</span>     * @property {String}
+     * The error message when the {@link #cfg!maxDate} constraint has been violated.
+     * @locale
+     */
+    maxDateMessage: &quot;The date in this field must be equal to or before {0}&quot;,
+
+<span id='Ext-field-Date-cfg-floatedPicker'>    floatedPicker: {
+</span>        xtype: &#39;datepanel&#39;,
+        autoConfirm: true,
+        floated: true,
+        listeners: {
+            tabout: &#39;onTabOut&#39;,
+            select: &#39;onPickerChange&#39;,
+            scope: &#39;owner&#39;
+        },
+        keyMap: {
+            ESC: &#39;onTabOut&#39;,
+            scope: &#39;owner&#39;
+        }
+    },
+
+<span id='Ext-field-Date-cfg-edgePicker'>    edgePicker: {
+</span>        xtype: &#39;datepicker&#39;,
+        cover: true
+    },
+
+<span id='Ext-field-Date-cfg-parseValidator'>    parseValidator: &#39;date&#39;,
+</span>
+<span id='Ext-field-Date-method-applyValue'>    applyValue: function(value, oldValue) {
+</span>        if (!(value || value === 0)) {
+            value = null;
+        }
+
+        value = this.callParent([value, oldValue]);
+
+        if (value) {
+            if (this.isConfiguring) {
+                this.originalValue = value;
+            }
+
+            // The same date value may not be the same reference, so compare them by time.
+            // If we have dates for both, then compare the time. If they&#39;re the same we
+            // don&#39;t need to do anything.
+            if (Ext.isDate(value) &amp;&amp; Ext.isDate(oldValue) &amp;&amp; value.getTime() === oldValue.getTime()) {
+                return;
+            }
+        }
+
+        return value;
+    },
+
+<span id='Ext-field-Date-method-updateValue'>    updateValue: function(value, oldValue) {
+</span>        var picker = this._picker;
+
+        if (picker &amp;&amp; picker.isPicker &amp;&amp; Ext.isDate(value)) {
+            this.updatePickerValue(picker, value);
+        }
+
+        this.callParent([value, oldValue]);
+    },
+
+<span id='Ext-field-Date-method-updatePickerValue'>    updatePickerValue: function (picker, value) {
+</span>        picker.setValue(value);
+    },
+
+<span id='Ext-field-Date-method-applyInputValue'>    applyInputValue: function(value, oldValue) {
+</span>        if (Ext.isDate(value)) {
+            value = Ext.Date.format(value, this.getDateFormat());
+        }
+
+        return this.callParent([value, oldValue]);
+    },
+
+<span id='Ext-field-Date-method-applyDateFormat'>    applyDateFormat: function(dateFormat) {
+</span>        return dateFormat || Ext.util.Format.defaultDateFormat;
+    },
+
+<span id='Ext-field-Date-method-updateDateFormat'>    /**
+</span>     * Updates the date format in the field.
+     * @private
+     */
+    updateDateFormat: function() {
+        var me = this,
+            value;
+
+        if (!me.isConfiguring &amp;&amp; !me.hasFocus) {
+            value = me.getValue();
+            if (Ext.isDate(value)) {
+                me.setInputValue(value);
+            }
+        }
+    },
+
+<span id='Ext-field-Date-method-applyMinDate'>    applyMinDate: function(minDate) {
+</span>        if (typeof minDate === &#39;string&#39;) {
+            minDate = Ext.Date.parse(minDate, this.getDateFormat());
+        }
+
+        //&lt;debug&gt;
+        if (!Ext.isDate(minDate)) {
+            Ext.raise(&quot;Date object or string in dateFormat required&quot;);
+        }
+        //&lt;/debug&gt;
+
+        return Ext.Date.clearTime(minDate, true);
+    },
+
+<span id='Ext-field-Date-method-applyMaxDate'>    applyMaxDate: function(maxDate) {
+</span>        if (typeof maxDate === &#39;string&#39;) {
+            maxDate = Ext.Date.parse(maxDate, this.getDateFormat());
+        }
+
+        //&lt;debug&gt;
+        if (!Ext.isDate(maxDate)) {
+            Ext.raise(&quot;Date object or string in dateFormat required&quot;);
+        }
+        //&lt;/debug&gt;
+
+        return Ext.Date.clearTime(maxDate, true);
+    },
+
+<span id='Ext-field-Date-method-getFormattedValue'>    /**
+</span>     * Returns the value of the field formatted using the specified format. If it is not
+     * specified, it will default to {@link #dateFormat} and then
+     * {@link Ext.util.Format#defaultDateFormat}.
+     * @param {String} format The format to be returned.
+     * @return {String} The formatted date.
+     */
+    getFormattedValue: function(format) {
+        var value = this.getValue();
+        return Ext.isDate(value) ? Ext.Date.format(value, format || this.getDateFormat()) : &#39;&#39;;
+    },
+
+<span id='Ext-field-Date-method-applyPicker'>    applyPicker: function(picker, oldPicker) {
+</span>        var me = this,
+            type;
+
+        picker = me.callParent([picker, oldPicker]);
+
+        me.pickerType = type = picker.xtype === &#39;datepicker&#39; ? &#39;edge&#39; : &#39;floated&#39;;
+        picker.ownerCmp = me;
+
+        return picker;
+    },
+
+<span id='Ext-field-Date-method-createFloatedPicker'>    createFloatedPicker: function() {
+</span>        return this.getFloatedPicker();
+    },
+
+<span id='Ext-field-Date-method-createEdgePicker'>    createEdgePicker: function() {
+</span>        var me = this,
+            minDate = this.getMinDate(),
+            maxDate = this.getMaxDate();
+
+        return Ext.merge({
+            yearFrom: minDate ? minDate.getFullyear() : (new Date().getFullYear() - 20),
+            yearTo: maxDate ? maxDate.getFullyear() : (new Date().getFullYear() + 20)
+        }, me.getEdgePicker());
+    },
+
+<span id='Ext-field-Date-method-setPickerLocation'>    setPickerLocation: function(fromKeyboard) {
+</span>        var me = this,
+            pickerType = me.pickerType,
+            picker = me.getPicker(),
+            value = me.getValue(),
+            limit;
+
+        me.$ignorePickerChange = true;
+        if (value != null) {
+            picker.setValue(value);
+        }
+        else if (pickerType === &#39;edge&#39;) {
+            picker.setValue(new Date());
+        }
+        delete me.$ignorePickerChange;
+
+        if (pickerType === &#39;floated&#39;) {
+            picker.el.dom.tabIndex = -1;
+
+            limit = me.getMinDate();
+
+            if (limit) {
+                picker.setMinDate(limit);
+            }
+
+            limit = me.getMaxDate();
+
+            if (limit) {
+                picker.setMaxDate(limit);
+            }
+
+            value = value || new Date();
+
+            // Ensure the carousel is at the correct position wth no animation.
+            picker.navigateTo(value, false);
+
+            if (fromKeyboard) {
+                picker.focusDate(value);
+            }
+        }
+    },
+
+<span id='Ext-field-Date-method-doValidate'>    doValidate: function (value, errors, skipLazy) {
+</span>        var me = this,
+            format = me.getDateFormat(),
+            limit, t;
+
+        me.callParent([ value, errors, skipLazy ]);
+
+        limit = me.getMinDate();
+        t = +value;  // doValidate is only passed values that have been parsed
+
+        if (limit &amp;&amp; t &lt; +limit) {
+            limit = Ext.Date.format(limit, format);
+            errors.push(Ext.String.format(me.minDateMessage, limit));
+        }
+
+        limit = me.getMaxDate();
+
+        if (limit &amp;&amp; t &gt; +limit) {
+            limit = Ext.Date.format(limit, format);
+            errors.push(Ext.String.format(me.maxDateMessage, limit));
+        }
+    },
+
+<span id='Ext-field-Date-method-onPickerChange'>    /**
+</span>     * Called when the picker changes its value.
+     * @param {Ext.picker.Date} picker The date picker.
+     * @param {Object} value The new value from the date picker.
+     * @private
+     */
+    onPickerChange: function(picker, value) {
+        var me = this;
+
+        if (me.$ignorePickerChange) {
+            return;
+        }
+
+        me.forceInputChange = true;
+        me.setValue(value);
+        me.forceInputChange = false;
+        me.fireEvent(&#39;select&#39;, me, value);
+
+        // Focus the inputEl first and then collapse. We configure
+        // the picker not to revert focus which is a normal thing to do
+        // for floaters; in our case when the picker is focusable it will
+        // lead to unexpected results on Tab key presses.
+        // Note that this focusing might happen synchronously during Tab
+        // key handling in the picker, which is the way we want it.
+        me.onTabOut(picker);
+    },
+
+<span id='Ext-field-Date-method-onTabOut'>    onTabOut: function() {
+</span>        // Automatic focus reversion will move focus back to the owning field if necessary.
+        this.collapse();
+    },
+
+<span id='Ext-field-Date-method-parseValue'>    parseValue: function(value, errors) {
+</span>        var date;
+
+        if (value) {
+            date = Ext.Date.parse(value, this.getDateFormat());
+            if (date !== null) {
+                return date;
+            }
+        }
+        return this.callParent([value, errors]);
+    },
+
+<span id='Ext-field-Date-method-transformValue'>    transformValue: function (value) {
+</span>        if (Ext.isObject(value)) {
+            value = new Date(value.year, value.month, value.day);
+
+            if (isNaN(value.getTime())) {
+                value = null;
+            }
+        }
+
+        return value;
+    },
+
+<span id='Ext-field-Date-method-doDestroy'>    doDestroy: function() {
+</span>        var picker = this._picker;
+
+        if (picker &amp;&amp; picker.isPicker) {
+            picker.destroy();
+        }
+
+        this.callParent();
+    },
+
+<span id='Ext-field-Date-property-privates'>    privates: {
+</span>        setShowPickerValue: function(picker) {
+            this.updatePickerValue(picker, this.getValue() || new Date());
+        }
+    },
+
+<span id='Ext-field-Date-property-deprecated'>    deprecated: {
+</span>        &#39;6.5&#39;: {
+            configs: {
+                format: &#39;dateFormat&#39;
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-storage-LocalStorageCookie'>/**
+</span> * Cookie менеджер для длительного хранения пользовательских данных,
+ * основанный на HTML5 `localStorage` API.
+ *
+ * Пример использования
+ * --------------------
+ * #### Инициализация
+ * Cookie менеджер не нуждается в инициализации и
+ * доступен как `Ext.Cookie` или `Pallada.LocalStorageCookie`.
+ *
+ * #### Инициализация с настройкой
+ * Настройка должна быть выполнена до использования любого метода
+ * изменения или чтения данных:
+ *
+ *     Ext.Cookie.{@link #setProxyId}(&#39;com.mydomain.cookies&#39;);
+ *
+ * #### Установка значения
+ *     Ext.Cookie.{@link #set}(&#39;some_setting&#39;, &#39;some_value&#39;);
+ *
+ * #### Чтение значения
+ *     Ext.Cookie.{@link #get}(&#39;some_setting&#39;);
+ *
+ * #### Удаление значения
+ *     Ext.Cookie.{@link #del}(&#39;some_setting&#39;);
+ *
+ * @history 17.12.2016
+ * Правки по результатам selenium тестов
+ *
+ * @history 14.10.2013
+ * Создание модуля.
+ */
+Ext.define(&#39;SU.storage.LocalStorageCookie&#39;, {
+	alternateClassName: [&#39;Ext.Cookie&#39;, &#39;SU.LocalStorageCookie&#39;],
+	singleton: true,
+
+	requires:[
+		&#39;SU.storage.CookieProvider&#39;,
+		&#39;Ext.data.proxy.LocalStorage&#39;,
+		&#39;Ext.data.Store&#39;
+	],
+
+	config: {
+<span id='SU-storage-LocalStorageCookie-cfg-proxyId'>		/**
+</span>		 * Уникальный идентификатор приложения, используется в качестве ключа,
+		 * под которым все данные приложения хранятся в локальном объекте хранения.
+		 */
+		proxyId: &#39;app.cookies&#39;
+
+	},
+
+<span id='SU-storage-LocalStorageCookie-method-constructor'>	constructor: function( config ){
+</span>		var me = this;
+		me.callParent(arguments);
+		me.isStorage = !!window.localStorage;
+	},
+
+<span id='SU-storage-LocalStorageCookie-method-updateProxyId'>	updateProxyId: function(){
+</span>		Ext.destroy( this.store );
+        this.store = null;
+		this.getStore();
+	},
+
+<span id='SU-storage-LocalStorageCookie-method-getStore'>	/**
+</span>	 * Возвращает, и при необходимости создает, набор данных с ключем #proxyId.
+	 *
+	 * @return {Ext.data.Store}
+	 * @private
+	 */
+	getStore: function(){
+		var me = this;
+
+		if( !me.store ){
+			if( !me.isStorage ){
+				me.store = new SU.storage.CookieProvider({
+					prefix: me.getProxyId()+&#39;-&#39;
+				});
+			} else {
+				me.store = new Ext.data.Store({
+					autoSync: true,
+					fields: [&#39;key&#39;, &#39;value&#39;],
+					proxy: {
+						type: &#39;localstorage&#39;,
+						id  : me.getProxyId()
+					}
+				});
+				me.store.load();
+			}
+		}
+		return me.store;
+	},
+
+<span id='SU-storage-LocalStorageCookie-method-get'>	/**
+</span>	 * Возвращает значение параметра.
+	 *
+	 * Если параметр не найден, возвращается `undefined`.
+	 *
+	 * @param {String} key имя параметра
+	 * @return {Mixed}
+	 */
+	get: function( key ){
+		var me = this,
+			store = me.getStore(),
+			index, record;
+
+		if( !me.isStorage )
+			return store.get(key);
+
+		index = store.find(&#39;key&#39;, key, 0, false, true, true);
+		if( ~index ){
+			record = store.getAt(index);
+			return record.get(&#39;value&#39;);
+		}
+	},
+
+<span id='SU-storage-LocalStorageCookie-method-set'>	/**
+</span>	 * Устанавливает значение параметра.
+	 *
+	 * Возвращает `true` при успешной записи значения.
+	 *
+	 * @param {String} key имя параметра
+	 * @param {Mixed} value значение
+	 * @return {Boolean}
+	 */
+	set: function( key, value ){
+		var me = this,
+			store = me.getStore(),
+			index, record;
+
+		if( !me.isStorage ) {
+			store.set(key, value);
+			return true;
+		}
+
+		index = store.find(&#39;key&#39;, key, 0, false, true, true);
+		if( ~index ){
+			record = store.getAt(index);
+			record.set(&#39;value&#39;, value);
+            record.commit();
+		} else {
+			record = Ext.create( store.getModel(), { key: key, value: value });
+			store.data.add(record);
+		}
+        store.sync();
+		return !!record;
+	},
+
+<span id='SU-storage-LocalStorageCookie-method-del'>	/**
+</span>	 * Удаляет параметр.
+	 *
+	 * Возвращает `true` при успешном удалении.
+	 *
+	 * @param {String} key имя параметра
+	 * @return {Boolean}
+	 */
+	del: function( key ){
+		var me = this,
+			store = this.getStore(),
+			index, record;
+
+		if( !me.isStorage ) {
+			store.clear(key);
+			return true;
+		}
+
+		index = store.find(&#39;key&#39;, key, 0, false, true, true);
+		if( ~index ){
+			record = store.getAt(index);
+			store.remove(record);
+			store.sync();
+			return true;
+		}
+		return false;
+
+	}
+
+});
+</pre>
+</body>
+</html>

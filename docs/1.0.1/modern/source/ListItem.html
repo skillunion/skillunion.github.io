@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-ListItem'>/**
+</span> * A ListItem is a container for {@link Ext.dataview.List} with 
+ * useSimpleItems: false. 
+ * 
+ * ListItem configures and updates the {@link Ext.data.Model records} for  
+ * the sub-component items in a list. 
+ *
+ * *Note*: Use of ListItem increases overhead since it generates more markup than
+ * using the List class with useSimpleItems: true. This overhead is more
+ * noticeable in Internet Explorer. If at all possible, use
+ * {@link Ext.dataview.SimpleListItem} instead via the List&#39;s
+ * {@link Ext.dataview.List#useSimpleItems useSimpleItems} config.
+ *
+ * The following example shows how to configure and update sub-component items
+ * in a list:
+ *
+ *      Ext.define(&#39;App.view.twitter.TweetListItem&#39;, {
+ *          extend: &#39;Ext.dataview.ListItem&#39;,
+ *          xtype : &#39;tweetlistitem&#39;,
+ *
+ *          requires: [
+ *              &#39;Ext.Img&#39;
+ *          ],
+ *
+ *          layout: &#39;vbox&#39;,
+ *
+ *          items: [{
+ *              xtype: &#39;component&#39;,
+ *              cls: &#39;username&#39;,
+ *              reference: &#39;userName&#39;
+ *          }, {
+ *              xtype: &#39;component&#39;,
+ *              cls: &#39;text&#39;,
+ *              reference: &#39;textCmp&#39;
+ *          }, {
+ *              xtype : &#39;image&#39;,
+ *              reference: &#39;avatarImg&#39;,
+ *              docked: &#39;left&#39;,
+ *              cls: &#39;avatar&#39;,
+ *              width: 48,
+ *              height: 48
+ *          }],
+ *
+ *          dataMap: {
+ *              // Set &quot;html&quot; config of component w/reference &quot;userName&quot;
+ *              // to the &quot;username&quot; field from the associated record.
+ *              //
+ *              userName: {
+ *                  html: &#39;username&#39;
+ *              },
+ *
+ *              textCmp: {
+ *                  html: &#39;text&#39;
+ *              },
+ *
+ *              avatarImg: {
+ *                  src: &#39;avatar_url&#39;
+ *              }
+ *          }
+ *      });
+ *
+ */
+Ext.define(&#39;Ext.dataview.ListItem&#39;, {
+    extend: &#39;Ext.dataview.DataItem&#39;,
+    alternateClassName: &#39;Ext.dataview.component.ListItem&#39;,
+    xtype: &#39;listitem&#39;,
+
+    requires: [
+        &#39;Ext.dataview.ItemHeader&#39;
+    ],
+
+    mixins: [
+        &#39;Ext.dataview.Disclosable&#39;, // must come before Toolable
+        &#39;Ext.mixin.Toolable&#39;,
+        &#39;Ext.dataview.Pinnable&#39;
+    ],
+
+<span id='Ext-dataview-ListItem-property-classCls'>    classCls: [
+</span>        // ListItem is classClsRoot so that it can opt out of inheriting styles from
+        // DataItem, but it still needs to inherit container and component styles
+        Ext.baseCSSPrefix + &#39;listitem&#39;,
+        Ext.baseCSSPrefix + &#39;container&#39;,
+        Ext.baseCSSPrefix + &#39;component&#39;
+    ],
+
+<span id='Ext-dataview-ListItem-property-classClsRoot'>    classClsRoot: true,
+</span>
+<span id='Ext-dataview-ListItem-property-inheritUi'>    inheritUi: true,
+</span>
+<span id='Ext-dataview-ListItem-method-updateRecord'><span id='Ext-dataview-ListItem-cfg-items'>    items: null,  // base class has one item by default
+</span></span>
+    updateRecord: function(record) {
+        var me = this;
+
+        if (!me.destroying &amp;&amp; !me.destroyed) {
+            me.callParent([record]);
+            
+            me.syncDisclosure(record);
+        }
+    },
+
+<span id='Ext-dataview-ListItem-method-doDestroy'>    doDestroy: function() {
+</span>        this.mixins.toolable.doDestroy.call(this);
+        this.callParent();
+    },
+
+<span id='Ext-dataview-ListItem-property-privates'>    privates: {
+</span>        invokeToolHandler: function (tool, handler, scope, args, e) {
+            if (this.invokeDisclosure(tool, handler, e)) {
+                return false;
+            }
+
+            return tool.invokeToolHandler(tool, handler, scope, args, e);
+        }
+    }
+});
+</pre>
+</body>
+</html>

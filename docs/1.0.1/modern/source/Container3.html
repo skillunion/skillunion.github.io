@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-Container'>/**
+</span> * This Container Field is useful for containing multiple form fields
+ * to be a single field within a form and will line up nicely with other
+ * fields. This allows it to be configured with a {@link #label field label}
+ * and optional {@link #errorTarget error message} around it&#39;s sub-items.
+ * A common use is for grouping a set of related fields under a single label
+ * in a form.
+ *
+ * The container&#39;s configured {@link #cfg-items} will be layed out within
+ * the field body area according to the configured {@link #layout} type.
+ * The default layout is `&#39;hbox&#39;`.
+ *
+ * # Example
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         fullscreen: true,
+ *         title: &#39;FieldContainer Example&#39;,
+ *         bodyPadding: 10,
+ *
+ *         items: [{
+ *             xtype: &#39;containerfield&#39;,
+ *             label: &#39;Name&#39;,
+ *             name: &#39;name&#39;,
+ *             items: [{
+ *                 flex: 1,
+ *                 name: &#39;first&#39;,
+ *                 placeholder: &#39;First&#39;
+ *             }, {
+ *                 margin: &#39;0 10&#39;,
+ *                 name: &#39;middle&#39;,
+ *                 placeholder: &#39;MI&#39;,
+ *                 width: 50
+ *             }, {
+ *                 flex: 1,
+ *                 name: &#39;last&#39;,
+ *                 placeholder: &#39;Last&#39;
+ *             }]
+ *         }]
+ *     });
+ */
+Ext.define(&#39;Ext.field.Container&#39;, {
+    extend: &#39;Ext.field.Field&#39;,
+    xtype: [
+        &#39;containerfield&#39;,
+        &#39;fieldcontainer&#39; //classic compat
+    ],
+
+    mixins: [
+        &#39;Ext.field.Manager&#39;,
+        &#39;Ext.mixin.ConfigProxy&#39;
+    ],
+
+<span id='Ext-field-Container-cfg-error'>    /**
+</span>     * @cfg error
+     * @hide
+     */
+
+    config: {
+<span id='Ext-field-Container-cfg-container'>        /**
+</span>         * @cfg {Ext.Container} container
+         * The configuration of the container used to maintain child items.
+         */
+        container: {
+            xtype: &#39;container&#39;,
+            autoSize: null,
+            defaultType: &#39;textfield&#39;,
+            defaults: {
+                errorTarget: &#39;parent&#39;
+            },
+            layout: {
+                type: &#39;hbox&#39;
+            }
+        }
+    },
+
+<span id='Ext-field-Container-property-proxyConfig'>    proxyConfig: {
+</span>        container: {
+            configs: [
+<span id='Ext-field-Container-cfg-defaults'>                /**
+</span>                 * @cfg defaults
+                 * @inheritdoc Ext.Container#defaults
+                 */
+                &#39;defaults&#39;,
+
+<span id='Ext-field-Container-cfg-defaultType'>                /**
+</span>                 * @cfg defaultType
+                 * @inheritdoc Ext.Container#defaultType
+                 */
+                &#39;defaultType&#39;,
+
+<span id='Ext-field-Container-cfg-items'>                /**
+</span>                 * @cfg items
+                 * @inheritdoc Ext.Container#items
+                 */
+                &#39;items&#39;,
+
+<span id='Ext-field-Container-cfg-layout'>                /**
+</span>                 * @cfg layout
+                 * @inheritdoc Ext.Container#layout
+                 */
+                &#39;layout&#39;,
+
+<span id='Ext-field-Container-cfg-autoSize'>                /**
+</span>                 * @cfg autoSize
+                 * @inheritdoc Ext.Container#
+                 */
+                &#39;autoSize&#39;
+            ],
+            methods: [
+<span id='Ext-field-Container-method-add'>                /**
+</span>                 * @method add
+                 * @inheritdoc Ext.Container#add
+                 */
+                &#39;add&#39;,
+
+<span id='Ext-field-Container-method-insert'>                /**
+</span>                 * @method insert
+                 * @inheritdoc Ext.Container#insert
+                 */
+                &#39;insert&#39;,
+
+<span id='Ext-field-Container-method-remove'>                /**
+</span>                 * @method remove
+                 * @inheritdoc Ext.Container#remove
+                 */
+                &#39;remove&#39;,
+
+<span id='Ext-field-Container-method-removeAll'>                /**
+</span>                 * @method removeAll
+                 * @inheritdoc Ext.Container#removeAll
+                 */
+                &#39;removeAll&#39;,
+
+<span id='Ext-field-Container-method-getAt'>                /**
+</span>                 * @method getAt
+                 * @inheritdoc Ext.Container#getAt
+                 */
+                &#39;getAt&#39;,
+
+<span id='Ext-field-Container-method-child'>                /**
+</span>                 * @method child
+                 * @inheritdoc Ext.Container#child
+                 */
+                &#39;child&#39;,
+
+<span id='Ext-field-Container-method-down'>                /**
+</span>                 * @method down
+                 * @inheritdoc Ext.Container#down
+                 */
+                &#39;down&#39;,
+
+<span id='Ext-field-Container-method-query'>                /**
+</span>                 * @method query
+                 * @inheritdoc Ext.Container#query
+                 */
+                &#39;query&#39;
+            ]
+        }
+    },
+
+<span id='Ext-field-Container-cfg-bodyAlign'>    bodyAlign: &#39;stretch&#39;,
+</span>
+<span id='Ext-field-Container-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;containerfield&#39;,
+</span>
+<span id='Ext-field-Container-property-isField'>    isField: false,
+</span><span id='Ext-field-Container-property-isContainer'>    isContainer: true,
+</span><span id='Ext-field-Container-property-isContainerField'>    isContainerField: true,
+</span>
+<span id='Ext-field-Container-cfg-errorTpl'>    errorTpl: &#39;&lt;tpl if=&quot;count == 1&quot;&gt;&#39; +
+</span>        &#39;&lt;tpl for=&quot;errors&quot;&gt;{label:htmlEncode}: {error:htmlEncode}&lt;/tpl&gt;&#39; +
+    &#39;&lt;tpl elseif=&quot;count&quot;&gt;&#39; +
+        &#39;&lt;ul class=&quot;{listCls}&quot;&gt;&#39; +
+            &#39;&lt;tpl for=&quot;errors&quot;&gt;&#39; +
+                &#39;&lt;li&gt;{label:htmlEncode}: {error:htmlEncode}&lt;/li&gt;&#39; +
+            &#39;&lt;/tpl&gt;&#39; +
+        &#39;&lt;/ul&gt;&#39; +
+    &#39;&lt;/tpl&gt;&#39;,
+
+<span id='Ext-field-Container-method-doDestroy'>    doDestroy: function () {
+</span>        this.setContainer(null);
+
+        this.callParent();
+    },
+
+<span id='Ext-field-Container-method-applyContainer'>    applyContainer: function (container, oldContainer) {
+</span>        if (container) {
+            if (!container.isInstance) {
+                container = this.mergeProxiedConfigs(&#39;container&#39;, container);
+                container.$initParent = this;
+                container = Ext.create(container);
+                delete container.$initParent;
+            }
+
+            container.ownerCmp = this;
+        }
+
+        return container;
+    },
+
+<span id='Ext-field-Container-method-updateContainer'>    updateContainer: function (container, oldContainer) {
+</span>        var bodyElement = this.bodyElement;
+
+        if (oldContainer) {
+            bodyElement.removeChild(oldContainer.el);
+
+            oldContainer.destroy();
+        }
+
+        if (container) {
+            bodyElement.appendChild(container.el);
+        }
+    },
+
+<span id='Ext-field-Container-method-updateRecord'>    updateRecord: function(record) {
+</span>        this.consumeRecord(record);
+    },
+
+<span id='Ext-field-Container-method-onFieldErrorChange'>    onFieldErrorChange: function (field) {
+</span>        var me = this,
+            errors = me.getErrors(),
+            fields = me.getFields(),
+            name, fieldErrors, label, messages;
+
+        for (name in errors) {
+            field = fields[name];
+            fieldErrors = errors[name];
+
+            if (fieldErrors) {
+                label = field.getLabel() || field.getPlaceholder() || field.getName();
+                fieldErrors = Ext.Array
+                    .from(fieldErrors)
+                    .map(function (error) {
+                        return {
+                            label: label,
+                            error: error
+                        };
+                    });
+
+                if (messages) {
+                    messages = messages.concat(fieldErrors);
+                } else {
+                    messages = fieldErrors;
+                }
+            }
+        }
+
+        me.setError(messages || null);
+    },
+
+<span id='Ext-field-Container-method-getRefItems'>    /**
+</span>     * @private
+     * Used by {@link Ext.ComponentQuery} to find all items
+     * which can potentially be considered a child of this container.
+     * @param {Boolean} deep `true` to find grandchildren of child containers.
+     */
+    getRefItems: function (deep) {
+        var refItems = [],
+            container = this.getContainer();
+
+        if (container) {
+            refItems.push(container);
+
+            if (deep &amp;&amp; container.getRefItems) {
+                refItems.push.apply(refItems, container.getRefItems(deep));
+            }
+        }
+
+        return refItems;
+    },
+
+<span id='Ext-field-Container-method-getFocusEl'>    /**
+</span>     * @localdoc Finds the first form field that can be focused.
+     */
+    getFocusEl: function () {
+        var items = this.getFields(false),
+            length = items &amp;&amp; items.length,
+            i, item, focusEl;
+
+        for (i = 0; i &lt; length; i++) {
+            item = items[i];
+            focusEl = item.getFocusEl();
+
+            if (focusEl) {
+                return focusEl;
+            }
+        }
+
+        return this.callParent();
+    },
+
+<span id='Ext-field-Container-method-reset'>    reset: function (clearInvalid) {
+</span>        if (clearInvalid) {
+            this.setError(null);
+        }
+
+        return this.mixins.fieldmanager.reset.call(this, clearInvalid);
+    },
+
+<span id='Ext-field-Container-method-setErrors'>    /**
+</span>     * Marks each field invalid based on the messages passed. The object will
+     * be iterated over and a child field is found based on the key matching
+     * a field&#39;s name. The field will then be marked invalid with that message.
+     * If the value is falsey, that field will be not be marked invalid. Example:
+     *
+     *     @example
+     *     var form = Ext.create(&#39;Ext.form.Panel&#39;, {
+     *         fullscreen: true,
+     *         title: &#39;FieldContainer Example&#39;,
+     *         bodyPadding: 10,
+     *
+     *         items: [{
+     *             xtype: &#39;containerfield&#39;,
+     *             label: &#39;Name&#39;,
+     *             name: &#39;name&#39;,
+     *             items: [{
+     *                 flex: 1,
+     *                 name: &#39;first&#39;,
+     *                 placeholder: &#39;First&#39;,
+     *                 required: true
+     *             }, {
+     *                 margin: &#39;0 10&#39;,
+     *                 name: &#39;middle&#39;,
+     *                 placeholder: &#39;MI&#39;,
+     *                 width: 50
+     *             }, {
+     *                 flex: 1,
+     *                 name: &#39;last&#39;,
+     *                 placeholder: &#39;Last&#39;,
+     *                 required: true
+     *             }]
+     *         }]
+     *     });
+     *
+     *     var fieldcontainer = form.child(&#39;containerfield&#39;);
+     *
+     *     fieldcontainer.setErrors({
+     *         first: &#39;First name is required&#39;,
+     *         last: &#39;Last name is required&#39;,
+     *         middle: null                      //clears any errors on the field
+     *     });
+     *
+     * @param {Object} errors The errors to set child fields with.
+     * @return {Ext.field.Container} this
+     */
+    setErrors: function (errors) {
+        var me = this,
+            fields = me.getFields(),
+            fieldname, field, messages;
+
+        //&lt;debug&gt;
+        if (!Ext.isObject(errors)) {
+            Ext.raise(&#39;setErrors requires an Object parameter&#39;);
+        }
+        //&lt;/debug&gt;
+
+        me.setError(null);
+
+        for (fieldname in errors) {
+            field = fields[fieldname];
+
+            if (field) {
+                messages = errors[fieldname];
+
+                if (messages == null || (Ext.isArray(messages) &amp;&amp; messages.length === 0)) {
+                    field.setError(null);
+                } else {
+                    field.setError(Ext.Array.from(messages));
+                }
+            }
+        }
+
+        return me;
+    },
+
+<span id='Ext-field-Container-method-isValid'>    isValid: function () {
+</span>        return this.mixins.fieldmanager.isValid.call(this);
+    },
+
+<span id='Ext-field-Container-method-validate'>    validate: function (skiplazy) {
+</span>        return this.mixins.fieldmanager.validate.call(this, skiplazy);
+    },
+
+<span id='Ext-field-Container-method-getFields'>    getFields: function (byName, deep) {
+</span>        if (deep == null) {
+            //if not passed in, default to false
+            deep = false;
+        }
+
+        return this.mixins.fieldmanager.getFields.call(this, byName, deep);
+    }
+});
+</pre>
+</body>
+</html>

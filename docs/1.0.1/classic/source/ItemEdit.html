@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-interactions-ItemEdit'>/**
+</span> * @class Ext.chart.interactions.ItemEdit
+ * @extends Ext.chart.interactions.ItemHighlight
+ *
+ * The &#39;itemedit&#39; interaction allows the user to edit store data
+ * by dragging series items in the chart.
+ *
+ * The &#39;itemedit&#39; interaction extends the
+ * {@link Ext.chart.interactions.ItemHighlight &#39;itemhighlight&#39;} interaction,
+ * so it also acts like one. If you need both interactions in a single chart,
+ * &#39;itemedit&#39; should be sufficient. Hovering/tapping will result in highlighting,
+ * and dragging will result in editing.
+ */
+Ext.define(&#39;Ext.chart.interactions.ItemEdit&#39;, {
+    extend: &#39;Ext.chart.interactions.ItemHighlight&#39;,
+    requires: [
+        &#39;Ext.tip.ToolTip&#39;
+    ],
+
+<span id='Ext-chart-interactions-ItemEdit-property-type'>    type: &#39;itemedit&#39;,
+</span>    alias: &#39;interaction.itemedit&#39;,
+
+<span id='Ext-chart-interactions-ItemEdit-property-isItemEdit'>    isItemEdit: true,
+</span>
+    config: {
+<span id='Ext-chart-interactions-ItemEdit-cfg-style'>        /**
+</span>         * @cfg {Object} [style=null]
+         * The style that will be applied to the series item on dragging.
+         * By default, series item will have no fill,
+         * and will have a dashed stroke of the same color.
+         */
+        style: null,
+
+<span id='Ext-chart-interactions-ItemEdit-cfg-renderer'>        /**
+</span>         * @cfg {Function/String} [renderer=null]
+         * A function that returns style attributes for the item that&#39;s being dragged.
+         * This is useful if you want to give a visual feedback to the user when
+         * they dragged to a certain point.
+         *
+         * @param {Object} [data] The following properties are available:
+         *
+         * @param {Object} data.target The object containing the xField/xValue or/and
+         * yField/yValue properties, where the xField/yField specify the store records
+         * being edited and the xValue/yValue the target values to be set when
+         * the interaction ends. The object also contains the &#39;index&#39; of the record
+         * being edited.
+         * @param {Object} data.style The style that is going to be used for the dragged item.
+         * The attributes returned by the renderer will be applied on top of this style.
+         * @param {Object} data.item The series item being dragged.
+         * This is actually the {@link Ext.chart.AbstractChart#highlightItem}.
+         *
+         * @return {Object} The style attributes to be set on the dragged item.
+         */
+        renderer: null,
+
+<span id='Ext-chart-interactions-ItemEdit-cfg-tooltip'>        /**
+</span>         * @cfg {Object/Boolean} [tooltip=true]
+         */
+        tooltip: true,
+
+<span id='Ext-chart-interactions-ItemEdit-cfg-gestures'>        gestures: {
+</span>            dragstart: &#39;onDragStart&#39;,
+            drag: &#39;onDrag&#39;,
+            dragend: &#39;onDragEnd&#39;
+        },
+
+<span id='Ext-chart-interactions-ItemEdit-cfg-cursors'>        cursors: {
+</span>            ewResize: &#39;ew-resize&#39;,
+            nsResize: &#39;ns-resize&#39;,
+            move: &#39;move&#39;
+        }
+
+<span id='Ext-chart-interactions-ItemEdit-cfg-sticky'>        /**
+</span>         * @private
+         * @cfg {Boolean} [sticky=false]
+         */
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-event-beginitemedit'>    /**
+</span>     * @event beginitemedit
+     * Fires when item edit operation (dragging) begins.
+     * @param {Ext.chart.AbstractChart} chart The chart the interaction belongs to.
+     * @param {Ext.chart.interactions.ItemEdit} interaction The interaction.
+     * @param {Object} item The item that is about to be edited.
+     */
+
+<span id='Ext-chart-interactions-ItemEdit-event-enditemedit'>    /**
+</span>     * @event enditemedit
+     * Fires when item edit operation (dragging) ends.
+     * @param {Ext.chart.AbstractChart} chart The chart the interaction belongs to.
+     * @param {Ext.chart.interactions.ItemEdit} interaction The interaction.
+     * @param {Object} item The item that was edited.
+     * @param {Object} target The object containing target values the were used.
+     */
+
+<span id='Ext-chart-interactions-ItemEdit-method-applyTooltip'>    item: null, // Item being edited.
+</span>
+    applyTooltip: function (tooltip) {
+        if (tooltip) {
+            var config = Ext.apply({}, tooltip, {
+                renderer: this.defaultTooltipRenderer,
+                constrainPosition: true,
+                shrinkWrapDock: true,
+                autoHide: true,
+                trackMouse: true,
+                mouseOffset: [20, 20]
+            });
+
+            tooltip = new Ext.tip.ToolTip(config);
+        }
+
+        return tooltip;
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-method-defaultTooltipRenderer'>    defaultTooltipRenderer: function (tooltip, item, target, e) {
+</span>        var parts = [];
+
+        if (target.xField) {
+            parts.push(target.xField + &#39;: &#39; + target.xValue);
+        }
+        if (target.yField) {
+            parts.push(target.yField + &#39;: &#39; + target.yValue);
+        }
+
+        tooltip.setHtml(parts.join(&#39;&lt;br&gt;&#39;));
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-method-onDragStart'>    onDragStart: function (e) {
+</span>        var me = this,
+            chart = me.getChart(),
+            item = chart.getHighlightItem();
+
+        e.claimGesture();
+
+        if (item) {
+            chart.fireEvent(&#39;beginitemedit&#39;, chart, me, me.item = item);
+
+            // If ItemEdit interaction comes before other interactions
+            // in the chart&#39;s &#39;interactions&#39; config, this will
+            // prevent other interactions hijacking the &#39;dragstart&#39;
+            // event. We only stop event propagation is there&#39;s
+            // an item to edit under cursor/finger, otherwise we
+            // let other interactions (e.g. &#39;panzoom&#39;) handle the event.
+            return false;
+        }
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-method-onDrag'>    onDrag: function (e) {
+</span>        var me = this,
+            chart = me.getChart(),
+            item = chart.getHighlightItem(),
+            type = item &amp;&amp; item.sprite.type;
+
+        if (item) {
+            switch (type) {
+                case &#39;barSeries&#39;:
+                    return me.onDragBar(e);
+                case &#39;scatterSeries&#39;:
+                    return me.onDragScatter(e);
+            }
+        }
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-method-highlight'>    highlight: function (item) {
+</span>        var me = this,
+            chart = me.getChart(),
+            flipXY = chart.getFlipXY(),
+            cursors = me.getCursors(),
+            type = item &amp;&amp; item.sprite.type,
+            style = chart.el.dom.style;
+
+        me.callParent([item]);
+
+        if (item) {
+            switch (type) {
+                case &#39;barSeries&#39;:
+                    if (flipXY) {
+                        style.cursor = cursors.ewResize;
+                    } else {
+                        style.cursor = cursors.nsResize;
+                    }
+                    break;
+                case &#39;scatterSeries&#39;:
+                    style.cursor = cursors.move;
+                    break;
+            }
+        } else {
+            chart.el.dom.style.cursor = &#39;default&#39;;
+        }
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-method-onDragBar'>    onDragBar: function (e) {
+</span>        var me = this,
+            chart = me.getChart(),
+            isRtl = chart.getInherited().rtl,
+            flipXY = chart.isCartesian &amp;&amp; chart.getFlipXY(),
+            item = chart.getHighlightItem(),
+            marker = item.sprite.getMarker(&#39;items&#39;),
+            instance = marker.getMarkerFor(item.sprite.getId(), item.index),
+            surface = item.sprite.getSurface(),
+            surfaceRect = surface.getRect(),
+            xy = surface.getEventXY(e),
+            matrix = item.sprite.attr.matrix,
+            renderer = me.getRenderer(),
+            style, changes, params, positionY;
+
+        if (flipXY) {
+            positionY = isRtl ? surfaceRect[2] - xy[0] : xy[0];
+        } else {
+            positionY = surfaceRect[3] - xy[1];
+        }
+        style = {
+            x: instance.x,
+            y: positionY,
+            width: instance.width,
+            height: instance.height + (instance.y - positionY),
+            radius: instance.radius,
+            fillStyle: &#39;none&#39;,
+            lineDash: [4, 4],
+            zIndex: 100
+        };
+        Ext.apply(style, me.getStyle());
+
+        if (Ext.isArray(item.series.getYField())) { // stacked bars
+            positionY = positionY - instance.y - instance.height;
+        }
+        me.target = {
+            index: item.index,
+            yField: item.field,
+            yValue: (positionY - matrix.getDY()) / matrix.getYY()
+        };
+
+        params = [chart, {
+            target: me.target,
+            style: style,
+            item: item
+        }];
+        changes = Ext.callback(renderer, null, params, 0, chart);
+        if (changes) {
+            Ext.apply(style, changes);
+        }
+        // The interaction works by putting another series item instance
+        // under &#39;itemedit&#39; ID with a slightly different style (default) or
+        // whatever style the user provided.
+        item.sprite.putMarker(&#39;items&#39;, style, &#39;itemedit&#39;);
+
+        me.showTooltip(e, me.target, item);
+        surface.renderFrame();
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-method-onDragScatter'>    onDragScatter: function (e) {
+</span>        var me = this,
+            chart = me.getChart(),
+            isRtl = chart.getInherited().rtl,
+            flipXY = chart.isCartesian &amp;&amp; chart.getFlipXY(),
+            item = chart.getHighlightItem(),
+            marker = item.sprite.getMarker(&#39;markers&#39;),
+            instance = marker.getMarkerFor(item.sprite.getId(), item.index),
+            surface = item.sprite.getSurface(),
+            surfaceRect = surface.getRect(),
+            xy = surface.getEventXY(e),
+            matrix = item.sprite.attr.matrix,
+            xAxis = item.series.getXAxis(),
+            isEditableX = xAxis &amp;&amp; xAxis.getLayout().isContinuous,
+            renderer = me.getRenderer(),
+            style, changes, params,
+            positionX, positionY,
+            hintX, hintY;
+
+        if (flipXY) {
+            positionY = isRtl ? surfaceRect[2] - xy[0] : xy[0];
+        } else {
+            positionY = surfaceRect[3] - xy[1];
+        }
+        if (isEditableX) {
+            if (flipXY) {
+                positionX = surfaceRect[3] - xy[1];
+            } else {
+                positionX = xy[0];
+            }
+        } else {
+            positionX = instance.translationX;
+        }
+
+        if (isEditableX) {
+            hintX = xy[0];
+            hintY = xy[1];
+        } else {
+            if (flipXY) {
+                hintX = xy[0];
+                hintY = instance.translationY; // no change
+            } else {
+                hintX = instance.translationX;
+                hintY = xy[1]; // no change
+            }
+        }
+        style = {
+            translationX: hintX,
+            translationY: hintY,
+            scalingX: instance.scalingX,
+            scalingY: instance.scalingY,
+            r: instance.r,
+            fillStyle: &#39;none&#39;,
+            lineDash: [4, 4],
+            zIndex: 100
+        };
+        Ext.apply(style, me.getStyle());
+
+        me.target = {
+            index: item.index,
+            yField: item.field,
+            yValue: (positionY - matrix.getDY()) / matrix.getYY()
+        };
+        if (isEditableX) {
+            Ext.apply(me.target, {
+                xField: item.series.getXField(),
+                xValue: (positionX - matrix.getDX()) / matrix.getXX()
+            });
+        }
+
+        params = [chart, {
+            target: me.target,
+            style: style,
+            item: item
+        }];
+        changes = Ext.callback(renderer, null, params, 0, chart);
+        if (changes) {
+            Ext.apply(style, changes);
+        }
+        // This marker acts as a visual hint while dragging.
+        item.sprite.putMarker(&#39;markers&#39;, style, &#39;itemedit&#39;);
+
+        me.showTooltip(e, me.target, item);
+        surface.renderFrame();
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-method-showTooltip'>    showTooltip: function (e, target, item) {
+</span>        var tooltip = this.getTooltip(),
+            config, chart;
+
+        if (tooltip &amp;&amp; Ext.toolkit !== &#39;modern&#39;) {
+            config = tooltip.config;
+            chart = this.getChart();
+            Ext.callback(config.renderer, null, [tooltip, item, target, e], 0, chart);
+            // If trackMouse is set, a ToolTip shows by its pointerEvent
+            tooltip.pointerEvent = e;
+
+            if (tooltip.isVisible()) {
+                // After show handling repositions according
+                // to configuration. trackMouse uses the pointerEvent
+                // If aligning to an element, it uses a currentTarget
+                // flyweight which may be attached to any DOM element.
+                tooltip.realignToTarget();
+            } else {
+                tooltip.show();
+            }
+        }
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-method-hideTooltip'>    hideTooltip: function () {
+</span>        var tooltip = this.getTooltip();
+
+        if (tooltip &amp;&amp; Ext.toolkit !== &#39;modern&#39;) {
+            tooltip.hide();
+        }
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-method-onDragEnd'>    onDragEnd: function (e) {
+</span>        var me = this,
+            target = me.target,
+            chart = me.getChart(),
+            store = chart.getStore(),
+            record;
+
+        if (target) {
+            record = store.getAt(target.index);
+            if (target.yField) {
+                record.set(target.yField, target.yValue, {
+                    convert: false
+                });
+            }
+            if (target.xField) {
+                record.set(target.xField, target.xValue, {
+                    convert: false
+                });
+            }
+            if (target.yField || target.xField) {
+                me.getChart().onDataChanged();
+            }
+            me.target = null;
+        }
+
+        me.hideTooltip();
+
+        if (me.item) {
+            chart.fireEvent(&#39;enditemedit&#39;, chart, me, me.item, target);
+        }
+        me.highlight(me.item = null);
+    },
+
+<span id='Ext-chart-interactions-ItemEdit-method-destroy'>    destroy: function () {
+</span>        // Peek at the config, so we don&#39;t create one just to destroy it,
+        // if a user has set &#39;tooltip&#39; config to &#39;false&#39;.
+        var tooltip = this.getConfig(&#39;tooltip&#39;, true);
+
+        Ext.destroy(tooltip);
+        this.callParent();
+    }
+
+});
+</pre>
+</body>
+</html>

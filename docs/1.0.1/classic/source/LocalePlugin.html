@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-locale-LocalePlugin'>/**
+</span> * Общий класс для ExtJS 4.2+ / Sencha Touch 2.3+
+ *
+ * Плагин для регистрации компонента в Ext.Language.
+ *
+ */
+Ext.define(&#39;SU.locale.LocalePlugin&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: &#39;plugin.localization&#39;,
+
+	requires: [
+		&#39;SU.locale.model.ClientModel&#39;
+	],
+
+    config: {
+<span id='SU-locale-LocalePlugin-cfg-method'>        /**
+</span>         * Метод копонента, вызываемый при изменении локализации.
+         * @cfg {Function/String} method
+		 * @cfg {Mixed} method.property
+		 * Значение найденное в Ext.Language#properties по ключу #key
+		 * или Ext.Language#properties если ключ #key не указан или
+		 * значение не найдено.
+         */
+        method: Ext.EmptyFn,
+
+<span id='SU-locale-LocalePlugin-cfg-key'>        /**
+</span>         * Ключ для поиска значения в {@link Ext.Language#properties}.
+         * @cfg {String} key
+         */
+        key: &#39;&#39;
+    },
+
+<span id='SU-locale-LocalePlugin-method-init'>    /**
+</span>     * Инициализация плагина при создании компонента.
+	 * Регистрирует компонент в Ext.Language.
+     *
+     * @param {Ext.Component} client
+     */
+    init: function(client) {
+        this.clientModel = Ext.create(&#39;SU.locale.model.ClientModel&#39;, {
+            client: client,
+            method: this.getMethod(),
+            key: this.getKey()
+        });
+
+        SU.locale.LocaleManager.registerClient(this.clientModel);
+    },
+
+<span id='SU-locale-LocalePlugin-method-destroy'>    destroy: function () {
+</span>        SU.locale.LocaleManager.unregisterClient(this.clientModel);
+        this.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

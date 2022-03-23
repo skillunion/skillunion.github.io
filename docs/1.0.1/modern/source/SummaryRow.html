@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-SummaryRow'>/**
+</span> *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.grid.SummaryRow&#39;, {
+    extend: &#39;Ext.grid.Row&#39;,
+    xtype: &#39;gridsummaryrow&#39;,
+
+    requires: [
+        &#39;Ext.data.summary.Base&#39;  // at least get the Ext.Factory.dataSummary
+    ],
+
+<span id='Ext-grid-SummaryRow-property-isSummaryRow'>    isSummaryRow: true,
+</span>
+    config: {
+<span id='Ext-grid-SummaryRow-cfg-group'>        // translatable: {
+</span>        //     type: &#39;csstransform&#39;
+        // },
+
+        group: null
+    },
+
+<span id='Ext-grid-SummaryRow-cfg-defaultCellUI'>    defaultCellUI: &#39;summary&#39;,
+</span>    
+<span id='Ext-grid-SummaryRow-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;summaryrow&#39;,
+</span>
+<span id='Ext-grid-SummaryRow-method-updateGroup'>    updateGroup: function () {
+</span>        this.syncSummary();
+    },
+
+<span id='Ext-grid-SummaryRow-property-privates'>    privates: {
+</span>        beginRefresh: function (context) {
+            var me = this;
+
+            context = me.callParent([ context ]);
+
+            context.group = me.getGroup();
+            context.records = (context.group || context.store.data).items;
+            context.summary = true;
+
+            return context;
+        },
+
+        syncSummary: function () {
+            var me = this,
+                owner = me.getGroup() || me.parent.store,
+                record = owner.getSummaryRecord(),
+                viewModel = me.getViewModel();
+
+            if (record === me.getRecord()) {
+                me.refresh();
+            }
+            else {
+                me.setRecord(record);
+
+                if (viewModel) {
+                    viewModel.setData({
+                        record: record
+                    });
+                }
+            }
+        }
+    } // privates
+});
+</pre>
+</body>
+</html>

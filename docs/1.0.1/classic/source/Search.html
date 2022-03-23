@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-form-field-Search'>/**
+</span> * Простое поле поиска, аналогичное полю поиска в `modern`, по оформлению
+ * соответствует полю ввода `&lt;input type=&quot;search&quot;&gt;` HTML5.
+ * 
+ *     @example
+ *     Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         renderTo: Ext.getBody(),
+ *         items: [
+ *             {
+ *                 xtype: &#39;searchfield&#39;,
+ *                 fieldLabel: &#39;Query&#39;,
+ *                 name: &#39;query&#39;,
+ *                 listeners: {
+ *                     search: function(f, text){
+ *                         alert(&#39;Search text: &#39; + (text || &#39;null&#39;));
+ *                     }
+ *                 }
+ *             }
+ *         ]
+ *     });
+ *
+ * 
+ */
+Ext.define(&#39;SU.form.field.Search&#39;, {
+    extend: &#39;Ext.form.field.Text&#39;,
+    alternateClassName: [&#39;Ext.form.field.Search&#39;, &#39;Ext.form.Search&#39;, &#39;Ext.form.SearchField&#39;],
+    alias: &#39;widget.searchfield&#39;,
+
+<span id='SU-form-field-Search-cfg-cls'>    /**
+</span>     * @cfg {String} cls=&#39;x-form-type-search&#39;
+     * @inheritdoc
+     */
+    cls: Ext.baseCSSPrefix + &#39;form-type-search&#39;,
+    
+    config: {
+<span id='SU-form-field-Search-cfg-reuse'>        /**
+</span>         * @cfg {Boolean} [reuse=true]
+         * Разрешает повторный вброс события #search
+         * при неизмененном тексте 
+         */
+        reuse: true
+    },
+    
+<span id='SU-form-field-Search-cfg-triggers'>    /**
+</span>     * @cfg {Object} triggers={clear,search}
+     * @inheritdoc
+     */
+    triggers: {
+
+        clear: {
+            weight: 0,
+            cls: Ext.baseCSSPrefix + &#39;form-clear-trigger&#39;,
+            hidden: true,
+            handler: &#39;doClear&#39;,
+            scope: &#39;this&#39;
+        },
+
+        search: {
+            weight: 1,
+            cls: Ext.baseCSSPrefix + &#39;form-search-trigger&#39;,
+            handler: &#39;mybeFireSearch&#39;,
+            scope: &#39;this&#39;
+        }
+
+    },
+
+<span id='SU-form-field-Search-cfg-listeners'>    listeners: {
+</span>
+        specialkey: function(f, e){
+            if (e.getKey() === e.ENTER) {
+                e.stopEvent();
+                this.mybeFireSearch();
+                return false;
+            }
+        },
+
+        change: function(f, v){
+                this.syncClearTrigger();
+                if(v.length === 0){
+                    this.mybeFireSearch();
+                }
+        }
+
+    },
+
+<span id='SU-form-field-Search-property-privates'>    privates: {
+</span>
+        syncClearTrigger: function(){
+            var me = this,
+                clear = me.getTriggers().clear,
+                value = me.getValue();
+
+            clear.setVisible(!!value);
+        },
+
+<span id='SU-form-field-Search-event-search'>        /**
+</span>         * @event search
+         * Возникает по требованию пользоваля при нажатии
+         * 
+         * - кнопки `search`, 
+         * - клавиши `ENTER` 
+         * 
+         * или при очистке поля ввода.
+         * 
+         * Событие возникает только после изменения введенного значения.
+         * 
+         * @param {Ext.form.Search} this
+         * @param {String} [searchText]
+         */
+
+<span id='SU-form-field-Search-method-doClear'>        /**
+</span>         * Обработка триггерной кнопки очистки
+         * @private
+         */
+        doClear: function(){
+            this.setValue(&#39;&#39;);
+        },
+
+<span id='SU-form-field-Search-method-mybeFireSearch'>        /**
+</span>         * Обработка 
+         * 
+         * - триггерной кнопки поиска
+         * - клавиши `ENTER
+         * - очистки поля ввода
+         * 
+         * Если необходимо - отправка события #search
+         */
+        mybeFireSearch: function(){
+            var me = this,
+                value = me.getValue();
+
+            if (!!value &amp;&amp; value.length &gt; 0){ 
+                if (me.getReuse() || me.searchText !== value) {
+                    me.searchText = value;
+                    me.fireEvent(&#39;search&#39;, me, value);
+                }
+            } else {
+                if (me.getReuse() || !!me.searchText){
+                    me.searchText = undefined;
+                    me.fireEvent(&#39;search&#39;, me, null);
+                }
+            }
+        }
+    }    
+});
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-legend-store-Item'>/**
+</span> * The data model for legend items.
+ */
+Ext.define(&#39;Ext.chart.legend.store.Item&#39;, {
+    extend: &#39;Ext.data.Model&#39;,
+
+<span id='Ext-chart-legend-store-Item-property-fields'>    fields: [
+</span>        &#39;id&#39;,
+        &#39;name&#39;,      // The series title.
+        &#39;mark&#39;,      // The color of the series.
+        &#39;disabled&#39;,  // The state of the series.
+        &#39;series&#39;,    // A reference to the series instance.
+        &#39;index&#39;      // A sprite index, e.g. for stacked or pie series.
+                     // For such series an individual component of the series
+                     // is hidden or shown when the legend item is toggled.
+    ]
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-util-GroupCollection'>/**
+</span> * @private
+ * A collection containing the result of applying grouping to the records in the store.
+ */
+Ext.define(&#39;Ext.util.GroupCollection&#39;, {
+    extend: &#39;Ext.util.Collection&#39;,
+    
+    requires: [
+        &#39;Ext.util.Group&#39;,
+
+        // Since Collection uses sub-collections of various derived types we step up to
+        // list all the requirements of Collection. The idea being that instead of a
+        // &quot;requires&quot; of Ext.util.Collection (which cannot pull everything) you instead
+        // do a &quot;requires&quot; of Ext.util.GroupCollection and it will.
+        &#39;Ext.util.SorterCollection&#39;,
+        &#39;Ext.util.FilterCollection&#39;
+    ],
+
+<span id='Ext-util-GroupCollection-property-isGroupCollection'>    isGroupCollection: true,
+</span>
+    config: {
+<span id='Ext-util-GroupCollection-cfg-grouper'>        grouper: null,
+</span><span id='Ext-util-GroupCollection-cfg-groupConfig'>        groupConfig: null,
+</span><span id='Ext-util-GroupCollection-cfg-itemRoot'>        itemRoot: null
+</span>    },
+
+<span id='Ext-util-GroupCollection-property-observerPriority'>    observerPriority: -100,
+</span>
+<span id='Ext-util-GroupCollection-method-constructor'><span id='Ext-util-GroupCollection-property-emptyGroupRetainTime'>    emptyGroupRetainTime: 300000, // Private timer to hang on to emptied groups. Milliseconds.
+</span></span>
+    constructor: function(config) {
+        this.emptyGroups = {};
+        this.callParent([config]);
+        this.on(&#39;remove&#39;, &#39;onGroupRemove&#39;, this);
+    },
+
+<span id='Ext-util-GroupCollection-method-getItemGroup'>    /**
+</span>     * Returns the `Ext.util.Group` associated with the given record.
+     *
+     * @param {Object} item The item for which the group is desired.
+     * @return {Ext.util.Group}
+     * @since 6.5.0
+     */
+    getItemGroup: function (item) {
+        var key = this.getGrouper().getGroupString(item);
+        return this.get(key);
+    },
+
+<span id='Ext-util-GroupCollection-method-onCollectionAdd'>    //-------------------------------------------------------------------------
+</span>    // Calls from the source Collection:
+
+    onCollectionAdd: function (source, details) {
+        if (!this.isConfiguring) {
+            this.addItemsToGroups(source, details.items, details.at);
+        }
+    },
+
+<span id='Ext-util-GroupCollection-method-onCollectionBeforeItemChange'>    onCollectionBeforeItemChange: function (source, details) {
+</span>        this.changeDetails = details;
+    },
+
+<span id='Ext-util-GroupCollection-method-onCollectionBeginUpdate'>    onCollectionBeginUpdate: function () {
+</span>        this.beginUpdate();
+    },
+
+<span id='Ext-util-GroupCollection-method-onCollectionEndUpdate'>    onCollectionEndUpdate: function () {
+</span>        this.endUpdate();
+    },
+
+<span id='Ext-util-GroupCollection-method-onCollectionItemChange'>    onCollectionItemChange: function (source, details) {
+</span>        // Check if the change to the item caused the item to move. If it did, the group
+        // ordering will be handled by virtue of being removed/added to the collection.
+        // If not, check whether we&#39;re in the correct group and fix up if not.
+        if (!details.indexChanged) {
+            this.syncItemGrouping(source, details);
+        }
+        this.changeDetails = null;
+    },
+
+<span id='Ext-util-GroupCollection-method-onCollectionRefresh'>    onCollectionRefresh: function (source) {
+</span>        if (source.generation) {
+            var me = this,
+                itemGroupKeys = me.itemGroupKeys = {},
+                groupData = me.createEntries(source, source.items),
+                entries = groupData.entries,
+                groupKey, i, len, entry, j;
+
+            // The magic of Collection will automatically update the group with its new members.
+            for (i = 0, len = entries.length; i &lt; len; ++i) {
+                entry = entries[i];
+
+                // Will add or replace
+                entry.group.splice(0, 1e99, entry.items);
+
+                // Add item key -&gt; group mapping for every entry
+                for (j = 0; j &lt; entry.items.length; j++) {
+                    itemGroupKeys[source.getKey(entry.items[j])] = entry.group;
+                }
+            }
+
+            // Remove groups to which we have not added items.
+            entries = null;
+            for (groupKey in me.map) {
+                if (!(groupKey in groupData.groups)) {
+                    (entries || (entries = [])).push(me.map[groupKey]);
+                }
+            }
+            if (entries) {
+                me.remove(entries);
+            }
+
+            // autoSort is disabled when adding new groups because
+            // it relies on there being at least one record in the group
+            me.sortItems();
+        }
+    },
+
+<span id='Ext-util-GroupCollection-method-onCollectionRemove'>    onCollectionRemove: function (source, details) {
+</span>        var me = this,
+            changeDetails = me.changeDetails,
+            itemGroupKeys = me.itemGroupKeys || (me.itemGroupKeys = {}),
+            entries, entry, group, i, n, j, removeGroups, item;
+
+        if (source.getCount()) {
+            if (changeDetails) {
+                // The item has changed, so the group key may be different, need
+                // to look it up
+                item = changeDetails.item || changeDetails.items[0];
+                entries = me.createEntries(source, [item]).entries;
+                entries[0].group = itemGroupKeys[&#39;oldKey&#39; in details ? details.oldKey : source.getKey(item)];
+            } else {
+                entries = me.createEntries(source, details.items).entries;
+            }
+
+            for (i = 0, n = entries.length; i &lt; n; ++i) {
+                group = (entry = entries[i]).group;
+                if (group) {
+                    group.remove(entry.items);
+                }
+
+                // Delete any item key -&gt; group mapping
+                for (j = 0; j &lt; entry.items.length; j++) {
+                    delete itemGroupKeys[source.getKey(entry.items[j])];
+                }
+
+                if (group &amp;&amp; !group.length) {
+                    (removeGroups || (removeGroups = [])).push(group);
+                }
+            }
+        }
+        // Straight cleardown
+        else {
+            me.itemGroupKeys = {};
+            removeGroups = me.items;
+            for (i = 0, n = removeGroups.length; i &lt; n; ++i) {
+                removeGroups[i].clear();
+            }
+        }
+
+        if (removeGroups) {
+            me.remove(removeGroups);
+        }
+    },
+
+<span id='Ext-util-GroupCollection-method-onCollectionSort'>    // If the SorterCollection instance is not changing, the Group will react to
+</span>    // changes inside the SorterCollection, but if the instance changes we need
+    // to sync the Group to the new SorterCollection.
+    onCollectionSort: function (source) {
+        // sorting the collection effectively sorts the items in each group...
+        var me = this,
+            sorters = source.getSorters(false),
+            items, length, i, group;
+
+        if (sorters) {
+            items = me.items;
+            length = me.length;
+            for (i = 0; i &lt; length; ++i) {
+                group = items[i];
+                if (group.getSorters() !== sorters) {
+                    group.setSorters(sorters);
+                }
+            }
+        }
+    },
+
+<span id='Ext-util-GroupCollection-method-onCollectionUpdateKey'>    onCollectionUpdateKey: function (source, details) {
+</span>        if (!details.indexChanged) {
+            details.oldIndex = source.indexOf(details.item);
+            this.syncItemGrouping(source, details);
+        }
+    },
+
+<span id='Ext-util-GroupCollection-method-addItemsToGroups'>    //-------------------------------------------------------------------------
+</span>    // Private
+
+    addItemsToGroups: function (source, items, at, oldIndex) {
+        var me = this,
+            itemGroupKeys = me.itemGroupKeys || (me.itemGroupKeys = {}),
+            entries = me.createEntries(source, items).entries,
+            index = -1,
+            sourceStartIndex, entry, i, len, j, group, firstIndex, item;
+
+        for (i = 0, len = entries.length; i &lt; len; ++i) {
+            entry = entries[i];
+            group = entry.group;
+
+            // A single item moved - from onCollectionItemChange
+            if (oldIndex || oldIndex === 0) {
+                item = items[0];
+                if (group.getCount() &gt; 0 &amp;&amp; source.getSorters().getCount() === 0) {
+                    // We have items in the group &amp; it&#39;s not sorted, so find the
+                    // correct position in the group to insert.
+                    firstIndex = source.indexOf(group.items[0]);
+                    if (oldIndex &lt; firstIndex) {
+                        index = 0;
+                    } else {
+                        index = oldIndex - firstIndex;
+                    }
+                }
+                if (index === -1) {
+                    group.add(item);
+                } else {
+                    group.insert(index, item);
+                }
+            }
+            else {
+                if (me.length &gt; 1 &amp;&amp; at) {
+                    sourceStartIndex = source.indexOf(entries[0].group.getAt(0));
+                    at = Math.max(at - sourceStartIndex, 0);
+                }
+                entry.group.insert(at != null ? at : group.items.length, entry.items);
+
+                // Add item key -&gt; group mapping
+                for (j = 0; j &lt; entry.items.length; j++) {
+                    itemGroupKeys[source.getKey(entry.items[j])] = entry.group;
+                }
+            }
+        }
+
+        // autoSort is disabled when adding new groups because
+        // it relies on there being at least one record in the group
+        me.sortItems();
+    },
+
+<span id='Ext-util-GroupCollection-method-createEntries'>    createEntries: function(source, items) {
+</span>    // Separate the items out into arrays by group
+        var me = this,
+            groups = {},
+            entries = [],
+            grouper = me.getGrouper(),
+            entry, group, groupKey, i, item, len;
+
+        for (i = 0, len = items.length; i &lt; len; ++i) {
+            groupKey = grouper.getGroupString(item = items[i]);
+
+            if (!(entry = groups[groupKey])) {
+                group = me.getGroup(source, groupKey);
+
+                entries.push(groups[groupKey] = entry = {
+                    group: group,
+                    items: []
+                });
+            }
+            // Collect items to add/remove for each group
+            // which has items in the array
+            entry.items.push(item);
+        }
+        return {
+            groups: groups,
+            entries: entries
+        };
+    },
+
+<span id='Ext-util-GroupCollection-method-syncItemGrouping'>    syncItemGrouping: function (source, details) {
+</span>        var me = this,
+            itemGroupKeys = me.itemGroupKeys || (me.itemGroupKeys = {}),
+            item = details.item,
+            oldKey, itemKey, oldGroup, group;
+
+        itemKey = source.getKey(item);
+        oldKey = &#39;oldKey&#39; in details ? details.oldKey : itemKey;
+
+        // The group the item was in before the change took place.
+        oldGroup = itemGroupKeys[oldKey];
+
+        // Look up/create the group into which the item now must be added.
+        group = me.getGroup(source, me.getGrouper().getGroupString(item));
+
+        details.group = group;
+        details.oldGroup = oldGroup;
+
+        // The change did not cause a change in group
+        if (!(details.groupChanged = group !== oldGroup)) {
+            // Inform group about change
+            oldGroup.itemChanged(item, details.modified, details.oldKey, details);
+        } else {
+            // Remove from its old group if there was one.
+            if (oldGroup) {
+                // Ensure Geoup knows about any unknown key changes, or item will not be removed.
+                oldGroup.updateKey(item, oldKey, itemKey);
+                oldGroup.remove(item);
+
+                // Queue newly empy group for destruction.
+                if (!oldGroup.length) {
+                    me.remove(oldGroup);
+                }
+            }
+
+            // Add to new group
+            me.addItemsToGroups(source, [item], null, details.oldIndex);
+        }
+
+        // Keep item key -&gt; group mapping up to date
+        delete itemGroupKeys[oldKey];
+        itemGroupKeys[itemKey] = group;
+    },
+
+<span id='Ext-util-GroupCollection-method-getGroup'>    getGroup: function(source, key) {
+</span>        var me = this,
+            group = me.get(key),
+            autoSort = me.getAutoSort();
+
+        if (group) {
+            group.setSorters(source.getSorters());
+        } else {
+            group = me.emptyGroups[key] || Ext.create(Ext.apply({
+                xclass: &#39;Ext.util.Group&#39;,
+                groupKey: key,
+                rootProperty: me.getItemRoot(),
+                sorters: source.getSorters()
+            }, me.getGroupConfig()));
+
+            group.ejectTime = null;
+
+            me.setAutoSort(false);
+            me.add(group);
+            me.setAutoSort(autoSort);
+        }
+        return group;
+    },
+    
+<span id='Ext-util-GroupCollection-method-getKey'>    getKey: function(item) {
+</span>        return item.getGroupKey();
+    },
+
+<span id='Ext-util-GroupCollection-method-createSortFn'>    createSortFn: function () {
+</span>        var me = this,
+            grouper = me.getGrouper(),
+            sorterFn = me.getSorters().getSortFn();
+
+        if (!grouper) {
+            return sorterFn;
+        }
+
+        return function (lhs, rhs) {
+            // The grouper has come from the collection, so we pass the items in
+            // the group for comparison because the grouper is also used to
+            // sort the data in the collection
+            return grouper.sort(lhs.items[0], rhs.items[0]) || sorterFn(lhs, rhs);
+        };
+    },
+
+<span id='Ext-util-GroupCollection-method-updateGrouper'>    updateGrouper: function(grouper) {
+</span>        var me = this;
+        me.grouped = !!(grouper &amp;&amp; me.$groupable.getAutoGroup());
+        me.onSorterChange();
+        me.onEndUpdateSorters(me.getSorters());
+    },
+
+<span id='Ext-util-GroupCollection-method-destroy'>    destroy: function() {
+</span>        var me = this;
+
+        me.$groupable = null;
+        
+        // Ensure group objects get destroyed, they may have
+        // added listeners to the main collection sorters.
+        me.destroyGroups(me.items);
+        Ext.undefer(me.checkRemoveQueueTimer);
+        me.callParent();
+    },
+
+<span id='Ext-util-GroupCollection-property-privates'>    privates: {
+</span>        destroyGroups: function(groups) {
+            var len = groups.length,
+                i;
+
+            for (i = 0; i &lt; len; ++i) {
+                groups[i].destroy();
+            }
+        },
+
+        onGroupRemove: function(collection, info) {
+            var me = this,
+                groups = info.items,
+                emptyGroups = me.emptyGroups,
+                len, group, i;
+
+            groups = Ext.Array.from(groups);
+            for (i = 0, len = groups.length; i &lt; len; i++) {
+                group = groups[i];
+                group.setSorters(null);
+                emptyGroups[group.getGroupKey()] = group;
+                group.ejectTime = Ext.now();
+            }
+
+            // Removed empty groups are reclaimable by getGroup for emptyGroupRetainTime milliseconds
+            me.checkRemoveQueue();
+        },
+
+        checkRemoveQueue: function() {
+            var me = this,
+                emptyGroups = me.emptyGroups,
+                groupKey, group, reschedule;
+
+            for (groupKey in emptyGroups) {
+                group = emptyGroups[groupKey];
+
+                // If the group&#39;s retain time has expired, destroy it.
+                if (!group.getCount() &amp;&amp; Ext.now() - group.ejectTime &gt; me.emptyGroupRetainTime) {
+                    Ext.destroy(group);
+                    delete emptyGroups[groupKey];
+                } else {
+                    reschedule = true;
+                }
+            }
+
+            // Still some to remove in the future. Check back in emptyGroupRetainTime
+            if (reschedule) {
+                Ext.undefer(me.checkRemoveQueueTimer);
+                me.checkRemoveQueueTimer = Ext.defer(me.checkRemoveQueue, me.emptyGroupRetainTime, me);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

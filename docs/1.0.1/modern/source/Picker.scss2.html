@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-picker-Picker'>/**
+</span> * @class Ext.picker.Picker
+ */
+
+.x-sheet.x-picker {
+    padding: 0;
+}
+
+.x-sheet.x-picker .x-sheet-body-el {
+    .x-picker-slot {
+        .x-body-el {
+            border-left: 1px solid #999999;
+            border-right: 1px solid #ACACAC;
+        }
+
+        &amp;.x-first {
+            .x-body-el {
+                border-left: 0;
+            }
+        }
+
+        &amp;.x-last {
+            .x-body-el {
+                border-left: 0;
+                border-right: 0;
+            }
+        }
+    }
+}
+
+.x-picker-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.x-picker-slot-title {
+    position: relative;
+    z-index: 2;
+
+    &gt; div {
+        @include ellipsis;
+        font-weight: bold;
+    }
+}
+
+.x-picker-slot {
+    .x-dataview-body-el {
+        width: 100% !important;
+    }
+
+    .x-dataview-item {
+        vertical-align: middle;
+        height: 30px;
+        line-height: 30px;
+    }
+
+    .x-picker-item {
+        @include ellipsis();
+    }
+}
+
+.x-ie .x-picker-item {
+    cursor: default;
+}
+
+.x-ie .x-picker-item::before{
+    content: &quot;. .&quot;;
+    color: transparent;
+    position: absolute;
+    left: 0px;
+    word-spacing: 3000px;
+}
+
+.x-picker-right {
+    text-align: right;
+}
+
+.x-picker-center {
+    text-align: center;
+}
+
+.x-picker-left {
+    text-align: left;
+}
+</pre>
+</body>
+</html>

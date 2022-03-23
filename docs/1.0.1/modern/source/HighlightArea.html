@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-field-plugin-HighlightArea'>/**
+</span> * Плагин подсветки текста в Ext.field.TextArea
+ * 
+ * @history 20.11.2018 
+ * Временно убрана обработка в #handleInput
+ * При включении проверить работу в рекапах UK.ECP
+ */
+Ext.define(&#39;SU.field.plugin.HighlightArea&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: &#39;plugin.highlightarea&#39;,
+
+    config: {
+<span id='SU-field-plugin-HighlightArea-cfg-field'>        field: null,
+</span>
+<span id='SU-field-plugin-HighlightArea-cfg-boundaries'>        /**
+</span>         * @cfg {Function}
+         * Функция для получения форматированного HTML
+         * 
+         * @param {SU.field.plugin.HighlightArea} me
+         * @param {Ext.field.TextArea} field
+         * @param {String} text
+         * @return {String}
+         */
+        boundaries: null,
+
+<span id='SU-field-plugin-HighlightArea-cfg-scope'>        /**
+</span>         * @cfg {String/Object} scope
+         */
+        scope: null
+
+    },
+
+<span id='SU-field-plugin-HighlightArea-method-init'>    init: function (field) {
+</span>        var me = this,
+            container;
+
+        me.setField(field);
+        me.input = field.inputElement;
+
+        field.inputElement.addCls(&#39;x-input x-content&#39;);
+
+        var container = Ext.dom.Helper.insertAfter(me.input, {
+            tag: &#39;div&#39;,
+            cls: &#39;x-highlight-container&#39;,
+            //data-componentid: 
+            children: [
+                {
+                    tag: &#39;div&#39;,
+                    cls: &#39;x-backdrop&#39;,
+                    children: [
+                        {
+                            tag: &#39;div&#39;,
+                            cls: &#39;x-highlights&#39;
+                        }
+                    ]
+                }
+            ]
+
+        });
+
+        me.containerEl = Ext.get(container);
+        me.backdropEl = me.containerEl.down(&#39;.x-backdrop&#39;);
+        me.highlightEl = me.containerEl.down(&#39;.x-highlights&#39;);
+
+        //this.container.setAttribute(&#39;data-componentid&#39;, field.inputElement.getAttribute(&#39;data-componentid&#39;));
+        me.containerEl.append(me.input.dom);
+        //field.inputElement = this.containerEl;
+
+        //field.on({
+        //    change: this.handleInput,
+        //    scope: this,
+        //    buffer: 100
+        //});
+
+        me.input.dom.addEventListener(&#39;input&#39;, Ext.bind(me.handleInput, me));
+        me.input.dom.addEventListener(&#39;scroll&#39;, Ext.bind(me.handleScroll, me));
+
+        field.highlightUpdate = function () {
+            me.handleInput();
+        }
+
+        field.on({
+            painted: function () {
+                me.handleInput();
+            },
+            single: true
+        })
+    },
+
+<span id='SU-field-plugin-HighlightArea-method-destroy'>    destroy: function () {
+</span>        //this.cleanup();
+        this.callParent();
+    },
+
+<span id='SU-field-plugin-HighlightArea-method-handleInput'>    handleInput: function () {
+</span>//        var me = this,
+//            text = me.input.dom.value,
+//            boundaries = me.getBoundaries();
+//
+//        text = boundaries ? Ext.callback(boundaries, me.getScope(), [me, me.getField(), text], 0, me) : text;
+//        me.highlightEl.setHtml(text);
+    },
+
+<span id='SU-field-plugin-HighlightArea-method-handleScroll'>    handleScroll: function () {
+</span>        this.backdropEl.dom.scrollTop = this.input.dom.scrollTop;
+
+        // Chrome and Safari won&#39;t break long strings of spaces, which can cause
+        // horizontal scrolling, this compensates by shifting highlights by the
+        // horizontally scrolled amount to keep things aligned
+        var scrollLeft = this.input.dom.scrollLeft;
+        this.backdropEl.dom.style.transform = (scrollLeft &gt; 0) ? &#39;translateX(&#39; + -scrollLeft + &#39;px)&#39; : &#39;&#39;;
+
+    }
+
+})
+</pre>
+</body>
+</html>

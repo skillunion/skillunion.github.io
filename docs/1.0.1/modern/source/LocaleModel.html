@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-locale-model-LocaleModel'>/**
+</span> * Модель объектов загружаемых локализаций.
+ *
+ * Содержит определения полей:
+ *
+ * - id: идентификатор локализации (&#39;en&#39;, &#39;ru&#39;, ...)
+ *
+ * - label: название локализации, отображаемое в SU.locale.LangSelect
+ *
+ * - url: адрес языкового пакета
+ *
+ * - propertiesClass: имя создаваемого класса языкового пакета (&#39;Locales.en.Global&#39;, &#39;Locales.ru.Global&#39;, ...)
+ *
+ * @since 1.0.0.0
+ */
+Ext.define(&#39;SU.locale.model.LocaleModel&#39;, {
+    extend: &#39;Ext.data.Model&#39;,
+
+	config:{
+<span id='SU-locale-model-LocaleModel-cfg-fields'>		fields: [
+</span>			{name: &#39;id&#39;, type: &#39;string&#39;},
+			{name: &#39;label&#39;, type: &#39;string&#39;},
+			{name: &#39;url&#39;, type: &#39;string&#39;},
+			{name: &#39;propertiesClass&#39;, type: &#39;string&#39;}
+		]
+	}
+
+});
+</pre>
+</body>
+</html>

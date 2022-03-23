@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-data-validator-INN'>/**
+</span> * 
+ */
+Ext.define(&#39;SU.data.validator.INN&#39;, {
+    extend: &#39;Ext.data.validator.Validator&#39;,
+    alternateClassName: [&#39;Ext.data.validator.INN&#39;],
+
+    // LegalReduction
+
+    alias: &#39;data.validator.inn&#39;,
+
+    // ИНН - TIN / ITN
+    // КПП - IEC
+    // ОГРН - PSRN
+
+    
+
+    config: {
+<span id='SU-data-validator-INN-cfg-message'>        /**
+</span>         * @cfg {String} message
+         * The error message to return when the value is not a valid inn.
+         */
+        message: &#39;Некорректный ИНН&#39;,
+
+<span id='SU-data-validator-INN-cfg-vType'>        vType: &#39;inn&#39;
+</span>    },
+
+<span id='SU-data-validator-INN-method-validate'>    validate: function (value) {
+</span>        if (this.getVType() === &#39;inn&#39;) {
+            return this.validateInn(value);
+        } else if (this.getVType() === &#39;ogrn&#39;) {
+            return this.validateOgrn(value);
+        }
+        return &#39;Не верный тип проверки&#39;;
+    },
+
+<span id='SU-data-validator-INN-method-validateInn'>    validateInn: function (value) {
+</span>        // проверка на число
+        if (value.match(/\D/)) {
+            return &#39;Введённый ИНН не является числом&#39;;
+        }
+
+        // проверка на 10 и 12 цифр
+        if (value.length !== 12 &amp;&amp; value.length !== 10) {
+            return this.getMessage();
+        }
+
+        // проверка по контрольным цифрам
+        if (value.length === 10) {
+
+            var dgt10 = String(((
+                2 * value[0] + 4 * value[1] + 10 * value[2] +
+                3 * value[3] + 5 * value[4] + 9 * value[5] +
+                4 * value[6] + 6 * value[7] + 8 * value[8]) % 11) % 10);
+            console.log(dgt10);
+            return value[9] === dgt10 ? true : &#39;Введённый ИНН не прошёл проверку по контрольным цифрам&#39;;
+        }
+
+        if (value.length === 12) {
+
+            var dgt11 = String(((
+                7 * value[0] + 2 * value[1] + 4 * value[2] +
+                10 * value[3] + 3 * value[4] + 5 * value[5] +
+                9 * value[6] + 4 * value[7] + 6 * value[8] +
+                8 * value[9]) % 11) % 10);
+
+            var dgt12 = String(((
+                3 * value[0] + 7 * value[1] + 2 * value[2] +
+                4 * value[3] + 10 * value[4] + 3 * value[5] +
+                5 * value[6] + 9 * value[7] + 4 * value[8] +
+                6 * value[9] + 8 * value[10]) % 11) % 10);
+            console.log(dgt11, dgt12);
+            return value[10] === dgt11 &amp;&amp; value[11] === dgt12 ? true : &#39;Введённый ИНН не прошёл проверку по контрольным цифрам&#39;;
+        }
+    },
+
+<span id='SU-data-validator-INN-method-validateOgrn'>    validateOgrn: function (ogrn) {
+</span>        var result = false;
+
+        if (typeof ogrn === &#39;number&#39;) {
+            ogrn = ogrn.toString();
+        } else if (typeof ogrn !== &#39;string&#39;) {
+            ogrn = &#39;&#39;;
+        }
+
+        if (!ogrn.length) {
+            result = &#39;ОГРН пуст&#39;;
+        } else if (/[^0-9]/.test(ogrn)) {
+            result = &#39;ОГРН может состоять только из цифр&#39;;
+        } else if (ogrn.length !== 13) {
+            result = &#39;ОГРН может состоять только из 13 цифр&#39;;
+        } else {
+            var n13 = parseInt((parseInt(ogrn.slice(0, -1)) % 11).toString().slice(-1));
+            if (n13 === parseInt(ogrn[12])) {
+                result = true;
+            } else {
+                console.log(n13);
+                result = &#39;Неправильное контрольное число&#39;;
+            }
+        }
+        return result;
+    }
+
+});
+</pre>
+</body>
+</html>

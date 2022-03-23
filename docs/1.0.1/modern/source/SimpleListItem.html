@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-SimpleListItem'>/**
+</span> * This component is the default data item used by {@link Ext.dataview.List}. This can be
+ * changed to `Ext.dataview.ListItem` by setting `useSimpleItems` to `false`.
+ *
+ * This component supports disclosure icons and generates the slimmest markup possible for
+ * a list data item. It doesn&#39;t support container functionality like adding or docking
+ * items. If you require those features you should have your list you should set the
+ * {@link Ext.dataview.List#useSimpleItems useSimpleItems} config to `false` and use
+ * {@link Ext.dataview.ListItem} instances for data items.
+ */
+Ext.define(&#39;Ext.dataview.SimpleListItem&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    alternateClassName: &#39;Ext.dataview.component.SimpleListItem&#39;,
+    xtype: &#39;simplelistitem&#39;,
+
+    mixins: [
+        &#39;Ext.dataview.Disclosable&#39;, // must come before Toolable
+        &#39;Ext.mixin.Toolable&#39;,
+        &#39;Ext.dataview.GenericItem&#39;,
+        &#39;Ext.dataview.Pinnable&#39;
+    ],
+
+<span id='Ext-dataview-SimpleListItem-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;listitem&#39;,
+</span>
+<span id='Ext-dataview-SimpleListItem-property-inheritUi'>    inheritUi: true,
+</span>
+<span id='Ext-dataview-SimpleListItem-cfg-html'>    html: &#39;\xA0&#39;,
+</span>
+<span id='Ext-dataview-SimpleListItem-property-template'>    template: [{
+</span>        reference: &#39;bodyElement&#39;,
+        cls: Ext.baseCSSPrefix + &#39;body-el&#39;,
+        uiCls: &#39;body-el&#39;,
+        children: [{
+            reference: &#39;innerElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;inner-el&#39;,
+            uiCls: &#39;inner-el&#39;
+        }]
+    }],
+
+<span id='Ext-dataview-SimpleListItem-method-doDestroy'>    doDestroy: function() {
+</span>        this.mixins.toolable.doDestroy.call(this);
+        this.callParent();
+    },
+
+<span id='Ext-dataview-SimpleListItem-method-handleFocusEvent'>    // It must be initialized as focusable, but must never respond itself.
+</span>    // It is a slave of the NavigationModel
+    handleFocusEvent: Ext.emptyFn,
+
+<span id='Ext-dataview-SimpleListItem-method-updateRecord'>    updateRecord: function (record) {
+</span>        if (this.destroying || this.destroyed) {
+            return;
+        }
+
+        var me = this,
+            dataview = me.parent,
+            data = dataview &amp;&amp; dataview.gatherData(record);
+
+        me.updateData(data);
+
+        me.syncDisclosure(record);
+    },
+
+<span id='Ext-dataview-SimpleListItem-method-updateHtml'>    updateHtml: function(html, oldHtml) {
+</span>        this.callParent([this.handleEmptyText(html), oldHtml]);
+    },
+
+<span id='Ext-dataview-SimpleListItem-property-privates'>    privates: {
+</span>        getRenderTarget: function () {
+            return this.innerElement;
+        },
+
+        invokeToolHandler: function (tool, handler, scope, args, e) {
+            if (this.invokeDisclosure(tool, handler, e)) {
+                return false;
+            }
+
+            return tool.invokeToolHandler(tool, handler, scope, args, e);
+        }
+    }
+});
+</pre>
+</body>
+</html>

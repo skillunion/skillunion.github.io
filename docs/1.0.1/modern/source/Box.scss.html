@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-Box'>/**
+</span> * @class Ext.layout.Box
+ */
+
+.#{$prefix}layout-box {
+    display: flex;
+
+    &amp;.#{$prefix}horizontal {
+        flex-direction: row;
+
+        &amp;.#{$prefix}reverse {
+            flex-direction: row-reverse;
+        }
+
+        &amp;.#{$prefix}constrain-align &gt; .#{$prefix}layout-box-item:not(.#{$prefix}heighted) {
+            max-height: 100%;
+        }
+    }
+
+    &amp;.#{$prefix}vertical {
+        flex-direction: column;
+
+        &amp;.#{$prefix}reverse {
+            flex-direction: column-reverse;
+        }
+
+        &amp;.#{$prefix}constrain-align &gt; .#{$prefix}layout-box-item:not(.#{$prefix}widthed) {
+            max-width: 100%;
+        }
+    }
+
+    &amp;.#{$prefix}align-start {
+        align-items: flex-start;
+    }
+
+    &amp;.#{$prefix}align-center {
+        align-items: center;
+    }
+
+    &amp;.#{$prefix}align-end {
+        align-items: flex-end;
+    }
+
+    &amp;.#{$prefix}align-stretch {
+        align-items: stretch;
+    }
+
+    &amp;.#{$prefix}pack-start {
+        justify-content: flex-start;
+    }
+
+    &amp;.#{$prefix}pack-center {
+        justify-content: center;
+    }
+
+    &amp;.#{$prefix}pack-end {
+        justify-content: flex-end;
+    }
+
+    &amp;.#{$prefix}pack-justify,
+    &amp;.#{$prefix}pack-space-between {
+        justify-content: space-between;
+    }
+
+    &amp;.#{$prefix}pack-space-around {
+        justify-content: space-around;
+    }
+
+    &amp;.#{$prefix}wrap {
+        flex-wrap: wrap;
+    }
+
+    &amp;.#{$prefix}wrap-reverse {
+        flex-wrap: wrap-reverse;
+    }
+}
+
+.#{$prefix}layout-box-item {
+    flex-shrink: 0;
+}
+
+.#{$prefix}ie11 .#{$prefix}layout-box {
+    &amp;.#{$prefix}pack-center,
+    &amp;.#{$prefix}pack-end {
+        justify-content: flex-start;
+    }
+
+    &amp;.#{$prefix}pack-center:before,
+    &amp;.#{$prefix}pack-center:after,
+    &amp;.#{$prefix}pack-end:before {
+        content: &#39;&#39;;
+        display: block;
+        // Workaround for https://sencha.jira.com/browse/EXTJS-25260
+        //
+        // IE11 does not layout properly with justify-content: center/end when the items
+        // are flexed with a max-size on the main axis.  We use the before/after pseudo
+        // elements to push the content to the center or end via flexing.
+        //
+        // 0.00005 is the tiniest flex-grow value that IE11 will respect.
+        // These pseudo elements must have some flex-grow property so that they will grow
+        // to consume the leftover space, if any, after the flexes have been distributed
+        // between the items.
+        // In most cases this flex-grow value is so small that it will result in a size of
+        // 0 on the pseudo elements when there is no leftover space after flexing the items.
+        // The exceptions are extremely large containers (typically &gt; 5000px at least when
+        // there is only one flex:1 item), or items with very small fractional flex values.
+        flex: 0.00005 1 0px;
+    }
+}
+</pre>
+</body>
+</html>

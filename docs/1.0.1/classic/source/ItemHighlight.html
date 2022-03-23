@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-interactions-ItemHighlight'>/**
+</span> * @class Ext.chart.interactions.ItemHighlight
+ * @extends Ext.chart.interactions.Abstract
+ *
+ * The &#39;itemhighlight&#39; interaction allows the user to highlight series items in the chart.
+ */
+Ext.define(&#39;Ext.chart.interactions.ItemHighlight&#39;, {
+
+    extend: &#39;Ext.chart.interactions.Abstract&#39;,
+
+<span id='Ext-chart-interactions-ItemHighlight-property-type'>    type: &#39;itemhighlight&#39;,
+</span>    alias: &#39;interaction.itemhighlight&#39;,
+
+<span id='Ext-chart-interactions-ItemHighlight-property-isItemHighlight'>    isItemHighlight: true,
+</span>
+    config: {
+
+<span id='Ext-chart-interactions-ItemHighlight-cfg-gestures'>        gestures: {
+</span>            tap: &#39;onTapGesture&#39;,
+            mousemove: &#39;onMouseMoveGesture&#39;,
+            mousedown: &#39;onMouseDownGesture&#39;,
+            mouseup: &#39;onMouseUpGesture&#39;,
+            mouseleave: &#39;onMouseUpGesture&#39;
+        },
+
+<span id='Ext-chart-interactions-ItemHighlight-cfg-sticky'>        /**
+</span>         * @cfg {Boolean} [sticky=false]
+         * Disables mouse tracking.
+         * Series items will only be highlighted/unhighlighted on mouse click.
+         * This config has no effect on touch devices.
+         */
+        sticky: false
+    },
+
+<span id='Ext-chart-interactions-ItemHighlight-property-stickyHighlightItem'>    stickyHighlightItem: null,
+</span>
+<span id='Ext-chart-interactions-ItemHighlight-method-onMouseMoveGesture'>    onMouseMoveGesture: function (e) {
+</span>        var me = this,
+            oldItem = me.oldItem,
+            isMousePointer = e.pointerType === &#39;mouse&#39;,
+            item, tooltip;
+
+        if (me.getSticky()) {
+            return true;
+        }
+
+        if (isMousePointer &amp;&amp; me.stickyHighlightItem) {
+            me.stickyHighlightItem = null;
+            me.highlight(null);
+        }
+
+        if (me.isDragging) {
+            if (oldItem &amp;&amp; isMousePointer) {
+                oldItem.series.hideTooltip(oldItem);
+                me.oldItem = null;
+            }
+        } else if (!me.stickyHighlightItem) {
+            item = me.getItemForEvent(e);
+            if (item !== me.getChart().getHighlightItem()) {
+                me.highlight(item);
+                me.sync();
+            }
+
+            if (isMousePointer) {
+                // If we detected a mouse hit, show/refresh the tooltip
+                if (item) {
+                    tooltip = item.series.getTooltip();
+
+                    if (tooltip) {
+                        // If there was a different previously active item, ask it to hide its tooltip.
+                        // Unless it&#39;s the same tooltip instance that we are about to show.
+                        // In which case, we are just going to reposition it.
+                        if (oldItem &amp;&amp; oldItem !== item &amp;&amp; oldItem.series.getTooltip() !== tooltip) {
+                            oldItem.series.hideTooltip(oldItem, true);
+                        }
+
+                        if (tooltip.getTrackMouse()) {
+                            item.series.showTooltip(item, e);
+                        } else {
+                            me.showUntracked(item);
+                        }
+                        me.oldItem = item;
+                    }
+                }
+                // No mouse hit - schedule a hide for hideDelay ms.
+                // If pointer enters another item within that time,
+                // there will be no flickery reshow.
+                else if (oldItem) {
+                    oldItem.series.hideTooltip(oldItem);
+                }
+            }
+            return false;
+        }
+    },
+
+<span id='Ext-chart-interactions-ItemHighlight-method-highlight'>    highlight: function (item) {
+</span>        // This is its own function to make it easier for subclasses
+        // to enhance the behavior. An alternative would be to listen
+        // for the chart&#39;s &#39;itemhighlight&#39; event.
+        this.getChart().setHighlightItem(item);
+    },
+
+<span id='Ext-chart-interactions-ItemHighlight-method-showTooltip'>    showTooltip: function (e, item) {
+</span>        item.series.showTooltip(item, e);
+        this.oldItem = item;
+    },
+
+<span id='Ext-chart-interactions-ItemHighlight-method-showUntracked'>    showUntracked: function (item) {
+</span>        var marker = item.sprite.getMarker(item.category),
+            surface, surfaceXY, isInverseY,
+            itemBBox, matrix;
+
+        if (marker) {
+            surface = marker.getSurface();
+            isInverseY = surface.matrix.elements[3] &lt; 0;
+            surfaceXY = surface.element.getXY();
+            itemBBox = Ext.clone(marker.getBBoxFor(item.index));
+            if (isInverseY) {
+                // The item.category for bar series will be &#39;items&#39;.
+                // The item.category for line series will be &#39;markers&#39;.
+                // &#39;items&#39; are in the &#39;series&#39; surface, which is flipped vertically
+                // for cartesian series.
+                // &#39;markers&#39; are in the &#39;overlay&#39; surface, which isn&#39;t flipped.
+                // So for &#39;markers&#39; we already have the bbox in a coordinate system
+                // with the origin at the top-left of the surface, but for &#39;items&#39;
+                // we need to do a conversion.
+                if (surface.getInherited().rtl) {
+                    matrix = surface.inverseMatrix.clone().flipX().translate(item.sprite.attr.innerWidth, 0, true);
+                } else {
+                    matrix = surface.inverseMatrix;
+                }
+                itemBBox = matrix.transformBBox(itemBBox);
+            }
+            itemBBox.x += surfaceXY[0];
+            itemBBox.y += surfaceXY[1];
+            item.series.showTooltipAt(item,
+                itemBBox.x + itemBBox.width * .5,
+                itemBBox.y + itemBBox.height * .5
+            );
+        }
+    },
+
+<span id='Ext-chart-interactions-ItemHighlight-method-onMouseDownGesture'>    onMouseDownGesture: function () {
+</span>        this.isDragging = true;
+    },
+
+<span id='Ext-chart-interactions-ItemHighlight-method-onMouseUpGesture'>    onMouseUpGesture: function () {
+</span>        this.isDragging = false;
+    },
+
+<span id='Ext-chart-interactions-ItemHighlight-method-isSameItem'>    isSameItem: function (a, b) {
+</span>        return a &amp;&amp; b &amp;&amp; a.series === b.series &amp;&amp; a.field === b.field &amp;&amp; a.index === b.index;
+    },
+
+<span id='Ext-chart-interactions-ItemHighlight-method-onTapGesture'>    onTapGesture: function (e) {
+</span>        var me = this;
+
+        // A click/tap on an item makes its highlight sticky.
+        // It requires another click/tap to unhighlight.
+        if (e.pointerType === &#39;mouse&#39; &amp;&amp; !me.getSticky()) {
+            return;
+        }
+
+        var item = me.getItemForEvent(e);
+
+        if (me.isSameItem(me.stickyHighlightItem, item)) {
+            item = null; // toggle
+        }
+        me.stickyHighlightItem = item;
+        me.highlight(item);
+    }
+});</pre>
+</body>
+</html>

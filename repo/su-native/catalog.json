@@ -1,0 +1,125 @@
+{
+  "format": "1",
+  "packages": [
+    {
+      "name": "su-native",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.4",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package for mobile applications",
+      "detailedDescription": "Sencha Cmd package for mobile applications",
+      "type": "code",
+      "requires": [
+        "su"
+      ],
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T09:31:01Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "dwfGHIHBruk\u003d",
+          "signature": "gqr0zp9MCAeoSJ4WmLguQzGuWvRKJlamz380zJVO/5f4iS5nuHKVgJlz750Td9bgKpcBH0ngmm34oswbJCaUACJ1/nQwgg5AkUMt5ml3qOE1wqfOhT3a/znpjoC6rjcEgMnD+lQyrA3819wsCkbG5y4XrwHktFwmZFfQjkn6CODPx+9v7MCbvXRdQv+84j8c6Hfnbbg8GLp+MPmUQYnfYsrSm0GYOw57Z+xXfcX6Vh6av8DHS7sWpfEdXvWFcB+QKEgGyE0EUmM+IFBgalFdVFRyR+GPTPivTGiRQRFUKnnovSHKBf0SswLIBDRHY1T7koPK5o+/7567ZU52aA/9sg\u003d\u003d"
+        }
+      ]
+    },
+    {
+      "name": "su-native",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.5",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package for mobile applications",
+      "detailedDescription": "Sencha Cmd package for mobile applications",
+      "type": "code",
+      "requires": [
+        "su"
+      ],
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T09:44:35Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "CGZ1CZQOfNI\u003d",
+          "signature": "jTc9X5BQf4b7+EtgQ1Xwt/WqnbPGUelfo9yEh9Hg0uRp2uw2yzTXU2m6ekRyBlI6RPSRPI6co/P60t3bgtBKUYobHUIgq8RTxT053eTXrGJlma+kBlPJ/NOQsKDza3KgkgzofnoQQZeZHYEx0f6DRfjWnyhvvdl/HPYzq7QaKSA6vGkstpSCpKVp07IVM3Bs4EyntjEsbYEDQJfHjT78HxwUW6XvC4rWaLJ4h93mCPLgSrFdp6EbGSZvQsKYhMqXsTnVMKVfQ+ATQRrWKEWkZ6/wvHX0B64mzHLXfBkCvhY7u9S4WLQVjvSN9CX6rkdTBErhqItTHOrXzj7vFkkCcQ\u003d\u003d"
+        }
+      ]
+    },
+    {
+      "name": "su-native",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.6",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package for mobile applications",
+      "detailedDescription": "Sencha Cmd package for mobile applications",
+      "type": "code",
+      "requires": [
+        "su"
+      ],
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T10:37:03Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "4BS9JcNiiwY\u003d",
+          "signature": "M6yijvJv33u/EYKJz/ODE3Ck292zAo8y9a60E02qVp6zrIoHiyCTz9daqJsJIRLl9tXGf9GTihU9XH2kLWWZGI/xlcKVdCVYHJYefA75ZiusQB3QljmzT0KKYll2prc7JnpTBaDJhkht2WOnWNSKNhBIOd55sWCJYUn8Eux/j5ds0ib+6QMzG+KVPFGZ9hPxE5/IYIG1a9jMoS0DhlArkKUuB2xaWQAo081h561lhFmBWjdUbN+8GkIBI5RuTCgM5JOgrJ2b5UWquCOgO/NbRvuBl6xibi4L2mzZJulxrrMHjO2b1QXGCGFd44hFIUBeLPcTQBTdLZpFDdNMQX7nNw\u003d\u003d"
+        }
+      ]
+    },
+    {
+      "name": "su-native",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.7",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package for mobile applications",
+      "detailedDescription": "Sencha Cmd package for mobile applications",
+      "type": "code",
+      "requires": [
+        "su"
+      ],
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T10:57:31Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "p5Fa0GSbvRY\u003d",
+          "signature": "N98WMOgRKvGnz4CMpwkyCnDc++bk+IzC/LY1mGC+vLIsUj+AvRU/grAPFIpnBwaFzi4IPC/vVF/gU0EPVN6ncOtdFNO6xTALZbYir3vFDeiGcW3MiqWhHjvPu6FAjlOINkRxURTzpZkmNPmln/gl5K3rfaWiYD66w/+DQqhFmLThGuK2dj3udw4gQcwuRqTFJoNLSAG3IlmeCqoHFSwSVJ4PZqL9xTdevktB+8Q7ou/2iaGr0Ax4SAK5DzM07wmCU6x5i+4kqhLr+GWt/MIjXvWaScysW2qRa2BRp437X/MfWUvfuelvtMksKzFRF0NQLi0sn32OBUe/KW78VVSZBQ\u003d\u003d"
+        }
+      ]
+    },
+    {
+      "name": "su-native",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.2.3",
+      "compatVersion": "1.0.2",
+      "creator": "skillunion",
+      "summary": "Package for mobile applications",
+      "detailedDescription": "Sencha Cmd package for mobile applications",
+      "type": "code",
+      "requires": [
+        "su"
+      ],
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-22T23:09:15Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "CJAlk3uqDeY\u003d",
+          "signature": "FbuhBopFY64wOFaboTim4ste83OcFloKXL9QSfFbTtXzQNs4Ki09S7kfWoODKk+BMwO0vocIZ+zedJK2QorzKruXixKimtbSVUaipj49zxCCq9zwp4KPaS2E7bbCHT08KaqglW5u7lSMCq9eG6ezAkzxaQhdeLw9VfCxC7MOgJ1Ag+ifoT71ElVMyuP7RnD9nDrTiLo63fjxlhmq9fwWBDO1ffLq9+bLrzVFSsFew903qYk+vO62QQuWxgGWato2NiKQcfIKPr57OSVRrrNbt9J0d1jsL72eCj9rLqvkXFMRjMh6BZauXbVMfCXCC18l74YALggIoEEpoLGwGjOZwA\u003d\u003d"
+        }
+      ]
+    }
+  ]
+}

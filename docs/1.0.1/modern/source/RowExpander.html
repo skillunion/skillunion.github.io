@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-plugin-RowExpander'>/**
+</span> * The Row Expander plugin provides an &quot;expander&quot; column to give the user the ability to show
+ * or hide the {@link Ext.grid.Row#cfg!body body} of each row.
+ *
+ *     @example
+ *     var store = Ext.create(&#39;Ext.data.Store&#39;, {
+ *         fields: [&#39;fname&#39;, &#39;lname&#39;, &#39;talent&#39;, &#39;powers&#39;],
+ *         groupField: &#39;powers&#39;,
+ *         data: [
+ *             { &#39;fname&#39;: &#39;Barry&#39;,  &#39;lname&#39;: &#39;Allen&#39;, &#39;talent&#39;: &#39;Speedster&#39;, &#39;powers&#39;: true  },
+ *             { &#39;fname&#39;: &#39;Oliver&#39;, &#39;lname&#39;: &#39;Queen&#39;, &#39;talent&#39;: &#39;Archery&#39;, &#39;powers&#39;: false  },
+ *             { &#39;fname&#39;: &#39;Kara&#39;,   &#39;lname&#39;: &#39;Zor-El&#39;, &#39;talent&#39;: &#39;All&#39;, &#39;powers&#39;: true  },
+ *             { &#39;fname&#39;: &#39;Helena&#39;, &#39;lname&#39;: &#39;Bertinelli&#39;, &#39;talent&#39;: &#39;Weapons Expert&#39;, &#39;powers&#39;: false  },
+ *             { &#39;fname&#39;: &#39;Hal&#39;,    &#39;lname&#39;: &#39;Jordan&#39;, &#39;talent&#39;: &#39;Willpower&#39;, &#39;powers&#39;: true  },
+ *         ]
+ *     });
+ *
+ *     Ext.create(&#39;Ext.grid.Grid&#39;, {
+ *         title: &#39;DC Personnel&#39;,
+ *         grouped: true,
+ *         store: store,
+ *         plugins: {
+ *             rowexpander: true
+ *         },
+ *         itemConfig: {
+ *             body: {
+ *                 tpl: &#39;&lt;img height=&quot;100&quot; src=&quot;http://www.sencha.com/assets/images/sencha-avatar-64x64.png&quot;/&gt;&#39;
+ *             }
+ *         },
+ *         columns: [
+ *             { text: &#39;First Name&#39;, dataIndex: &#39;fname&#39;,  flex: 1 },
+ *             { text: &#39;Last Name&#39;,  dataIndex: &#39;lname&#39;,  flex: 1 },
+ *             { text: &#39;Talent&#39;,     dataIndex: &#39;talent&#39;, flex: 1 },
+ *             { text: &#39;Powers?&#39;,    dataIndex: &#39;powers&#39;, flex: 1 }
+ *         ],
+ *         height: 400,
+ *         layout: &#39;fit&#39;,
+ *         fullscreen: true
+ *     });
+ *
+ * @since 6.2.0
+ */
+Ext.define(&#39;Ext.grid.plugin.RowExpander&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+
+    requires: [
+        &#39;Ext.grid.cell.Expander&#39;
+    ],
+
+    alias: &#39;plugin.rowexpander&#39;,
+
+    config: {
+<span id='Ext-grid-plugin-RowExpander-cfg-grid'>        grid: null,
+</span><span id='Ext-grid-plugin-RowExpander-cfg-column'>        column: {
+</span>            weight: -1100,
+            xtype: &#39;gridcolumn&#39;,
+            align: &#39;center&#39;,
+            text: &#39;&#39;,
+            width: 50,
+            resizable: false,
+            hideable: false,
+            sortable: false,
+            editable: false,
+            ignore: true,
+            ignoreExport: true,
+            cell: {
+                xtype: &#39;expandercell&#39;
+            },
+            menuDisabled: true
+        }
+    },
+
+<span id='Ext-grid-plugin-RowExpander-property-expanderSelector'>    expanderSelector: &#39;.&#39; + Ext.baseCSSPrefix + &#39;expandercell .&#39; + Ext.baseCSSPrefix + &#39;icon-el&#39;,
+</span>
+<span id='Ext-grid-plugin-RowExpander-method-init'>    init: function (grid) {
+</span>        grid.setVariableHeights(true);
+        this.setGrid(grid);
+    },
+
+<span id='Ext-grid-plugin-RowExpander-method-destroy'>    destroy: function() {
+</span>        var grid = this.getGrid(),
+            col = this.colInstance;
+
+        if (col &amp;&amp; !grid.destroying) {
+            grid.unregisterColumn(col, true);
+        }
+        this.callParent();
+    },
+
+<span id='Ext-grid-plugin-RowExpander-method-applyColumn'>    applyColumn: function(column, oldColumn) {
+</span>        return Ext.factory(Ext.apply({}, column), null, oldColumn);
+    },
+
+<span id='Ext-grid-plugin-RowExpander-method-updateGrid'>    updateGrid: function (grid) {
+</span>        var me = this;
+
+        if (grid) {
+            grid.hasRowExpander = true;
+            grid.addCls(Ext.baseCSSPrefix + &#39;has-rowexpander&#39;);
+
+            me.colInstance = grid.registerColumn(me.getColumn());
+            grid.refreshScrollerSize();
+
+            grid.element.on({
+                tap: &#39;onGridTap&#39;,
+                delegate: me.expanderSelector,
+                scope: me
+            });
+        }
+    },
+
+<span id='Ext-grid-plugin-RowExpander-method-onGridTap'>    onGridTap: function(e) {
+</span>        var cell = Ext.Component.from(e),
+            row = cell.row;
+
+        // May have tapped on a descendant grid row. We&#39;re only interested in our own.
+        if (row.getGrid() === this.getGrid()) {
+            row.toggleCollapsed();
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * This file defines the core framework &quot;manifest&quot;. These are the components and ui&#39;s
+ * common to all themes.
+ *
+ * To add more components or ui&#39;s to a derived theme, call Ext.theme.addManifest in a
+ * theme-specific file and script tag that file in to that theme&#39;s &#39;theme.html&#39; file.
+ */
+Ext.theme.addManifest(
+        {
+            xtype: &#39;widget.menu&#39;,
+            folder: &#39;menu&#39;,
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;menu-item-link&#39;,
+            filename: &#39;menu-item-active&#39;,
+            config: {
+                floating: false,
+                width: 200,
+                items: [
+                    {
+                        text: &#39;&amp;nbsp;&#39;,
+                        cls: Ext.baseCSSPrefix + &#39;menu-item-active&#39;
+                    }
+                ]
+            }
+        },
+
+        {
+            xtype: &#39;widget.button&#39;,
+            ui: &#39;default&#39;
+        },
+
+        {
+            xtype: &#39;widget.button&#39;,
+            ui: &#39;default-toolbar&#39;
+        },
+
+        {
+            xtype: &#39;widget.toolbar&#39;,
+            ui: &#39;default&#39;
+        },
+
+        {
+            xtype: &#39;widget.panel&#39;,
+            ui: &#39;default&#39;
+        },
+
+        {
+            xtype: &#39;widget.header&#39;,
+            ui: &#39;default&#39;
+        },
+
+        {
+            xtype: &#39;widget.window&#39;,
+            ui: &#39;default&#39;
+        },
+
+        {
+            xtype: &#39;widget.tab&#39;,
+            ui: &#39;default&#39;
+        },
+
+        {
+            xtype: &#39;widget.tabbar&#39;,
+            ui: &#39;default&#39;
+        },
+
+        {
+            xtype: &#39;widget.progressbar&#39;,
+            ui: &#39;default&#39;
+        },
+
+        {
+            xtype: &#39;widget.buttongroup&#39;,
+            ui: &#39;default&#39;
+        },
+
+        //tips
+        {
+            xtype: &#39;widget.tooltip&#39;,
+            filename: &#39;tip&#39;,
+            ui: &#39;default&#39;
+        },
+        {
+            xtype: &#39;widget.tooltip&#39;,
+            ui: &#39;form-invalid&#39;
+        },
+
+<span id=''>        /**
+</span>         * Grid column header backgrounds
+         */
+        {
+<span id='-property-xtype'>            xtype: &#39;widget.gridcolumn&#39;,
+</span><span id='-property-folder'>            folder: &#39;grid&#39;,
+</span><span id='-property-filename'>            filename: &#39;column-header&#39;,
+</span><span id='-property-config'>            config: {
+</span>                text: &#39;test&#39;,
+                afterRender: function() {
+                    var me = this,
+                        el = me.el;
+
+                    el.addCls(Ext.baseCSSPrefix + &#39;column-header-align-&#39; + me.align).addClsOnOver(me.overCls);
+
+                    el.setStyle({
+                        position: &#39;relative&#39;
+                    });
+                }
+            }
+        },
+        {
+            xtype: &#39;widget.gridcolumn&#39;,
+            folder: &#39;grid&#39;,
+            filename: &#39;column-header-over&#39;,
+            config: {
+                text: &#39;test&#39;,
+                afterRender: function() {
+                    var me = this,
+                        el = me.el;
+
+                    el.addCls(Ext.baseCSSPrefix + &#39;column-header-align-&#39; + me.align).addClsOnOver(me.overCls);
+
+                    el.setStyle({
+                        position: &#39;relative&#39;
+                    });
+                    el.addCls(Ext.baseCSSPrefix + &#39;column-header-over&#39;);
+                }
+            }
+        },
+
+<span id='-property-'>        /**
+</span>         * Grid special cell background
+         */
+        // {
+        //     xtype: &#39;widget.gridpanel&#39;,
+        //     folder: &#39;grid&#39;,
+        //     filename: &#39;cell-special&#39;,
+        //     delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;grid-cell-special&#39;,
+        //     config: {
+        //         selModel: Ext.create(&#39;Ext.selection.CheckboxModel&#39;),
+        //         store: Ext.create(&#39;Ext.data.ArrayStore&#39;, {
+        //             fields: [&#39;text&#39;],
+        //             data: [[&#39;my text&#39;]]
+        //         }),
+        //         columns: [
+        //             {
+        //                 text: &#39;Title&#39;,
+        //                 flex: 1,
+        //                 dataIndex: &#39;text&#39;
+        //             }
+        //         ],
+        //         width: 400,
+        //         height: 100,
+        //         title: &#39;Panel&#39;
+        //     }
+        // },
+        // {
+        //     xtype: &#39;widget.gridpanel&#39;,
+        //     folder: &#39;grid&#39;,
+        //     filename: &#39;cell-special-selected&#39;,
+        //     delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;grid-cell-special&#39;,
+        //     cls: &#39;x-grid-row-selected&#39;,
+        //     config: {
+        //         selModel: Ext.create(&#39;Ext.selection.CheckboxModel&#39;),
+        //         store: Ext.create(&#39;Ext.data.ArrayStore&#39;, {
+        //             fields: [&#39;text&#39;],
+        //             data: [[&#39;my text&#39;]]
+        //         }),
+        //         columns: [
+        //             {
+        //                 text: &#39;Title&#39;,
+        //                 flex: 1,
+        //                 dataIndex: &#39;text&#39;
+        //             }
+        //         ],
+        //         width: 400,
+        //         height: 100,
+        //         title: &#39;Panel&#39;
+        //     }
+        // },
+
+<span id=''>        /**
+</span>         * DatePicker
+         */
+        {
+<span id='-property-xtype'>            xtype: &#39;widget.datepicker&#39;,
+</span><span id='-property-folder'>            folder: &#39;datepicker&#39;,
+</span><span id='-property-filename'>            filename: &#39;datepicker-header&#39;,
+</span><span id='-property-delegate'>            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;datepicker-header&#39;
+</span>        },
+        {
+            xtype: &#39;widget.datepicker&#39;,
+            folder: &#39;datepicker&#39;,
+            filename: &#39;datepicker-footer&#39;,
+            delegate: &#39;.&#39; + Ext.baseCSSPrefix + &#39;datepicker-footer&#39;
+        },
+        {
+            xtype: &#39;widget.roweditorbuttons&#39;,
+            ui: &#39;default&#39;
+        }
+);</pre>
+</body>
+</html>

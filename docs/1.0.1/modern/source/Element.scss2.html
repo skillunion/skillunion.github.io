@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Global_CSS'>/**
+</span> * @class Global_CSS
+ */
+
+<span id='Global_CSS-css_var-S-ripple-transition'>/**
+</span> * @var {transition} $ripple-transition
+ * Transition used for ripple effects
+ */
+$ripple-transition: dynamic(background-color .15s 0.2s cubic-bezier(0.4, 0, 0.2, 1), color .15s 0.2s cubic-bezier(0.4, 0, 0.2, 1));
+
+<span id='Global_CSS-css_var-S-ripple-background-color'>/**
+</span> * @var {color} $ripple-background-color
+ * Default background color to use for ripple effects
+ */
+$ripple-background-color: dynamic(white);
+
+<span id='Global_CSS-css_var-S-ripple-confirm-background-color'>/**
+</span> * @var {color} $ripple-confirm-background-color
+ * Background color to use for ripple effects on confirm UIs
+ */
+$ripple-confirm-background-color: dynamic(green);
+
+<span id='Global_CSS-css_var-S-ripple-decline-background-color'>/**
+</span> * @var {color} $ripple-decline-background-color
+ * Background color to use for ripple effects on decline UIs
+ */
+$ripple-decline-background-color: dynamic(red);
+</pre>
+</body>
+</html>

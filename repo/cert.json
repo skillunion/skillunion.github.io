@@ -1,0 +1,23 @@
+{
+  "data": {
+    "created": "2022-03-22T23:04:59Z",
+    "email": "me@foo.com",
+    "expires": "2027-03-23T00:00:00Z",
+    "name": "skillunion",
+    "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58"
+  },
+  "publicKey": {
+    "algorithm": "RSA",
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuTMIZV5Md+Y1PXklU1sUP7MxTdA1HKlxmKfxwNR7XXpDJv+vFXNjWzHgOxr13cxgVwpzN8pLdYtif9sm90A9LxV1iUhoZweeKqDI8mgcnQoCt5IMNDlhudQf9cXCXx/O61IQdNhrJWzxGo+ivRJ1vvZ7xX130B5GkuRv6Fxn8ApXz3exicwhJNWeGLcNny7KDVFe3D6MWqvVG9I9ucx4/W6zlZ1BTNdqTR6iFb5VSHkf4Z6hSR4Pcv/vdJnfM6vs1rHxhPB0MX8vtnCHU/Kr+3AXcUjMEFPNHZKoc4+WK8SaY8osoSY8AdRHelNz8p2vGcYTybEWCn7yheoSnL22nQIDAQAB"
+  },
+  "signatures": [
+    {
+      "name": "skillunion",
+      "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+      "created": "2022-03-22T23:05:02Z",
+      "algorithm": "SHA1withRSA",
+      "nonce": "hTJy0MOx810\u003d",
+      "signature": "B9NUlCM4ziQcuR2Ue1O720JpTaXi7/fmd02ogOHmEgBdJ3sFNA5PwvPmvTSXgZaF1IMXYVwc6rYO9/fyrgJnXIWEjw55GHOeLhNczSBsRieY5dzFp2S/B5VfNopaWQLPO1Qs/tdVugaRck2Qw/oT67zSjE2hnBjjw3gF2iMDzE5BfoohQF7wYHn6xvAoBbXGd9/lqdHRCkOrFYvICpTPa2tdL/4N4DVZqJHurIISCcGwcJA26xdM+0CidB7kmzrYr4ZKiwzTRFtI3yDbFxV3za38CVjPJslmehIKCfzLWRX+75smEJzZloATrZWVxChLSD9AT3QSwhu1My/yb1bnGA\u003d\u003d"
+    }
+  ]
+}

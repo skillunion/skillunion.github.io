@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-tab-Tab'>/**
+</span> * Used in the {@link Ext.tab.Bar} component. This shouldn&#39;t be used directly, instead use
+ * {@link Ext.tab.Bar} or {@link Ext.tab.Panel}.
+ */
+Ext.define(&#39;Ext.tab.Tab&#39;, {
+    extend: &#39;Ext.Button&#39;,
+    xtype: &#39;tab&#39;,
+    alternateClassName: &#39;Ext.Tab&#39;,
+
+<span id='Ext-tab-Tab-property-isTab'>    /**
+</span>     * @private
+     */
+    isTab: true,
+
+    config: {
+<span id='Ext-tab-Tab-cfg-active'>        /**
+</span>         * @cfg {Boolean}
+         * Set this to `true` to have the tab be active by default.
+         */
+        active: null,
+
+<span id='Ext-tab-Tab-cfg-title'>        /**
+</span>         * @cfg {String}
+         * The title of the card that this tab is bound to.
+         */
+        title: null,
+
+<span id='Ext-tab-Tab-cfg-closable'>        /**
+</span>         * @cfg {Boolean} [closable=false]
+         * True to make the Tab closable and display the close icon
+         */
+        closable: null
+    },
+
+<span id='Ext-tab-Tab-cfg-pressedDelay'>    pressedDelay: true,
+</span>
+<span id='Ext-tab-Tab-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;tab&#39;,
+</span><span id='Ext-tab-Tab-property-activeCls'>    activeCls: Ext.baseCSSPrefix + &#39;active&#39;,
+</span><span id='Ext-tab-Tab-property-closableCls'>    closableCls: Ext.baseCSSPrefix + &#39;closable&#39;,
+</span>
+<span id='Ext-tab-Tab-method-getTemplate'>    getTemplate: function() {
+</span>        var template = this.callParent();
+
+        template.push({
+            reference: &#39;activeIndicatorElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;active-indicator-el&#39;
+        }, {
+            reference: &#39;closeIconElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;close-icon-el &#39; + Ext.baseCSSPrefix + &#39;font-icon &#39; + Ext.baseCSSPrefix + &#39;no-ripple&#39; ,
+            onclick: &#39;return Ext.doEv(this, event);&#39;
+        });
+
+        return template;
+    },
+
+<span id='Ext-tab-Tab-method-shouldRipple'>    shouldRipple: function() {
+</span>        return this.getRipple();
+    },
+
+<span id='Ext-tab-Tab-event-activate'>    /**
+</span>     * @event activate
+     * Fires when a tab is activated
+     * @param {Ext.tab.Tab} this
+     */
+
+<span id='Ext-tab-Tab-event-deactivate'>    /**
+</span>     * @event deactivate
+     * Fires when a tab is deactivated
+     * @param {Ext.tab.Tab} this
+     */
+
+    onClick: function(e) {
+        var me = this,
+            tabBar = me.tabBar;
+
+        if (e.currentTarget === me.closeIconElement.dom) {
+            if (tabBar &amp;&amp; !me.getDisabled()) {
+                tabBar.closeTab(me);
+            }
+
+            e.stopPropagation();
+        } else {
+            return me.callParent([e]);
+        }
+    },
+
+<span id='Ext-tab-Tab-method-updateTitle'>    updateTitle: function(title) {
+</span>        this.setText(title);
+    },
+
+<span id='Ext-tab-Tab-method-updateActive'>    updateActive: function(active, oldActive) {
+</span>        var me = this,
+            el = me.el,
+            activeCls = me.activeCls;
+
+        if (active &amp;&amp; !oldActive) {
+            el.addCls(activeCls);
+            me.fireEvent(&#39;activate&#39;, me);
+        } else if (oldActive) {
+            el.removeCls(activeCls);
+            me.fireEvent(&#39;deactivate&#39;, me);
+        }
+    },
+
+<span id='Ext-tab-Tab-method-updateClosable'>    updateClosable: function(closable) {
+</span>        this.toggleCls(this.closableCls, !!closable);
+    },
+
+<span id='Ext-tab-Tab-method-onAdded'>    onAdded: function (parent, instanced) {
+</span>        this.callParent([parent, instanced]);
+
+        this.tabBar = parent.isTabBar ? parent : null;
+    },
+
+<span id='Ext-tab-Tab-method-onRemoved'>    onRemoved: function (destroying) {
+</span>        this.callParent([destroying]);
+
+        this.tabBar = null;
+    }
+    
+}, function() {
+    this.override({
+        activate: function() {
+            this.setActive(true);
+        },
+
+        deactivate: function() {
+            this.setActive(false);
+        }
+    });
+});
+</pre>
+</body>
+</html>

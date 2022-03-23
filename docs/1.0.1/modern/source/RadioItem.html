@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-menu-RadioItem'>/**
+</span> * A checkable menu item that participates in a `group` of mutually exclusive items.
+ *
+ * Radio items must be a assigned to a `{@link #cfg!group group}` and only one member of
+ * that group is allowed to be checked. The owning `{@link Ext.menu.Menu menu}` provides
+ * the `{@link Ext.menu.Menu#cfg!groups groups}` config to assist in managing the state
+ * of its radio items.
+ *
+ *      @example
+ *      Ext.Viewport.add({
+ *          xtype: &#39;container&#39;,
+ *          items: [{
+ *              xtype: &#39;button&#39;,
+ *              bind: &#39;Call {menuGroups.option}&#39;,
+ *               
+ *              viewModel: {
+ *                  data: {
+ *                      menuGroups: {
+ *                          option: &#39;home&#39;
+ *                      }
+ *                  }
+ *              },
+ *               
+ *              menu: {
+ *                  bind: {
+ *                      groups: &#39;{menuGroups}&#39;
+ *                  },
+ *                  items: [{
+ *                      text: &#39;Home&#39;,
+ *                      group: &#39;option&#39;,  // causes Menu to create this class of item
+ *                      value: &#39;home&#39;
+ *                  }, {
+ *                      text: &#39;Work&#39;,
+ *                      group: &#39;option&#39;,
+ *                      value: &#39;work&#39;
+ *                  }, {
+ *                      text: &#39;Mobile&#39;,
+ *                      group: &#39;option&#39;,
+ *                      value: &#39;mobile&#39;
+ *                  }]
+ *              }
+ *          }]
+ *      });
+ *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.menu.RadioItem&#39;, {
+    extend: &#39;Ext.menu.CheckItem&#39;,
+    alias: &#39;widget.menuradioitem&#39;,
+
+<span id='Ext-menu-RadioItem-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;menuradioitem&#39;,
+</span>
+<span id='Ext-menu-RadioItem-cfg-nameable'>    nameable: true,
+</span><span id='Ext-menu-RadioItem-cfg-shareableName'>    shareableName: true,
+</span>
+<span id='Ext-menu-RadioItem-property-ariaRole'>    ariaRole: &#39;menuitemradio&#39;,
+</span>
+<span id='Ext-menu-RadioItem-cfg-name'>    /**
+</span>     * @cfg {String} name
+     * This config is used internally by the {@link #cfg!group} config and should not be set.
+     */
+
+    config: {
+<span id='Ext-menu-RadioItem-cfg-group'>        /**
+</span>         * @cfg {String} group (required)
+         * Name of a radio group that the item belongs.
+         *
+         * This assigns a common name to several RadioItems to allow selection of a single value.
+         *
+         * Note that the group name is local to the owning Menu.
+         */
+        group: null,
+
+<span id='Ext-menu-RadioItem-cfg-allowUncheck'>        /**
+</span>         * @cfg {Boolean} [allowUncheck=false]
+         * By default, as in native RadioGroups, a checked radio item cannot be unchecked
+         * by the UI. Set this to `true` to allow unchecking of checked RadioItems.
+         */
+        allowUncheck: null
+    },
+
+<span id='Ext-menu-RadioItem-method-initialize'>    //&lt;debug&gt;
+</span>    initialize: function() {
+        if (!this.getGroup()) {
+            Ext.raise(&#39;Menu RadioItems must be configured with a group&#39;);
+        }
+        this.callParent();
+    },
+<span id='Ext-menu-RadioItem-property-privates'>    //&lt;/debug&gt;
+</span>
+    privates: {
+        onSpace: function (e) {
+            // Veto uncheck for radio items.
+            if (this.checkboxElement.dom.checked) {
+                e.preventDefault();
+            }
+        },
+
+        updateGroup: function (group) {
+            // Inheritable will update the NameHolder upon add.
+            this.name = group;
+        },
+
+        onCheckboxChange: function () {
+            var checkboxElement = this.checkboxElement.dom,
+                isChecked = checkboxElement.checked;
+
+            // If the DOM is insync with the config state, we are good, there&#39;s nothng to do.
+            if (isChecked === this.getChecked() || this.getDisabled()) {
+                return;
+            }
+
+            // The change event only fires in response to UI changes.
+            // And the UI is not allowed to UNcheck radio items.
+            // So immediately reverse the setting before the event propagates.
+            // We do not take over the click event, and control programatically  because:
+            // 1. We want interaction to be native wherever possible for accessibility reasons.
+            // 2. The click events fires after the change on some platforms so we have no control.
+            // 3. We&#39;d also have to handle keystroke accessibility.
+            if (!isChecked &amp;&amp; !this.getAllowUncheck()) {
+                checkboxElement.checked = true;
+            }
+            // Sync our widget state with the reality of the accessible checkbox field.
+            else {
+                this.callParent();
+            }
+        },
+
+        onCheckChange: function () {
+            var me = this,
+                checkboxElement = me.checkboxElement.dom,
+                parentMenu = me.getParent(),
+                name, groups, siblings, len, i;
+
+            // Forces the group config to be read and pushed into the name property
+            me.getGroup();
+            name = me.name;
+
+            // Sync state of all siblings in group via the parent menu *before* we call parent.
+            // State must be correct.
+            if (parentMenu &amp;&amp; name) {
+                groups = {};
+
+                if (checkboxElement.checked) {
+                    groups[name] = me.getValue();
+                    parentMenu.setGroups(groups);
+                }
+                // Now we have to see if our group has become all unchecked
+                // and potentially declare our group value as null.
+                else {
+                    siblings = parentMenu.lookupName(name);
+                    len = siblings &amp;&amp; siblings.length;
+                    
+                    for (i = 0; i &lt; len &amp;&amp; !siblings[i].checkboxElement.dom.checked; i++) {
+                         // just loop
+                    }
+
+                    // If we ran out the end of the loop without finding a check item,
+                    // or we are in the config phase, and the menu has no items by that name,
+                    // we set the group&#39;s value to null.
+                    // If we are in the config phase, the parent menu just accumulates the
+                    // group values silently, it does not fire the groupchange event, or
+                    // publish the groups object.
+                    if (i === len) {
+                        groups[name] = null;
+                        parentMenu.setGroups(groups);
+                    }
+                }
+            }
+
+            me.callParent();
+        }
+    }
+});
+</pre>
+</body>
+</html>

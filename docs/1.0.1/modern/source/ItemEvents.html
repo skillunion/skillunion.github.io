@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-plugin-ItemEvents'>/**
+</span> * A chart {@link Ext.AbstractPlugin plugin} that adds ability to listen to chart series
+ * items events. Item event listeners are passed two parameters: the target item and the
+ * event itself. The item object has the following properties:
+ *
+ * * **category** - the category the item falls under: &#39;items&#39; or &#39;markers&#39;
+ * * **field** - the store field used by this series item
+ * * **index** - the index of the series item
+ * * **record** - the store record associated with this series item
+ * * **series** - the series the item belongs to
+ * * **sprite** - the sprite used to represents this series item
+ *
+ * For example:
+ *
+ *     Ext.create(&#39;Ext.chart.CartesianChart&#39;, {
+ *         plugins: {
+ *             chartitemevents: {
+ *                 moveEvents: true
+ *             }
+ *         },
+ *         store: {
+ *             fields: [&#39;pet&#39;, &#39;households&#39;, &#39;total&#39;],
+ *             data: [
+ *                 {pet: &#39;Cats&#39;, households: 38, total: 93},
+ *                 {pet: &#39;Dogs&#39;, households: 45, total: 79},
+ *                 {pet: &#39;Fish&#39;, households: 13, total: 171}
+ *             ]
+ *         },
+ *         axes: [{
+ *             type: &#39;numeric&#39;,
+ *             position: &#39;left&#39;
+ *         }, {
+ *             type: &#39;category&#39;,
+ *             position: &#39;bottom&#39;
+ *         }],
+ *         series: [{
+ *             type: &#39;bar&#39;,
+ *             xField: &#39;pet&#39;,
+ *             yField: &#39;households&#39;,
+ *             listeners: {
+ *                 itemmousemove: function (series, item, event) {
+*                      console.log(&#39;itemmousemove&#39;, item.category, item.field);
+ *                 }
+ *             }
+ *         }, {
+ *             type: &#39;line&#39;,
+ *             xField: &#39;pet&#39;,
+ *             yField: &#39;total&#39;,
+ *             marker: true
+ *         }],
+ *         listeners: { // Listen to itemclick events on all series.
+ *             itemclick: function (chart, item, event) {
+ *                 console.log(&#39;itemclick&#39;, item.category, item.field);
+ *             }
+ *         }
+ *     });
+ *
+ */
+Ext.define(&#39;Ext.chart.plugin.ItemEvents&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: &#39;plugin.chartitemevents&#39;,
+
+<span id='Ext-chart-plugin-ItemEvents-cfg-moveEvents'>    /**
+</span>     * @cfg {Boolean} [moveEvents=false]
+     * If `itemmousemove`, `itemmouseover` or `itemmouseout` event listeners are attached
+     * to the chart, the plugin will detect those and will hit test series items on
+     * every move. However, if the above item events are attached on the series level
+     * only, this config has to be set to true, as the plugin won&#39;t perform a similar
+     * detection on every series.
+     */
+    moveEvents: false,
+
+<span id='Ext-chart-plugin-ItemEvents-property-mouseMoveEvents'>    mouseMoveEvents: {
+</span>        mousemove: true,
+        mouseover: true,
+        mouseout: true
+    },
+
+<span id='Ext-chart-plugin-ItemEvents-property-itemMouseMoveEvents'>    itemMouseMoveEvents: {
+</span>        itemmousemove: true,
+        itemmouseover: true,
+        itemmouseout: true
+    },
+
+<span id='Ext-chart-plugin-ItemEvents-method-init'>    init: function (chart) {
+</span>        var handleEvent = &#39;handleEvent&#39;;
+
+        this.chart = chart;
+
+        chart.addElementListener({
+            click: handleEvent,
+            dblclick: handleEvent,
+            mousedown: handleEvent,
+            mousemove: handleEvent,
+            mouseup: handleEvent,
+            mouseover: handleEvent,
+            mouseout: handleEvent,
+            // run our handlers before user code
+            priority: 1001,
+            scope: this
+        });
+    },
+
+<span id='Ext-chart-plugin-ItemEvents-method-hasItemMouseMoveListeners'>    hasItemMouseMoveListeners: function () {
+</span>        var listeners = this.chart.hasListeners,
+            name;
+        for (name in this.itemMouseMoveEvents) {
+            if (name in listeners) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+<span id='Ext-chart-plugin-ItemEvents-method-handleEvent'>    handleEvent: function (e) {
+</span>        var me = this,
+            chart = me.chart,
+            isMouseMoveEvent = e.type in me.mouseMoveEvents,
+            lastItem = me.lastItem,
+            chartXY, item;
+
+        if (isMouseMoveEvent &amp;&amp; !me.hasItemMouseMoveListeners() &amp;&amp; !me.moveEvents) {
+            return;
+        }
+
+        chartXY = chart.getEventXY(e);
+        item = chart.getItemForPoint(chartXY[0], chartXY[1]);
+
+        if (isMouseMoveEvent &amp;&amp; !Ext.Object.equals(item, lastItem)) {
+            if (lastItem) {
+                chart.fireEvent(&#39;itemmouseout&#39;, chart, lastItem, e);
+                lastItem.series.fireEvent(&#39;itemmouseout&#39;, lastItem.series, lastItem, e);
+            }
+            if (item) {
+                chart.fireEvent(&#39;itemmouseover&#39;, chart, item, e);
+                item.series.fireEvent(&#39;itemmouseover&#39;, item.series, item, e);
+            }
+        }
+
+        if (item) {
+            chart.fireEvent(&#39;item&#39; + e.type, chart, item, e);
+            item.series.fireEvent(&#39;item&#39; + e.type, item.series, item, e);
+        }
+
+        me.lastItem = item;
+    }
+});
+</pre>
+</body>
+</html>

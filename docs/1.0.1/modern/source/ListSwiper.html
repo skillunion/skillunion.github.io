@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-listswiper-ListSwiper'>/**
+</span> * This plugin provides a way to map actions to swipe gesture on all list items.
+ */
+Ext.define(&#39;Ext.dataview.listswiper.ListSwiper&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: &#39;plugin.listswiper&#39;,
+
+    requires: [
+        &#39;Ext.util.DelayedTask&#39;
+    ],
+
+<span id='Ext-dataview-List-event-itemaction'>    /**
+</span>     * @event itemaction
+     * Fires whenever a swipe action has been triggered from a list item.
+     * @param {Ext.dataview.List} this
+     * @param {Number} index The index of the swipped item.
+     * @param {Ext.data.Model} record The record associated to the item.
+     * @param {String} action The triggered action key.
+     * @member Ext.dataview.List
+     */
+
+    config: {
+<span id='Ext-dataview-listswiper-ListSwiper-cfg-left'>        left: [],
+</span><span id='Ext-dataview-listswiper-ListSwiper-cfg-right'>        right: [],
+</span>
+<span id='Ext-dataview-listswiper-ListSwiper-cfg-dismissOnTap'>        /**
+</span>         * @cfg {Boolean} dismissOnTap
+         * If `true`, actions in the undo state will be committed when the item is tapped.
+         * Any open menus will be closed.
+         */
+        dismissOnTap: true,
+
+<span id='Ext-dataview-listswiper-ListSwiper-cfg-dismissOnScroll'>        /**
+</span>         * @cfg {Boolean} dismissOnScroll
+         * If `true`, actions in the undo state will be committed as soon as the list is scrolled.
+         * Any open menus will be closed
+         */
+        dismissOnScroll: true,
+
+<span id='Ext-dataview-listswiper-ListSwiper-cfg-commitDelay'>        /**
+</span>         * @cfg {Number} commitDelay
+         * Number of milliseconds before actions in the undo state are automatically committed (`0` to
+         * disable this behavior). Only applicable for {@link #actions} with `undoable: true`.
+         */
+        commitDelay: 0,
+
+<span id='Ext-dataview-listswiper-ListSwiper-cfg-widget'>        /**
+</span>         * @cfg {Object/Ext.dataview.plugin.ListSwiperStepper} widget
+         * The config object for a {@link Ext.dataview.plugin.ListSwiperStepper}.
+         * @cfg {String} widget.xtype (required) The type of component or widget to create.
+         */
+        widget: {
+            xtype: &#39;listswiperaccordion&#39;
+        },
+
+<span id='Ext-dataview-listswiper-ListSwiper-cfg-swipeMax'>        swipeMax: {
+</span>            single: 50,
+            multiple: 90
+        },
+
+<span id='Ext-dataview-listswiper-ListSwiper-cfg-directionLock'>        directionLock: true,
+</span>
+<span id='Ext-dataview-listswiper-ListSwiper-cfg-target'>        /**
+</span>         * @cfg {&#39;inner&#39;/&#39;outer&#39;} [target=&#39;inner&#39;]
+         * The section of the list item that is swipable.  Supports the following values:
+         *
+         * - `&#39;inner&#39;` - the default value. the body of the list item, which includes any
+         * tools is swipable, and any docked items remain fixed in place while swiping.
+         * - `&#39;outer&#39;` - the entire list item including the docked items is swipable
+         */
+        target: null
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-property-shadowCls'>    shadowCls: Ext.baseCSSPrefix + &#39;listswiper-shadow&#39;,
+</span>
+<span id='Ext-dataview-listswiper-ListSwiper-method-init'>    init: function (list) {
+</span>        var me = this,
+            scrollable = list.getScrollable();
+
+        // Contains items being swiped or pending
+        me.items = [];
+
+        list.on({
+            scope: this,
+            add: &#39;onItemAdd&#39;
+        });
+
+        list.el.on({
+            scope: this,
+            dragstart: &#39;onDragStart&#39;,
+            drag: &#39;onDragMove&#39;,
+            dragend: &#39;onDragEnd&#39;
+        });
+
+        if (scrollable) {
+            scrollable.setX(false);
+        }
+
+        me.dismissAllTask = new Ext.util.DelayedTask(me.dismissAll, me);
+        me.updateDismissOnScroll(me.getDismissOnScroll());
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-method-destroy'>    destroy: function () {
+</span>        var list = this.cmp;
+
+        list.un({
+            scope: this,
+            add: &#39;onItemAdd&#39;
+        });
+
+        list.el.un({
+            scope: this,
+            dragstart: &#39;onDragStart&#39;,
+            drag: &#39;onDragMove&#39;,
+            dragend: &#39;onDragEnd&#39;
+        });
+
+        this.callParent();
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-method-createWidget'>    createWidget: function (config) {
+</span>        var me = this,
+            leftItems = me.getLeft(),
+            rightItems = me.getRight();
+
+        return Ext.apply({
+            owner: me,
+            defaults: me.defaults,
+            leftActions: leftItems,
+            rightActions: rightItems
+        }, config);
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-method-onScrollStart'>    onScrollStart: function () {
+</span>        if (this.getDismissOnScroll()) {
+            this.dismissAll();
+        }
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-method-onItemAdd'>    onItemAdd: function (list, item) {
+</span>        item.setTouchAction({
+            panX: false
+        })
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-method-onItemUpdateData'>    onItemUpdateData: function (item) {
+</span>        // In order to migrate contexts in case of one or more records have been inserted
+        // or removed at a lower index, resyncing needs to be differed until all records
+        // have been reassigned to their associated item.
+        Ext.asap(this.resyncItem, this, [item]);
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-method-onDragStart'>    onDragStart: function (evt) {
+</span>        var me = this,
+            list = me.cmp,
+            record = list.mapToRecord(evt),
+            target, translationTarget, renderTarget, item, widget;
+
+        if (!me.hasActions() || (evt.absDeltaX &lt; evt.absDeltaY)) {
+            return;
+        }
+
+        if (record) {
+            item = list.mapToItem(record);
+            if (item) {
+                widget = item.$swiperWidget;
+                if (!widget) {
+                    widget = me.createWidget(me.getWidget());
+                    widget.ownerCmp = item;
+                    target = me.getTarget();
+
+                    if (item.isGridRow || (target === &#39;outer&#39;)) {
+                        renderTarget = item.el;
+                        // the element that gets translated could be either the body or the
+                        // dock wrapper depending on whether or not there are docked items
+                        translationTarget = item.el.first();
+                    } else {
+                        renderTarget = item.bodyElement;
+                        translationTarget = item.hasToolZones ?
+                            renderTarget.child(&#39;.&#39; + Ext.baseCSSPrefix + &#39;tool-dock&#39;) :
+                            item.innerElement;
+                    }
+
+                    translationTarget.addCls(me.shadowCls);
+
+                    widget.translationTarget = translationTarget;
+                    renderTarget = translationTarget.parent();
+                    item.$swiperWidget = widget = Ext.create(widget);
+                    renderTarget.insertFirst(widget.el);
+                    widget.setRendered(true);
+                    if (list.infinite) {
+                        list.stickItem(item, true);
+                    }
+                    this.items.push(item);
+                }
+
+                widget.onDragStart(evt);
+            }
+        }
+
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-method-onDragMove'>    onDragMove: function (evt) {
+</span>        var me = this,
+            list = me.cmp,
+            item = list.mapToItem(evt),
+            swiperItem;
+
+        if (item) {
+            swiperItem = item.$swiperWidget;
+
+            if (!me.hasActions() || !swiperItem) {
+                return;
+            }
+
+            swiperItem.onDragMove(evt);
+        }
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-method-onDragEnd'>    onDragEnd: function (evt) {
+</span>        var me = this,
+            list = me.cmp,
+            item = list.mapToItem(evt),
+            swiperItem;
+
+        if (item) {
+            swiperItem = item.$swiperWidget;
+            if (!me.hasActions() || !swiperItem) {
+                return;
+            }
+
+            swiperItem.onDragEnd(evt);
+        }
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-method-updateDismissOnScroll'>    updateDismissOnScroll: function (value) {
+</span>        var list = this.getCmp(),
+            scrollable, listeners;
+
+        if (this.isConfiguring || !list) {
+            return;
+        }
+
+        scrollable = list.getScrollable();
+        if (!scrollable) {
+            return;
+        }
+
+        listeners = {
+            scrollstart: &#39;onScrollStart&#39;,
+            scope: this
+        };
+
+        if (value === true) {
+            scrollable.on(listeners);
+        } else {
+            scrollable.un(listeners);
+        }
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-method-updateTarget'>    //&lt;debug&gt;
+</span>    updateTarget: function(target, oldTarget) {
+        if (target != null &amp;&amp; target !== &#39;inner&#39; &amp;&amp; target !== &#39;outer&#39;) {
+            Ext.raise(&#39;Invalid target for ListSwiper: &#39; + target);
+        }
+    },
+<span id='Ext-dataview-listswiper-ListSwiper-method-hasActions'>    //&lt;/debug&gt;
+</span>
+    hasActions: function() {
+        return this.getLeft() || this.getRight();
+    },
+
+<span id='Ext-dataview-listswiper-ListSwiper-property-privates'>    privates: {
+</span>        destroyItem: function (item) {
+            var me = this,
+                list = me.cmp,
+                swiperWidget = item.$swiperWidget,
+                i = me.items.indexOf(item);
+            if (i !== -1) {
+                me.items.splice(i, 1);
+            }
+
+            if (swiperWidget) {
+                swiperWidget.destroy()
+            }
+            item.$swiperWidget = null;
+
+            if (list.infinite &amp;&amp; !item.destroyed) {
+                list.stickItem(item, null);
+            }
+        },
+
+        dismissAll: function () {
+            var me = this;
+            me.items.map(function (item) {
+                return item.$swiperWidget;
+            }).forEach(function (swiperItem) {
+                swiperItem.dismiss();
+            });
+        }
+    }
+});</pre>
+</body>
+</html>

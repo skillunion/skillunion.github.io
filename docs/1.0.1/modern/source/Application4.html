@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-native-overrides-app-Application'>/**
+</span> * 
+ */
+Ext.define(&#39;SU.native.overrides.app.Application&#39;, {
+    override: &#39;Ext.app.Application&#39;,
+
+<span id='Ext-app-Application-method-init'>    /**
+</span>     * @inheritdoc
+     * @localdoc
+     * Придерживает запуск приложения до инициализации ExtJS 
+     * и готовности устройства при использовании нативной поддержки
+     */
+    init: function () {
+        var me = this;
+        
+        if (window.cordova) {
+            var profilesReady = me.onProfilesReady,
+                nativeRady = false,
+                extRady = false;
+
+            function mayBeRady() {
+                if (nativeRady &amp;&amp; extRady) {
+                    profilesReady.call(me);
+                }
+            }
+
+            me.onProfilesReady = function () {
+                extRady = true;
+                mayBeRady();
+            };
+
+            document.addEventListener(&#39;deviceready&#39;, function () {
+                nativeRady = true;
+                mayBeRady();
+            });
+        };
+        
+        me.callParent(arguments);
+    }
+});        
+</pre>
+</body>
+</html>

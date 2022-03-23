@@ -1,0 +1,140 @@
+{
+  "format": "1",
+  "packages": [
+    {
+      "name": "material-icons",
+      "namespace": "Ext",
+      "format": "1",
+      "version": "1.0.1.4",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package wrapper for Material Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for Google\u0027s Material Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T09:30:04Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "6UdqGUinko8\u003d",
+          "signature": "h2LjuNaxJeBlMGdjul+O2grbf946oBnBDkoicCkeWkhD8C9x2i636UZdKtpOr6GOxw3hXsAvH+ctN38MuwO2PNFo8oq17mEfUcroyYw3kRfR/zhr495peETAk07kOceCtC1UC01+FA2DyUlwx9Z68YHAScTtHTRCnT93xXW3SVIWp25/BF5UG+kshwBu3uy7XV9qbK5TtzYTpUenE3tdpzQ2r9L2vns9G7nPfFsSRQ1KYCGm303Pi8W+JRrWbGyzqQlP7RrsTCJfdM2SmKaOkIcQ16BFZqSgm0gyEFzI+M1rGwXA8edH+2mKC4r0k4iqAbQVnpCn4HAMgUdomLmf/g\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    },
+    {
+      "name": "material-icons",
+      "namespace": "Ext",
+      "format": "1",
+      "version": "1.0.1.5",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package wrapper for Material Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for Google\u0027s Material Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T09:43:38Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "kYYsnEo2/Es\u003d",
+          "signature": "SXoRsS0ZmUjrKSQpUaFUemMs+XWCfkQpVFRRxB1okFY4rHD1KFvYos5D9dG4JY344b3HG6BvLkvl4EAG01rIPljQ1mP8Lz2G4Jq2YizwrVMjc3CwN+YdJfv7PWHF0fg+3Cv0bJO/VZU0SliKBmSZ7emyaNhbn1I/EPzY7BXTYHVaSsiYmjuwROoDxvzWCA37pnPwjH8pBQFzUy+rWWc2YzVM6Zi7mJSFao6HukyLx0S0USczC2UYS0lQmXkBRp2Cr+dbJfxA4r/xW6SDxDVAEH6Pr+AP16oHBWKrWqORkMFIbkL2RZgHRGyj0n8UA2jxsL/0L9A1sW051lGMlqC5nQ\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    },
+    {
+      "name": "material-icons",
+      "namespace": "Ext",
+      "format": "1",
+      "version": "1.0.1.6",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package wrapper for Material Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for Google\u0027s Material Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T10:36:05Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "VZCeMWhPa1o\u003d",
+          "signature": "aS4+4DGogwMzHCZKqeAXHyC0nXdFrAMOx6jYH+IXq7HcDmcbq83Pf4lKXmArb1iXDBYX4eiEy7jJEqlKRXSJwgkn6qIkQcAswqbIG26FrFWLzYtcSLZiK+akctDtOpCUgCaux3wzVC6XhKbbsM8E/zWf71mn55buMl2OTdIT10Nxqgen57RJgmKIbROJ8iaLINgrhOKVXgLlRw1daAdFn/xDo+2CwUVvrkWkuMUbcWscvSf4WPja5vjj7bK+72sPtFALxu14MUTvchFbZdhm5B6ATZC7PjdT4an/KMjfg10BlXpvv7bvL8widyvN8e7jZGlzHeE5JpjVQm53PObpog\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    },
+    {
+      "name": "material-icons",
+      "namespace": "Ext",
+      "format": "1",
+      "version": "1.0.1.7",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package wrapper for Material Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for Google\u0027s Material Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T10:56:09Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "ChNXd8Gyur0\u003d",
+          "signature": "CBQVwy1DP7B1mPDF3h4VrkSvBTOHJlu3zVncqu9KfVy1YVnGXG/x2iDXjErsrHXwSdUZzLkBusFB+RjPJTW/3TZRDy+0XQsry/qxLuDkB41MY1qVCy3gXAXzL/t5d0JWaOZm+7WxmcfMIbeB+9ie2cMJ1jy8kPf/r3HPHrjfsN2EU4J69YQj2IL3G9VNnpr4DPq9lN9YQE7gQgQZCEcYsrI7BHyzFxfEKLwfcWKKRLFwGVdm17rKzp+YcO23Lf0VzDJ4h+jyxu+soDOAUJJ6DiwqHsmhWJCdFrE/t77OGbPGLWgpMlmTn3uYmQUJkFq5gCjZ04usaLRj1w0e46jiJw\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    },
+    {
+      "name": "material-icons",
+      "namespace": "Ext",
+      "format": "1",
+      "version": "1.0.2.3",
+      "compatVersion": "1.0.2",
+      "creator": "skillunion",
+      "summary": "Package wrapper for Material Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for Google\u0027s Material Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-22T23:08:06Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "TzBV5/JDzYw\u003d",
+          "signature": "JwdHaoNWF72Ru5yCW405aqxywsTl8N+0VrdURkje+FM4yXb/tkjWvEYWt7lwnlPwTuNEE5jPyEJVe8uxSGynI25IpbZjKPRS2uF2A8ziSvV0sxJE1Kp2Anw8No/lqG7FSa0gzfpoZ8449e4/q/lScuXtKOA89THgr58kZ5BAxX2dl5ZAy9XpLGTSPP+nFme58j7/9y7qHfGst6haIGyLJ06CgxZ4FxoZb/y+f1UM1pLbSlqsCdJTrRcqVi5pCNUwURjk07EAaW12cYki4MAiZQYm9TgTDFNNyGRvjh9FyOsPUq9jPaHoMk+Ac+M90iXyMFm8WEfBn3+WUG+Feo6SyA\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    }
+  ]
+}

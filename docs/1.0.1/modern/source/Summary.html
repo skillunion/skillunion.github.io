@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-plugin-Summary'>/**
+</span> * This {@link Ext.grid.Grid grid} plugin manages a bottom-docked summary {@link #row row}.
+ *
+ * By default, the column&#39;s {@link Ext.grid.column.Column#cfg!dataIndex dataIndex} is used
+ * to read from the {@link Ext.data.Store#getSummaryRecord summary record} as controlled by
+ * the model&#39;s {@link Ext.data.Model#cfg!summary summary} definition. To use a different
+ * field, the {@link Ext.grid.column.Column#cfg!summaryDataIndex summaryDataIndex} can be
+ * specified.
+ *
+ * The {@link Ext.grid.column.Column#cfg!summary summary} config can be used to perform
+ * column-specific summarization. The `summary` config uses one of the registered summary
+ * types (see below). Custom summary types can be defined, or a column-specific algorithm
+ * can be provided with a {@link Ext.grid.column.Column#cfg!summaryRenderer summaryRenderer}.
+ *
+ * ## Summary Types
+ *
+ * The `summary` type can be one of the predefined summary types:
+ *
+ * + {@link Ext.data.summary.Average average}
+ * + {@link Ext.data.summary.Count count}
+ * + {@link Ext.data.summary.Max max}
+ * + {@link Ext.data.summary.Min min}
+ * + {@link Ext.data.summary.Sum sum}
+ *
+ *
+ *     @example
+ *     var store = Ext.create(&#39;Ext.data.Store&#39;, {
+ *         fields: [&#39;fname&#39;, &#39;lname&#39;, &#39;talent&#39;, &#39;wins&#39;],
+ *         data: [
+ *             { &#39;fname&#39;: &#39;Barry&#39;,  &#39;lname&#39;: &#39;Allen&#39;, &#39;talent&#39;: &#39;Speedster&#39;, &#39;wins&#39;: 150  },
+ *             { &#39;fname&#39;: &#39;Oliver&#39;, &#39;lname&#39;: &#39;Queen&#39;, &#39;talent&#39;: &#39;Archery&#39;, &#39;wins&#39;: 27  },
+ *             { &#39;fname&#39;: &#39;Kara&#39;,   &#39;lname&#39;: &#39;Zor-El&#39;, &#39;talent&#39;: &#39;All&#39;, &#39;wins&#39;: 75  },
+ *             { &#39;fname&#39;: &#39;Helena&#39;, &#39;lname&#39;: &#39;Bertinelli&#39;, &#39;talent&#39;: &#39;Weapons Expert&#39;, &#39;wins&#39;: 7  },
+ *             { &#39;fname&#39;: &#39;Hal&#39;,    &#39;lname&#39;: &#39;Jordan&#39;, &#39;talent&#39;: &#39;Willpower&#39;, &#39;wins&#39;: 198  },
+ *         ]
+ *     });
+ *
+ *     Ext.create(&#39;Ext.grid.Grid&#39;, {
+ *         title: &#39;DC Personnel&#39;,
+ *
+ *         store: store,
+ *         plugins: {
+ *             gridsummaryrow: true
+ *         },
+ *         columns: [
+ *             { text: &#39;First Name&#39;, dataIndex: &#39;fname&#39;,  flex: 1 },
+ *             { text: &#39;Last Name&#39;,  dataIndex: &#39;lname&#39;,  flex: 1 },
+ *             { text: &#39;Talent&#39;,     dataIndex: &#39;talent&#39;, flex: 1 },
+ *             { text: &#39;Wins&#39;,       dataIndex: &#39;wins&#39;,   flex: 1,  summary: &#39;sum&#39; }
+ *         ],
+ *         fullscreen: true,
+ *         height:275
+ *     });
+ *
+ */
+Ext.define(&#39;Ext.grid.plugin.Summary&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: [
+        &#39;plugin.gridsummary&#39;,
+        &#39;plugin.summaryrow&#39;,
+        &#39;plugin.gridsummaryrow&#39;
+    ],
+    alternateClassName: &#39;Ext.grid.plugin.SummaryRow&#39;,
+
+    mixins: [
+        &#39;Ext.mixin.Bufferable&#39;,
+        &#39;Ext.mixin.StoreWatcher&#39;
+    ],
+
+    config: {
+<span id='Ext-grid-plugin-Summary-cfg-row'>        /**
+</span>         * @cfg {Ext.grid.SummaryRow/Object} row
+         * The configuration object for the docked summary row managed by this plugin.
+         * @since 6.5.0
+         */
+        row: {
+            lazy: true,
+            $value: {
+                xtype: &#39;gridsummaryrow&#39;,
+                docked: &#39;bottom&#39;
+            }
+        }
+    },
+
+<span id='Ext-grid-plugin-Summary-property-inheritUi'>    inheritUi: true,
+</span>
+<span id='Ext-grid-plugin-Summary-cfg-storeListeners'>    storeListeners: {
+</span>        add: &#39;syncSummary&#39;,
+        clear: &#39;syncSummary&#39;,
+        remove: &#39;syncSummary&#39;,
+        refresh: &#39;syncSummary&#39;,
+        update: &#39;syncSummary&#39;
+    },
+
+<span id='Ext-grid-plugin-Summary-property-bufferableMethods'>    bufferableMethods: {
+</span>        // buffer updates to reduce re-summarization passes over the entire store.
+        syncSummary: 5
+    },
+
+<span id='Ext-grid-plugin-Summary-method-init'>    init: function (grid) {
+</span>        var scrollable = grid.getScrollable(),
+            row, rowScroller;
+
+        this.setOwner(grid);
+        row = this.getRow();
+
+        grid.addCls(Ext.baseCSSPrefix + &#39;grid-has-summaryrow&#39;);
+        if (scrollable) {
+            rowScroller = row.getScrollable();
+            if (!rowScroller) {
+                row.setScrollable({
+                    x: false,
+                    y: false
+                });
+                rowScroller = row.getScrollable();
+            }
+            rowScroller.addPartner(scrollable, &#39;x&#39;);
+        }
+    },
+
+<span id='Ext-grid-plugin-Summary-method-destroy'>    destroy: function () {
+</span>        this.setOwner(null);
+
+        this.callParent();
+    },
+
+<span id='Ext-grid-plugin-Summary-method-createRow'>    createRow: function (config) {
+</span>        return Ext.apply({
+            viewModel: this.getOwner().getItemConfig().viewModel
+        }, config);
+    },
+
+<span id='Ext-grid-plugin-Summary-method-applyRow'>    applyRow: function (row) {
+</span>        if (row) {
+            row = this.createRow(row);
+            row = this.cmp.add(row);
+        }
+
+        return row;
+    },
+
+<span id='Ext-grid-plugin-Summary-method-updateStore'>    updateStore: function (store, oldStore) {
+</span>        this.mixins.storewatcher.updateStore.call(this, store, oldStore);
+
+        if (store &amp;&amp; store.isLoaded()) {
+            // if the store is already loaded then we update summaries
+            this.syncSummary();
+        }
+    },
+
+<span id='Ext-grid-plugin-Summary-property-privates'>    privates: {
+</span>        doSyncSummary: function () {
+            var row = this.getRow();
+
+            if (row) {
+                row.syncSummary();
+            }
+        },
+
+        onContainerScroll: function (scr, x) {
+            var item = this.getRow(),
+                scroller;
+
+            if (!(scroller = item.getScrollable())) {
+                item.setScrollable({
+                    x: false,
+                    y: false
+                });
+
+                scroller = item.getScrollable();
+            }
+
+            scroller.scrollTo(x, null);
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-legend-sprite-Item'>/**
+</span> * @private
+ */
+Ext.define(&#39;Ext.chart.legend.sprite.Item&#39;, {
+    extend: &#39;Ext.draw.sprite.Composite&#39;,
+    alias: &#39;sprite.legenditem&#39;,
+<span id='Ext-chart-legend-sprite-Item-property-type'>    type: &#39;legenditem&#39;,
+</span><span id='Ext-chart-legend-sprite-Item-property-isLegendItem'>    isLegendItem: true,
+</span>
+    requires: [
+        &#39;Ext.draw.sprite.Text&#39;,
+        &#39;Ext.draw.sprite.Circle&#39;
+    ],
+
+    inheritableStatics: {
+<span id='Ext-chart-legend-sprite-Item-static-property-def'>        def: {
+</span>            processors: {
+                enabled: &#39;limited01&#39;,
+                markerLabelGap: &#39;number&#39;
+            },
+            animationProcessors: {
+                enabled: null,
+                markerLabelGap: null
+            },
+            defaults: {
+                enabled: true,
+                markerLabelGap: 5
+            },
+            triggers: {
+                enabled: &#39;enabled&#39;,
+                markerLabelGap: &#39;layout&#39;
+            },
+            updaters: {
+                layout: &#39;layoutUpdater&#39;,
+                enabled: &#39;enabledUpdater&#39;
+            }
+        }
+    },
+
+    config: {
+<span id='Ext-chart-legend-sprite-Item-cfg-label'>        // Sprite&#39;s attributes are processed after initConfig.
+</span>        // So we need to init below configs lazily, as otherwise
+        // adding sprites (created from those configs) to composite
+        // will result in an attempt to access attributes that
+        // composite doesn&#39;t have yet.
+        label: {
+            $value: {
+                type: &#39;text&#39;
+            },
+            lazy: true
+        },
+<span id='Ext-chart-legend-sprite-Item-cfg-marker'>        marker: {
+</span>            $value: {
+                type: &#39;circle&#39;
+            },
+            lazy: true
+        },
+
+<span id='Ext-chart-legend-sprite-Item-cfg-legend'>        legend: null,
+</span><span id='Ext-chart-legend-sprite-Item-cfg-store'>        store: null,
+</span><span id='Ext-chart-legend-sprite-Item-cfg-record'>        record: null,
+</span><span id='Ext-chart-legend-sprite-Item-cfg-series'>        series: null
+</span>    },
+
+<span id='Ext-chart-legend-sprite-Item-method-applyLabel'>    applyLabel: function (label, oldLabel) {
+</span>        var sprite;
+
+        if (label) {
+            if (label.isSprite &amp;&amp; label.type === &#39;text&#39;) {
+                sprite = label;
+            } else {
+                if (oldLabel &amp;&amp; label.type === oldLabel.type) {
+                    oldLabel.setConfig(label);
+                    sprite = oldLabel;
+                    this.scheduleUpdater(this.attr, &#39;layout&#39;);
+                } else {
+                    sprite = new Ext.draw.sprite.Text(label);
+                }
+            }
+        }
+
+        return sprite;
+    },
+
+<span id='Ext-chart-legend-sprite-Item-property-defaultMarkerSize'>    defaultMarkerSize: 10,
+</span>
+<span id='Ext-chart-legend-sprite-Item-method-updateLabel'>    updateLabel: function (label, oldLabel) {
+</span>        var me = this;
+
+        me.removeSprite(oldLabel);
+        label.setAttributes({
+            textBaseline: &#39;middle&#39;
+        });
+        me.addSprite(label);
+        me.scheduleUpdater(me.attr, &#39;layout&#39;);
+    },
+
+<span id='Ext-chart-legend-sprite-Item-method-applyMarker'>    applyMarker: function (config) {
+</span>        var marker;
+
+        if (config) {
+            if (config.isSprite) {
+                marker = config;
+            } else {
+                marker = this.createMarker(config);
+            }
+        }
+        marker = this.resetMarker(marker, config);
+
+        return marker;
+    },
+
+<span id='Ext-chart-legend-sprite-Item-method-createMarker'>    createMarker: function (config) {
+</span>        var marker;
+
+        // If marker attributes are animated, the attributes change over
+        // time from default values to the values specified in the marker
+        // config. But the &#39;legenditem&#39; sprite needs final values
+        // to properly layout its children.
+        delete config.animation;
+
+        if (config.type === &#39;image&#39;) {
+            delete config.width;
+            delete config.height;
+        }
+
+        marker = Ext.create(&#39;sprite.&#39; + config.type, config);
+
+        return marker;
+    },
+
+<span id='Ext-chart-legend-sprite-Item-method-resetMarker'>    resetMarker: function (sprite, config) {
+</span>        var size = config.size || this.defaultMarkerSize,
+            bbox, max, scale;
+
+        // Layout may not work properly,
+        // if the marker sprite is transformed to begin with.
+        sprite.setTransform([1, 0, 0, 1, 0, 0], true);
+
+        if (config.type === &#39;image&#39;) {
+            sprite.setAttributes({
+                width: size,
+                height: size
+            });
+        } else {
+            // This should work with any sprite, irrespective of what attribute
+            // is used to control sprite&#39;s size (&#39;size&#39;, &#39;r&#39;, or something else).
+            // However, the &#39;image&#39; sprite above is a special case.
+            bbox = sprite.getBBox();
+            max = Math.max(bbox.width, bbox.height);
+            scale = size / max;
+            sprite.setAttributes({
+                scalingX: scale,
+                scalingY: scale
+            });
+        }
+
+        return sprite;
+    },
+
+<span id='Ext-chart-legend-sprite-Item-method-updateMarker'>    updateMarker: function (marker, oldMarker) {
+</span>        var me = this;
+
+        me.removeSprite(oldMarker);
+        me.addSprite(marker);
+        me.scheduleUpdater(me.attr, &#39;layout&#39;);
+    },
+
+<span id='Ext-chart-legend-sprite-Item-method-updateSurface'>    updateSurface: function (surface, oldSurface) {
+</span>        var me = this;
+
+        me.callParent([surface, oldSurface]);
+        if (surface) {
+            me.scheduleUpdater(me.attr, &#39;layout&#39;);
+        }
+    },
+
+<span id='Ext-chart-legend-sprite-Item-method-enabledUpdater'>    enabledUpdater: function (attr) {
+</span>        var marker = this.getMarker();
+
+        if (marker) {
+            marker.setAttributes({
+                globalAlpha: attr.enabled ? 1 : 0.3
+            });
+        }
+    },
+
+<span id='Ext-chart-legend-sprite-Item-method-layoutUpdater'>    layoutUpdater: function () {
+</span>        var me = this,
+            attr = me.attr,
+            label = me.getLabel(),
+            marker = me.getMarker(),
+            labelBBox, markerBBox,
+            totalHeight;
+
+        // Measuring bounding boxes of transformed marker and label
+        // sprites and translating the sprites by required amount,
+        // makes layout virtually bullet-proof to unaccounted for
+        // changes in sprite attributes, whatever the sprite type may be.
+
+        markerBBox = marker.getBBox();
+        labelBBox = label.getBBox();
+
+        totalHeight = Math.max(markerBBox.height, labelBBox.height);
+
+        // Because we are getting an already transformed bounding box,
+        // we want to add to that transformation, not replace it,
+        // so setting translationX/Y attributes here would be inappropriate.
+        marker.transform([1, 0, 0, 1,
+            -markerBBox.x,
+            -markerBBox.y + (totalHeight - markerBBox.height) / 2
+        ], true);
+        label.transform([1, 0, 0, 1,
+            -labelBBox.x + markerBBox.width + attr.markerLabelGap,
+            -labelBBox.y + (totalHeight - labelBBox.height) / 2
+        ], true);
+
+        me.bboxUpdater(attr);
+    }
+
+});</pre>
+</body>
+</html>

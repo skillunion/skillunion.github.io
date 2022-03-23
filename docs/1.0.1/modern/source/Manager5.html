@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-tip-Manager'>/**
+</span> * This class monitors DOM elements that have attributes encoded
+ * to show a tooltip. A single {@link Ext.tip.ToolTip} instance is reused
+ * and reconfigured with the attributes retrieved from the DOM.
+ *
+ * Typically, this class will not be created directly, but rather configured
+ * via the application with the {@link Ext.app.Application#quickTips} config to
+ * enable this globally.
+ *
+ * # Configuring via Ext.Component
+ *
+ * A configuration given to a {@link Ext.Component#tooltip tooltip} config will
+ * be registered with this manager and shared tips will be displayed when that
+ * component is activated. See {@link Ext.Component#tooltip tooltip} for details.
+ *
+ * # Configuring via HTML attributes
+ *
+ * A tip may also be configured by adding data attributes to DOM elements. The
+ * following attribute names are supported and map to configurations on the 
+ * {@link Ext.tip.ToolTip} class. The following are supported:
+ * - `data-qtip`: {@link Ext.tip.ToolTip#html}
+ * - `data-qwidth`: {@link Ext.tip.ToolTip#width}
+ * - `data-qminWidth`: {@link Ext.tip.ToolTip#minWidth}
+ * - `data-qmaxWidth`: {@link Ext.tip.ToolTip#maxWidth}
+ * - `data-qtitle`: {@link Ext.tip.ToolTip#title}
+ * - `data-qautoHide`: {@link Ext.tip.ToolTip#autoHide}
+ * - `data-qcls`: {@link Ext.tip.ToolTip#cls}
+ * - `data-qalign`: {@link Ext.tip.ToolTip#align}
+ * - `data-qalignDelegate`: {@link Ext.tip.ToolTip#alignDelegate}
+ * - `data-qanchor`: {@link Ext.tip.ToolTip#anchor}
+ * - `data-qanchorToTarget`: {@link Ext.tip.ToolTip#anchorToTarget}
+ * - `data-qallowOver`: {@link Ext.tip.ToolTip#allowOver}
+ * - `data-qshowDelay`: {@link Ext.tip.ToolTip#showDelay}
+ * - `data-qhideDelay`: {@link Ext.tip.ToolTip#hideDelay}
+ * - `data-qdismissDelay`: {@link Ext.tip.ToolTip#dismissDelay}
+ * - `data-qtrackMouse`: {@link Ext.tip.ToolTip#trackMouse}
+ * - `data-qoverfow`: Indicates that if the element&#39;s text is clipped
+ * using the `text-overflow:ellipsis` style, the shared tip will be shown
+ * containing the `innerHTML`.
+ *
+ * Example usage:
+ *
+ *     &lt;div class=&quot;foo&quot; data-qtip=&quot;Message goes here&quot;&gt;Hover me&lt;/div&gt;
+ *     &lt;p&gt;
+ *     &lt;div data-qoverflow=&quot;true&quot; data-qalign=&quot;b-t?&quot; data-qanchor=&quot;true&quot; style=&quot;width:100px;text-overflow:ellipsis&quot;&gt;
+ *         Hover Me! Lorem ipsum dolor sit amet, duis dicta solet
+ *         et qui. Ut mea soleat mediocritatem, blandit democritum mea ex. His id nostro
+ *         conceptam dissentiet, ignota discere id mea. Qui eu virtute invenire, an per
+ *         ipsum invidunt senserit. Ne legendos expetenda mei. Ad homero percipit liberavisse
+ *         quo, te quando vocibus usu.
+ *     &lt;/div&gt;
+ */
+Ext.define(&#39;Ext.tip.Manager&#39;, {
+
+    requires: [&#39;Ext.tip.ToolTip&#39;],
+
+    config: {
+<span id='Ext-tip-Manager-cfg-tooltip'>        tooltip: {
+</span>            xtype: &#39;tooltip&#39;,
+            // Default to mouse alignment
+            align: &#39;&#39;,
+            anchorToTarget: false,
+            anchor: false,
+            closeAction: &#39;hide&#39;,
+            quickShowInterval: 0,
+            maxWidth: &#39;80vw&#39;
+        },
+
+<span id='Ext-tip-Manager-cfg-overflowTip'>        /**
+</span>         * A configuration object to use when the shared tip instance is triggered by
+         * an text-clipped element tagged with the `data-qoverflow` attribute.
+         * For example, you could change the default {@link Ext.tip.ToolTip#dismissDelay dismissDelay}
+         * to be longer, to allow long content to be read, or set {@link Ext.tip.ToolTip#autoHide autoHide}
+         * to false by setting your application&#39;s {@link Ext.app.Application#quickTips quickTips} config.
+         *
+         *         quickTips: {
+         *             tooltip: {
+         *                 showOnTap: true
+         *             },
+         *             overflowTip: {
+         *                 dismissDelay: 10000
+         *             }
+         *         }
+         *
+         *
+         */
+        overflowTip: {
+            align: &#39;l-r?&#39;,
+            anchor: true,
+            showOnTap: true
+        }
+    },
+
+<span id='Ext-tip-Manager-cfg-interceptTitles'>    /**
+</span>     * @cfg {Boolean} interceptTitles
+     * Set to `true` to automatically use an element&#39;s DOM `title` attribute if one is
+     * available.
+     */
+    interceptTitles: false,
+    
+<span id='Ext-tip-Manager-method-constructor'>    constructor: function (config) {
+</span>        var me = this,
+            tip;
+
+        me.initConfig(config);
+
+        me._fly = new Ext.dom.Fly();
+        me.tip = tip = Ext.create(me.createTooltip());
+        // Prevent auto alignment on config changes since we&#39;ll be
+        // doing then in bulk
+        tip.allowRealign = false;
+
+        tip.on({
+            beforeshow: &#39;onBeforeShow&#39;,
+            hovertarget: &#39;onHoverTarget&#39;,
+            scope: me
+        });
+
+        me.globalListeners = Ext.on({
+            scope: me,
+            destroyable: true,
+            dragstart: &#39;dragDisable&#39;,
+            dragend: &#39;dragEnable&#39;,
+            dragcancel: &#39;dragEnable&#39;
+        });
+
+        if (!me.self.instance) {
+            me.self.instance = me;
+        }
+    },
+
+<span id='Ext-tip-Manager-method-disable'>    /**
+</span>     * Disable this manager. Tips will not be able to show.
+     */
+    disable: function() {
+        var n = ++this.disabled;
+        if (n === 1) {
+            this.getTooltip().disable();
+        }
+    },
+
+<span id='Ext-tip-Manager-method-enable'>    /**
+</span>     * Enable this manager. Tips will be able to show.
+     */
+    enable: function() {
+        var n = --this.disabled;
+        if (n === 0) {
+            this.getTooltip().enable();
+        } else if (n &lt; 0) {
+            this.disabled = 0;
+        }
+    },
+
+<span id='Ext-tip-Manager-method-destroy'>    destroy: function () {
+</span>        var me = this;
+
+        if (me.self.instance === me) {
+            me.self.instance = null;
+        }
+
+        me._fly.detach(); // just in case
+        me.globalListeners = me.tip = Ext.destroy(me.tip, me.globalListeners);
+
+        me.callParent();
+    },
+
+<span id='Ext-tip-Manager-method-createTooltip'>    createTooltip: function () {
+</span>        var me = this,
+            config = me.getTooltip();
+
+        return Ext.apply({
+            id: &#39;ext-global-tooltip&#39;,
+            delegate: me.delegateQuickTip.bind(me),
+            target: Ext.getBody()
+        }, config);
+    },
+
+<span id='Ext-tip-Manager-method-hide'>    hide: function() {
+</span>        if (this.tip) {
+            this.tip.hide();
+        }
+    },
+
+<span id='Ext-tip-Manager-property-privates'>    privates: {
+</span>        disabled: 0,
+
+<span id='Ext-tip-Manager-property-_propertyMap'>        /**
+</span>         * @property {Object} _propertyMap
+         * The key are the configs for the `ToolTip` and the values are the corresponding
+         * DOM attribute names.
+         * @private
+         * @readonly
+         */
+        _propertyMap: (function() {
+            var numFn = function(v) {
+                return parseInt(v, 10);
+            }, boolFn = function(v) {
+                return !!v;
+            }, fn = Ext.identityFn;
+
+            return {
+                ui: {
+                    prop: &#39;data-qui&#39;,
+                    parse: fn
+                },
+                html: {
+                    prop: &#39;data-qtip&#39;,
+                    parse: fn
+                },
+                width: {
+                    prop: &#39;data-qwidth&#39;,
+                    parse: numFn
+                },
+                minWidth: {
+                    prop: &#39;data-qminWidth&#39;,
+                    parse: fn
+                },
+                maxWidth: {
+                    prop: &#39;data-qmaxWidth&#39;,
+                    parse: fn
+                },
+                title: {
+                    prop: &#39;data-qtitle&#39;,
+                    parse: fn
+                },
+                autoHide: {
+                    prop: &#39;data-qautoHide&#39;,
+                    parse: boolFn
+                },
+                cls : {
+                    prop: &#39;data-qcls&#39;,
+                    parse: fn
+                },
+                axisLock : {
+                    prop: &#39;data-axislock&#39;,
+                    parse: fn
+                },
+                align : {
+                    prop: &#39;data-qalign&#39;,
+                    parse: fn
+                },
+                alignDelegate : {
+                    prop: &#39;data-qaligndelegate&#39;,
+                    parse: fn
+                },
+                anchor : {
+                    prop: &#39;data-qanchor&#39;,
+                    parse: fn
+                },
+                showDelay: {
+                    prop: &#39;data-qshowDelay&#39;,
+                    parse: numFn
+                },
+                hideDelay: {
+                    prop: &#39;data-qhideDelay&#39;,
+                    parse: numFn
+                },
+                dismissDelay: {
+                    prop: &#39;data-qdismissDelay&#39;,
+                    parse: numFn
+                },
+                trackMouse: {
+                    prop: &#39;data-qtrackMouse&#39;,
+                    parse: boolFn
+                },
+                anchorToTarget: {
+                    prop: &#39;data-qanchorToTarget&#39;,
+                    parse: boolFn
+                },
+                allowOver: {
+                    prop: &#39;data-qallowover&#39;,
+                    parse: boolFn
+                },
+                closable: true
+            };
+        })(),
+
+        applyOverflowTip: function (config) {
+            var phone = Ext.platformTags.phone;
+
+            return Ext.apply({
+                // Less unexpected movement with axisLock
+                // But with limited space, a phone needs to try all other edges.
+                axisLock: !phone,
+
+                // Stop long overflowing text from sprawling.
+                maxWidth: phone ? &#39;80vw&#39; : 400
+            }, config);
+        },
+
+        delegateQuickTip: function (dom) {
+            var qtip = this.getTipConfig(dom, &#39;html&#39;);
+            return !!qtip;
+        },
+
+        dragDisable: function() {
+            if (!this.disabled) {
+                this.tip.disable();
+            }
+        },
+
+        dragEnable: function() {
+            if (!this.disabled) {
+                this.tip.enable();
+            }
+        },
+
+        getTipConfig: function (dom, property) {
+            var me = this,
+                propertyMap = me._propertyMap,
+                tipDefaults = me._tipDefaults,
+                fly = me._fly,
+                data = fly.attach(dom).getData().qtip,
+                tip = me.tip,
+                textAttr = propertyMap.html.prop,
+                name, text, ret, value, item;
+
+            // Before we ever reconfigure the toolTip, we need to snag its default
+            // values so we can restore them. Don&#39;t bother if all we want is the tip
+            // text.
+            if (!tipDefaults &amp;&amp; property !== &#39;html&#39;) {
+                me._tipDefaults = tipDefaults = {};
+
+                for (name in propertyMap) {
+                    tipDefaults[name] = tip.getConfig(name);
+                }
+            }
+
+            if (data) {
+                if (property) {
+                    ret = data[property];
+                } else {
+                    ret = Ext.apply({}, tipDefaults);
+                    Ext.apply(ret, data);
+                }
+            } else {
+                if (dom.hasAttribute(textAttr)) {
+                    text = dom.getAttribute(textAttr);
+                    if (!text) {
+                        text = me.interceptTitles &amp;&amp; dom.title;
+                        if (text) {
+                            dom.setAttribute(textAttr, text);
+                            dom.removeAttribute(&#39;title&#39;);
+                        }
+                    }
+                } else if (dom.hasAttribute(&#39;data-qoverflow&#39;)) {
+                    text = fly.dom.innerHTML;
+
+                    // If we are not just being called as a delegate selector,
+                    // augment the tipDefaults that we are going to reconfigure with
+                    if (property !== &#39;html&#39;) {
+                        tipDefaults = Ext.apply({}, me.getOverflowTip(), tipDefaults);
+                    }
+
+                    // This is the beforeshow invocation which wants the full config
+                    if (!property) {
+                        // This element has text-overflow:ellipsis AND the overflowing text.
+                        // No overflow found, veto the show by returning false.
+                        if (!me.hasTextOverflow(dom)) {
+                            return false;
+                        }
+                    }
+                }
+
+                if (text) { // if there is no qtip text there is no tooltip
+                    if (property === &#39;html&#39;) {
+                        ret = text;
+                    } else if (property) {
+                        item = propertyMap[property];
+                        if (item.prop) {
+                            if (dom.hasAttribute(item.prop)) {
+                                ret = item.parse(dom.getAttribute(item.prop));
+                            }
+                        }
+                    } else {
+                        ret = data = {
+                            html: text
+                        };
+
+                        for (name in propertyMap) {
+                            if (name !== &#39;html&#39;) {
+                                item = propertyMap[name];
+                                value = null;
+                                if (item.prop) {
+                                    if (dom.hasAttribute(item.prop)) {
+                                        value = item.parse(dom.getAttribute(item.prop));
+                                    }
+                                }
+                                if (value === null) {
+                                    value = tipDefaults[name];
+                                }
+                                data[name] = value;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // No displaying configs set, now see if it&#39;s eligible for an overflow tip
+
+            fly.detach();
+
+            if (property &amp;&amp; ret == null &amp;&amp; property !== &#39;html&#39;) {
+                ret = tipDefaults[property];
+            }
+
+            return ret;
+        },
+
+        onBeforeShow: function (tip) {
+            var me = this,
+                dom = tip.currentTarget.dom,
+                data, header;
+
+            if (dom) {
+                data = me.getTipConfig(dom);
+
+                // If the config returns false, it means no show.
+                // data-qoverflow tips leave the decision this late to
+                // delay the expensive isStyle() an TextMetrics calls.
+                if (data === false) {
+                    return false;
+                }
+
+                // data could be undefined
+                if (!data) {
+                    return;
+                }
+
+                data.anchorToTarget = !!(data.align || data.anchor);
+                tip.setConfig(data);
+                header = tip.getHeader();
+                if (header) {
+                    header.setHidden(!data.title &amp;&amp; !data.closable);
+                }
+            }
+        },
+
+        priorityConfigs: [&#39;showDelay&#39;, &#39;anchor&#39;, &#39;anchorToTarget&#39;, &#39;align&#39;, &#39;trackMouse&#39;],
+
+        onHoverTarget: function (tip, currentTarget) {
+            var dom = currentTarget.dom,
+                cfg;
+
+            if (dom) {
+                cfg = {};
+                this.priorityConfigs.forEach(function(name) {
+                    cfg[name] = this.getTipConfig(dom, name);
+                }, this);
+                cfg.anchorToTarget = !!(cfg.align || cfg.anchor);
+                tip.setConfig(cfg);
+            }
+        },
+
+        hasTextOverflow: function(candidate) {
+            // Filter for only elements with text-overflow:ellipsis
+            if (Ext.fly(candidate).isStyle(&#39;text-overflow&#39;, &#39;ellipsis&#39;)) {
+                var textSize = Ext.util.TextMetrics.measure(candidate, candidate.innerHTML);
+
+                return (textSize.width &gt; Ext.fly(candidate).getViewRegion().width);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

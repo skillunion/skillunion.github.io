@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-google-data-EventsProxy'>/**
+</span> * Proxy to access Google **[event resources](https://developers.google.com/google-apps/calendar/v3/reference/events)**.
+ */
+Ext.define(&#39;Ext.google.data.EventsProxy&#39;, {
+    extend: &#39;Ext.google.data.AbstractProxy&#39;,
+    alias: &#39;proxy.google-events&#39;,
+
+<span id='Ext-google-data-EventsProxy-property-googleApis'>    googleApis: { &#39;calendar&#39;: { version: &#39;v3&#39; } },
+</span>
+<span id='Ext-google-data-EventsProxy-method-buildApiRequests'>    /**
+</span>     * @method buildApiRequests
+     * @protected
+     * @inheritdoc
+     */
+    buildApiRequests: function(request) {
+        var me = this,
+            action = request.getAction();
+
+        switch (action) {
+        case &#39;read&#39;:
+            return me.buildReadApiRequests(request);
+        case &#39;create&#39;:
+            return me.buildCreateApiRequests(request);
+        case &#39;update&#39;:
+            return me.buildUpdateApiRequests(request);
+        case &#39;destroy&#39;:
+            return me.buildDestroyApiRequests(request);
+        default:
+            Ext.raise(&#39;unsupported request: events.&#39; + action);
+            return null;
+        }
+    },
+
+<span id='Ext-google-data-EventsProxy-method-extractResponseData'>    /**
+</span>     * @method extractResponseData
+     * @protected
+     * @inheritdoc
+     */
+    extractResponseData: function(response) {
+        var me = this,
+            data = me.callParent(arguments),
+            items = [];
+
+        Ext.each(data.results, function(result) {
+            switch (result.kind) {
+            case &#39;calendar#events&#39;:
+                items = items.concat(result.items.map(me.fromApiEvent.bind(me)));
+                break;
+            case &#39;calendar#event&#39;:
+                items.push(me.fromApiEvent(result));
+                break;
+            default:
+                break;
+            }
+        });
+
+        return {
+            items: me.sanitizeItems(items),
+            success: data.success,
+            error: data.error
+        };
+    },
+
+<span id='Ext-google-data-EventsProxy-property-privates'>    privates: {
+</span>        // https://developers.google.com/google-apps/calendar/v3/reference/events
+        toApiEvent: function(data, allDay) {
+            var res = {};
+
+            Ext.Object.each(data, function(key, value) {
+                var dateTime = null,
+                    date = null;
+
+                switch (key) {
+                case &#39;calendarId&#39;:
+                case &#39;description&#39;:
+                    res[key] = value;
+                    break;
+                case &#39;id&#39;:
+                    res.eventId = value;
+                    break;
+                case &#39;title&#39;:
+                    res.summary = value;
+                    break;
+                case &#39;startDate&#39;:
+                case &#39;endDate&#39;:
+                    if (allDay) {
+                        date = new Date(value);
+                        date.setHours(0, -date.getTimezoneOffset());
+                        date = Ext.Date.format(date, &#39;Y-m-d&#39;);
+                    } else {
+                        dateTime = Ext.Date.format(new Date(value), &#39;c&#39;);
+                    }
+
+                    // Need to explicitly set unused date field to null
+                    // http://stackoverflow.com/a/35658479
+                    res[key.slice(0, -4)] = { date: date, dateTime: dateTime };
+                    break;
+                default:
+                    break;
+                }
+            });
+
+            return res;
+        },
+
+        // https://developers.google.com/google-apps/calendar/v3/reference/events
+        fromApiEvent: function(data) {
+            var res = { allDay: true };
+
+            Ext.Object.each(data, function(key, value) {
+                var date, offset, allDay;
+
+                switch (key) {
+                case &#39;id&#39;:
+                case &#39;description&#39;:
+                    res[key] = value;
+                    break;
+                case &#39;summary&#39;:
+                    res.title = value;
+                    break;
+                case &#39;start&#39;:
+                case &#39;end&#39;:
+                    date = Ext.Date.parse(value.dateTime || value.date, &#39;C&#39;);
+                    offset = date.getTimezoneOffset();
+                    allDay = !!value.date;
+
+                    // IMPORTANT: all day events must have their time equal to 00:00 GMT
+                    if (allDay &amp;&amp; offset !== 0) {
+                        date.setHours(0, -offset);
+                    }
+
+                    res[key + &#39;Date&#39;] = date;
+                    res.allDay = res.allDay &amp;&amp; allDay;
+                    break;
+                default:
+                    break;
+                }
+            });
+
+            return res;
+        },
+
+        // See https://developers.google.com/google-apps/calendar/v3/reference/events/list
+        buildReadApiRequests: function(request) {
+            // by default, the API returns max 250 events per request, up to 2500. Since we
+            // don&#39;t have control on the min &amp; max requested times, and don&#39;t know how many
+            // events will be returned, let&#39;s split requests per 3 months and set maxResults
+            // to 2500 (~26 events per day - should be enough!?).
+            var rparams = request.getParams(),
+                start = new Date(rparams.startDate),
+                end = new Date(rparams.endDate),
+                requests = [],
+                next;
+
+            while (start &lt; end) {
+                next = Ext.Date.add(start, Ext.Date.MONTH, 3);
+                if (next &gt; end) {
+                    next = end;
+                }
+
+                requests.push(gapi.client.calendar.events.list({
+                    calendarId: rparams.calendar,
+                    timeMin: Ext.Date.format(start, &#39;C&#39;),
+                    timeMax: Ext.Date.format(next, &#39;C&#39;),
+                    singleEvents: true,
+                    maxResults: 2500
+                }));
+
+                start = next;
+            }
+
+            return requests;
+        },
+
+        // https://developers.google.com/google-apps/calendar/v3/reference/events/insert
+        buildCreateApiRequests: function(request) {
+            var record = request.getRecords()[0];       // batch not currently supported!
+            return gapi.client.calendar.events.insert(
+                this.toApiEvent(
+                    request.getJsonData(),
+                    record.get(&#39;allDay&#39;)));
+        },
+
+         // https://developers.google.com/google-apps/calendar/v3/reference/events/patch
+         // https://developers.google.com/google-apps/calendar/v3/reference/events/move
+        buildUpdateApiRequests: function(request) {
+            var record = request.getRecords()[0],       // batch not currently supported!
+                params = this.toApiEvent(request.getJsonData(), record.get(&#39;allDay&#39;)),
+                prevCalendarId = record.getModified(&#39;calendarId&#39;),
+                currCalendarId = record.get(&#39;calendarId&#39;),
+                eventId = record.getId(),
+                requests = [];
+
+            // REQUIRED fields for the patch API
+            params.calendarId = currCalendarId;
+            params.eventId = eventId;
+
+            if (prevCalendarId &amp;&amp; prevCalendarId !== currCalendarId) {
+                // The event has been moved to another calendar
+                requests.push(gapi.client.calendar.events.move({
+                    destination: currCalendarId,
+                    calendarId: prevCalendarId,
+                    eventId: eventId
+                }));
+            }
+
+            if (Object.keys(params).length &gt; 2) {
+                // There is fields to update other than the calendarId + eventId
+                requests.push(gapi.client.calendar.events.patch(params));
+            }
+
+            return requests;
+        },
+
+        // https://developers.google.com/google-apps/calendar/v3/reference/events/delete
+        buildDestroyApiRequests: function(request) {
+            var record = request.getRecords()[0];      // batch not currently supported!
+                data = request.getJsonData();
+
+            // The current calendar implementation nullifies the calendar ID before deleting
+            // it, so let&#39;s get it from the previous values if not anymore in data.
+            data.calendarId = data.calendarId ||
+                record.get(&#39;calendarId&#39;) ||
+                record.getPrevious(&#39;calendarId&#39;);
+
+            // [&#39;delete&#39;] to make YUI happy
+            return gapi.client.calendar.events[&#39;delete&#39;]({
+                &#39;calendarId&#39;: data.calendarId,
+                &#39;eventId&#39;: data.id
+            });
+        }
+    }
+});
+</pre>
+</body>
+</html>

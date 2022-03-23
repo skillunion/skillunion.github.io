@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-field-Field'>/**
+</span> * 
+ */
+Ext.define(&#39;SU.field.Field&#39;, {
+    override: &#39;Ext.field.Field&#39;,
+
+<span id='Ext-field-Field-property-requres'>    requres: [
+</span>        &#39;Ext.Sheet&#39;
+    ],
+
+    config: {
+
+<span id='Ext-field-Field-cfg-helperIconCls'>        /**
+</span>         * @cfg {String} helperIconCls
+         * 
+         */
+        helperIconCls: &#39;x-mi mi-help-circle-outline&#39;,
+
+<span id='Ext-field-Field-cfg-helperTitle'>        /**
+</span>         * @cfg {String} helperTitle
+         *
+         */
+        helperTitle: undefined,
+
+<span id='Ext-field-Field-cfg-helperText'>        /**
+</span>         * @cfg {String} helperText
+         *
+         */
+        helperText: undefined,
+
+<span id='Ext-field-Field-cfg-helperConfig'>        /**
+</span>         * @cfg {Object} helperConfig
+         *
+         */
+        helperConfig: {
+            xtype: &#39;sheet&#39;,
+            cls: &#39;x-field-helper-sheet&#39;
+        }
+    },
+
+<span id='Ext-field-Field-property-preventMark'>    /**
+</span>     * @property {Boolean} preventMark
+     * true to disable displaying any #errorMessage set on this object.
+     */
+    preventMark: false,
+
+<span id='Ext-field-Field-property-defaultHelperConfig'>    /**
+</span>     * @property {Object} defaultHelperConfig
+     *
+     */
+    defaultHelperConfig: {
+        showAnimation: false,
+        hideAnimation: false,
+        centered: false
+    },
+
+<span id='Ext-field-Field-cfg-listeners'>    listeners: {
+</span>        click: &#39;onHelperClick&#39;,
+        element: &#39;labelHelperElement&#39;,
+        scope: &#39;this&#39;
+    },
+
+<span id='Ext-field-Field-method-destroy'>    destroy: function () {
+</span>        var me = this;
+
+        Ext.destroy(me.helperSheet);
+        me.callParent(arguments);
+    },
+
+<span id='SU-field-Field-method-getTemplate'>    getTemplate: function () {
+</span>        var template = this.callParent(arguments),
+            helperHidden = !this.getHelperText();
+
+        template[0].children.push({
+            reference: &#39;labelHelperElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;label-helper-el&#39;,
+            tag: &#39;span&#39;,
+            html: &#39;&amp;nbsp;&#39;,
+            hidden: helperHidden
+        });
+
+        return template;
+    },
+
+<span id='Ext-field-Field-method-updateHelperConfig'>    updateHelperConfig: function (config) {
+</span>        Ext.destroy(this.helperSheet);
+    },
+
+<span id='Ext-field-Field-method-updateHelperIconCls'>    updateHelperIconCls: function (value, oldValue) {
+</span>
+        if (this.labelHelperElement) {
+
+            if (oldValue) {
+                this.labelHelperElement.removeCls(oldValue);
+            }
+
+            if (value) {
+                this.labelHelperElement.addCls(value);
+            }
+        }
+    },
+
+<span id='Ext-field-Field-method-updateHelperText'>    updateHelperText: function (value) {
+</span>        var me = this;
+
+        if (me.labelHelperElement) {
+            if (value) {
+                me.labelHelperElement.show();
+
+                if (me.helperSheet) {
+                    me.helperSheet.setHtml(value);
+                }
+            } else {
+                me.labelHelperElement.hide();
+                if (me.helperSheet) {
+                    me.helperSheet.hide();
+                    me.helperSheet.setHtml(null);
+                }
+            }
+        }
+    },
+
+<span id='Ext-field-Field-method-onHelperClick'>    onHelperClick: function (event) {
+</span>        var text = this.getHelperText();
+
+        event.stopEvent();
+
+        if (text) {
+            console.log(this.getHelperSheet(), this.labelHelperElement);
+            this.getHelperSheet().showBy(this.labelHelperElement, &#39;tc-br&#39;);
+        }
+    },
+
+<span id='SU-field-Field-property-privates'>    // @hide
+</span>    privates: {
+
+        // @private
+        getHelperSheet: function () {
+            var me = this,
+                config = Ext.applyIf(me.getHelperConfig() || {}, me.defaultHelperConfig || {});
+
+            return me.helperSheet || (me.helperSheet = Ext.factory(
+                Ext.applyIf(config, {
+                    title: me.getHelperTitle(),
+                    html: me.getHelperText()
+                }),
+                Ext.Sheet
+            ));
+        }
+    }
+
+});
+</pre>
+</body>
+</html>

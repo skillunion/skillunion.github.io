@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-pullrefresh-Bar'>/**
+</span> * @class Ext.dataview.pullrefresh.Bar
+ */
+
+.#{$prefix}pullrefreshbar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+
+    .#{$prefix}pullrefreshbar-arrow {
+        opacity: 1;
+        transition: opacity .5s;
+    }
+
+    // The overlay and state classes are shared across Bar and Spinner
+    // and so are &quot;x-pullrefresh&quot; not &quot;x-pullrefreshbar&quot;
+    &amp;.#{$prefix}pullrefresh-loading {
+        .#{$prefix}pullrefreshbar-loading-wrap {
+            display: block;
+        }
+
+        .#{$prefix}pullrefreshbar-arrow {
+            opacity: 0;
+        }
+    }
+
+    &amp;.#{$prefix}pullrefresh-loaded {
+        .#{$prefix}pullrefreshbar-arrow {
+            opacity: 0;
+        }
+    }
+
+    &amp;.#{$prefix}pullrefresh-overlay {
+        width: 100%;
+    }
+}
+
+.#{$prefix}pullrefreshbar-info-wrap {
+    text-align: center;
+}
+
+.#{$prefix}pullrefreshbar-loading-wrap {
+    position: relative;
+}
+
+.#{$prefix}pullrefreshbar-mode-message {
+    .#{$prefix}pullrefreshbar-loading-wrap {
+        display: none;
+    }
+}
+
+.#{$prefix}pullrefreshbar-mode-spinner {
+    .#{$prefix}pullrefreshbar-info-wrap {
+        display: none;
+    }
+}
+</pre>
+</body>
+</html>

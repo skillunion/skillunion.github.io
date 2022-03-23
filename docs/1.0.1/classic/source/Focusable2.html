@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-mixin-Focusable'>/**
+</span> * @class Ext.mixin.Focusable
+ */
+
+Ext.define(&#39;Ext.overrides.mixin.Focusable&#39;, {
+    override: &#39;Ext.Component&#39;,
+    
+<span id='Ext-mixin-Focusable-cfg-focusCls'>    /**
+</span>     * @cfg {String} [focusCls=&#39;focus&#39;] CSS class suffix that will be used to
+     * compose the CSS class name that will be added to Component&#39;s {@link #focusClsEl},
+     * and removed when Component blurs.
+     *
+     * **Note** that this is not a full CSS class name; this suffix will be combined
+     * with component&#39;s UI class via {@link #addClsWithUI} and {@link #removeClsWithUI} methods.
+     */
+    focusCls: &#39;focus&#39;,
+    
+<span id='Ext-mixin-Focusable-method-focus'>    /**
+</span>     * Try to focus this component.
+     *
+     * If this component is disabled, a close relation will be targeted for focus instead
+     * to keep focus localized for keyboard users.
+     * @param {Mixed} [selectText] If applicable, `true` to also select all the text in this component, or an array consisting of start and end (defaults to start) position of selection.
+     * @param {Boolean/Number} [delay] Delay the focus this number of milliseconds (true for 10 milliseconds).
+     * @param {Function} [callback] Only needed if the `delay` parameter is used. A function to call upon focus.
+     * @param {Function} [scope] Only needed if the `delay` parameter is used. The scope (`this` reference) in which to execute the callback.
+     * @return {Ext.Component} The focused Component. Usually `this` Component. Some Containers may
+     * delegate focus to a descendant Component ({@link Ext.window.Window Window}s can do this through their
+     * {@link Ext.window.Window#defaultFocus defaultFocus} config option. If this component is disabled, a closely
+     * related component will be focused and that will be returned.
+     */
+    focus: function(selectText, delay, callback, scope) {
+        var me = this,
+            containerScrollTop;
+
+        if ((!me.focusable &amp;&amp; !me.isContainer) || me.destroyed || me.destroying) {
+            return me;
+        }
+
+        // If delay is wanted, queue a call to this function.
+        if (delay) {
+            me.getFocusTask().delay(Ext.isNumber(delay) ? delay : 10, me.focus, me, [selectText, false, callback, scope]);
+            return me;
+        }
+
+        // An immediate focus call must cancel any outstanding delayed focus calls.
+        me.cancelFocus();
+        
+        if (me.floating &amp;&amp; me.container &amp;&amp; me.container.dom) {
+            containerScrollTop = me.container.dom.scrollTop;
+        }
+        
+        // Core Focusable method will return true if focusing was attempted
+        if (me.mixins.focusable.focus.apply(me, arguments) !== false) {
+            if (callback) {
+                Ext.callback(callback, scope);
+            }
+            
+            // Focusing a floating Component brings it to the front of its stack.
+            // this is performed by its zIndexManager. Pass preventFocus true to avoid recursion.
+            if (me.floating &amp;&amp; containerScrollTop !== undefined) {
+                me.container.dom.scrollTop = containerScrollTop;
+            }
+        }
+        
+        return me;
+    },
+
+<span id='Ext-mixin-Focusable-method-cancelFocus'>    /**
+</span>     * Cancel any deferred focus on this component
+     * @protected
+     */
+    cancelFocus: function() {
+        var me = this,
+            task = me.getFocusTask();
+
+        if (task) {
+            task.cancel();
+        }
+    },
+    
+<span id='Ext-mixin-Focusable-method-beforeBlur'>    /**
+</span>     * @method
+     * Template method to do any pre-blur processing.
+     * @protected
+     * @param {Ext.event.Event} e The event object
+     */
+    beforeBlur: Ext.emptyFn,
+
+<span id='Ext-mixin-Focusable-method-postBlur'>    /**
+</span>     * @method
+     * Template method to do any post-blur processing.
+     * @protected
+     * @param {Ext.event.Event} e The event object
+     */
+    postBlur: Ext.emptyFn,
+
+<span id='Ext-mixin-Focusable-method-beforeFocus'>    /**
+</span>     * @method
+     * Template method to do any pre-focus processing.
+     * @protected
+     * @param {Ext.event.Event} e The event object
+     */
+    beforeFocus: Ext.emptyFn,
+    
+<span id='Ext-mixin-Focusable-method-postFocus'>    /**
+</span>     * @method
+     * Template method to do any post-focus processing.
+     * @protected
+     * @param {Ext.event.Event} e The event object
+     */
+    postFocus: Ext.emptyFn,
+    
+<span id='Ext-mixin-Focusable-method-onFocusEnter'>    onFocusEnter: function(e) {
+</span>        var me = this;
+        
+        if (me.destroying || me.destroyed) {
+            return;
+        }
+
+        // Focusing must being a floating component to the front.
+        // Only bring to front if this component is not the manager&#39;s
+        // topmost component (may be a result of focusOnToFront).
+        if (me.floating &amp;&amp; me !== me.zIndexManager.getActive()) {
+            me.toFront(true);
+        }
+        
+        me.callParent([e]);
+    },
+    
+<span id='Ext-mixin-Focusable-method-destroyFocusable'>    destroyFocusable: function() {
+</span>        var me = this;
+        
+        // Calling cancelFocus() will assign focusTask property,
+        // which we don&#39;t want during destruction
+        if (me.focusTask) {
+            me.focusTask.stop(me.focus, me);
+        }
+        
+        me.callParent();
+    },
+    
+<span id='Ext-mixin-Focusable-property-privates'>    privates: {
+</span>        addFocusCls: function(e) {
+            var me = this,
+                focusCls = me.focusCls,
+                el;
+            
+            if (focusCls) {
+                el = me.getFocusClsEl(e);
+                
+                if (el) {
+                    el.addCls(me.addClsWithUI(focusCls, true));
+                }
+            }
+        },
+        
+        removeFocusCls: function(e) {
+            var me = this,
+                focusCls = me.focusCls,
+                el;
+            
+            if (focusCls) {
+                el = me.getFocusClsEl(e);
+                
+                if (el) {
+                    el.removeCls(me.removeClsWithUI(focusCls, true));
+                }
+            }
+        },
+        
+<span id='Ext-mixin-Focusable-method-getFocusTask'>        /**
+</span>         * @private
+         */
+        getFocusTask: function() {
+            if (!this.focusTask) {
+                this.focusTask = Ext.focusTask;
+            }
+            
+            return this.focusTask;
+        },
+        
+        updateMaskState: function(state, mask) {
+            var me = this,
+                ariaEl = me.ariaEl.dom,
+                value;
+            
+            if (state) {
+                me.disableTabbing();
+                me.setMasked(true);
+                
+                if (ariaEl) {
+                    ariaEl.setAttribute(&#39;aria-busy&#39;, &#39;true&#39;);
+                    
+                    // It is possible that ariaEl already has aria-describedby attribute;
+                    // in that case we need to save it to restore later.
+                    value = ariaEl.getAttribute(&#39;aria-describedby&#39;);
+                    
+                    if (value) {
+                        me._savedAriaDescribedBy = value;
+                    }
+                    
+                    ariaEl.setAttribute(&#39;aria-describedby&#39;, mask.ariaEl.id);
+                }
+            }
+            else {
+                me.enableTabbing();
+                me.setMasked(false);
+                
+                if (ariaEl) {
+                    ariaEl.removeAttribute(&#39;aria-busy&#39;);
+                    
+                    value = ariaEl.getAttribute(&#39;aria-describedby&#39;);
+                    ariaEl.removeAttribute(&#39;aria-describedby&#39;);
+                    
+                    if (value === mask.ariaEl.id &amp;&amp; me._savedAriaDescribedBy) {
+                        ariaEl.setAttribute(&#39;aria-describedby&#39;, me._savedAriaDescribedBy);
+                        delete me._savedAriaDescribedBy;
+                    }
+                }
+            }
+        }
+    }
+},
+
+function() {
+    // One global DelayedTask to assign focus
+    // So that the last focus call wins.
+    if (!Ext.focusTask) {
+        Ext.focusTask = new Ext.util.DelayedTask();
+    }
+});
+</pre>
+</body>
+</html>

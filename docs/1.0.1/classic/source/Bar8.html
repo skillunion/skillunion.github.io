@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-sprite-Bar'>/**
+</span> * @class Ext.chart.series.sprite.Bar
+ * @extends Ext.chart.series.sprite.StackedCartesian
+ *
+ * Draws a sprite used in the bar series.
+ */
+Ext.define(&#39;Ext.chart.series.sprite.Bar&#39;, {
+    alias: &#39;sprite.barSeries&#39;,
+    extend: &#39;Ext.chart.series.sprite.StackedCartesian&#39;,
+
+    inheritableStatics: {
+<span id='Ext-chart-series-sprite-Bar-static-property-def'>        def: {
+</span>            processors: {
+<span id='Ext-chart-series-sprite-Bar-cfg-minBarWidth'>                /**
+</span>                 * @cfg {Number} [minBarWidth=2] The minimum bar width.
+                 */
+                minBarWidth: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-Bar-cfg-maxBarWidth'>                /**
+</span>                 * @cfg {Number} [maxBarWidth=100] The maximum bar width.
+                 */
+                maxBarWidth: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-Bar-cfg-minGapWidth'>                /**
+</span>                 * @cfg {Number} [minGapWidth=5] The minimum gap between bars.
+                 */
+                minGapWidth: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-Bar-cfg-radius'>                /**
+</span>                 * @cfg {Number} [radius=0] The degree of rounding for rounded bars.
+                 */
+                radius: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-Bar-cfg-inGroupGapWidth'>                /**
+</span>                 * @cfg {Number} [inGroupGapWidth=3] The gap between grouped bars.
+                 */
+                inGroupGapWidth: &#39;number&#39;
+            },
+            defaults: {
+                minBarWidth: 2,
+                maxBarWidth: 100,
+                minGapWidth: 5,
+                inGroupGapWidth: 3,
+                radius: 0
+            }
+        }
+    },
+
+<span id='Ext-chart-series-sprite-Bar-method-drawLabel'>    drawLabel: function (text, dataX, dataStartY, dataY, labelId) {
+</span>        var me = this,
+            attr = me.attr,
+            label = me.getMarker(&#39;labels&#39;),
+            labelTpl = label.getTemplate(),
+            labelCfg = me.labelCfg || (me.labelCfg = {}),
+            surfaceMatrix = me.surfaceMatrix,
+            labelOverflowPadding = attr.labelOverflowPadding,
+            labelDisplay = labelTpl.attr.display,
+            labelOrientation = labelTpl.attr.orientation,
+            isVerticalText = (labelOrientation === &#39;horizontal&#39; &amp;&amp; attr.flipXY) ||
+                             (labelOrientation === &#39;vertical&#39; &amp;&amp; !attr.flipXY) ||
+                             !labelOrientation,
+            calloutLine = labelTpl.getCalloutLine(),
+            labelY, halfText, labelBBox, calloutLineLength,
+            changes, hasPendingChanges, params;
+
+        // The coordinates below (data point converted to surface coordinates)
+        // are just for the renderer to give it a notion of where the label will be positioned.
+        // The actual position of the label will be different
+        // (unless the renderer returns x/y coordinates in the changes object)
+        // and depend on several things including the size of the text,
+        // which has to be measured after the renderer call,
+        // since text can be modified by the renderer.
+        labelCfg.x = surfaceMatrix.x(dataX, dataY);
+        labelCfg.y = surfaceMatrix.y(dataX, dataY);
+
+        if (calloutLine) {
+            calloutLineLength = calloutLine.length;
+        } else {
+            calloutLineLength = 0;
+        }
+
+        // Set defaults
+        if (!attr.flipXY) {
+            labelCfg.rotationRads = -Math.PI * 0.5;
+        } else {
+            labelCfg.rotationRads = 0;
+        }
+        labelCfg.calloutVertical = !attr.flipXY;
+
+        // Check if we have a specific orientation specified, if so, set
+        // the appropriate values.
+        switch (labelOrientation) {
+            case &#39;horizontal&#39;:
+                labelCfg.rotationRads = 0;
+                labelCfg.calloutVertical = false;
+                break;
+            case &#39;vertical&#39;:
+                labelCfg.rotationRads = -Math.PI * 0.5;
+                labelCfg.calloutVertical = true;
+                break;
+        }
+
+        labelCfg.text = text;
+
+        if (labelTpl.attr.renderer) {
+            // The label instance won&#39;t exist on first render before the renderer is called,
+            // it&#39;s only created later by `me.putMarker` after the renderer call. To make
+            // sure the renderer always can access the label instance, we make this check here.
+            if (!label.get(labelId)) {
+                label.putMarkerFor(&#39;labels&#39;, {}, labelId);
+            }
+            params = [text, label, labelCfg, {store: me.getStore()}, labelId];
+            changes = Ext.callback(labelTpl.attr.renderer, null, params, 0, me.getSeries());
+            if (typeof changes === &#39;string&#39;) {
+                labelCfg.text = changes;
+            } else if (typeof changes === &#39;object&#39;) {
+                if (&#39;text&#39; in changes) {
+                    labelCfg.text = changes.text;
+                }
+                hasPendingChanges = true;
+            }
+        }
+
+        labelBBox = me.getMarkerBBox(&#39;labels&#39;, labelId, true);
+        if (!labelBBox) {
+            me.putMarker(&#39;labels&#39;, labelCfg, labelId);
+            labelBBox = me.getMarkerBBox(&#39;labels&#39;, labelId, true);
+        }
+
+        if (calloutLineLength &gt; 0) {
+            halfText = calloutLineLength;
+        } else if (calloutLineLength === 0) {
+            halfText = (isVerticalText ? labelBBox.width : labelBBox.height) / 2;
+        } else {
+            halfText = (isVerticalText ? labelBBox.width : labelBBox.height) / 2 + labelOverflowPadding;
+        }
+        if (dataStartY &gt; dataY) {
+            halfText = -halfText;
+        }
+
+        if (isVerticalText) {
+            labelY = (labelDisplay === &#39;insideStart&#39;) ?
+                dataStartY + halfText :
+                dataY - halfText;
+        } else {
+            labelY = (labelDisplay === &#39;insideStart&#39;) ?
+                dataStartY + labelOverflowPadding * 2 :
+                dataY - labelOverflowPadding * 2;
+        }
+        labelCfg.x = surfaceMatrix.x(dataX, labelY);
+        labelCfg.y = surfaceMatrix.y(dataX, labelY);
+
+        labelY = (labelDisplay === &#39;insideStart&#39;) ? dataStartY : dataY;
+        labelCfg.calloutStartX = surfaceMatrix.x(dataX, labelY);
+        labelCfg.calloutStartY = surfaceMatrix.y(dataX, labelY);
+
+        labelY = (labelDisplay === &#39;insideStart&#39;) ? dataStartY - halfText : dataY + halfText;
+        labelCfg.calloutPlaceX = surfaceMatrix.x(dataX, labelY);
+        labelCfg.calloutPlaceY = surfaceMatrix.y(dataX, labelY);
+
+        labelCfg.calloutColor = (calloutLine &amp;&amp; calloutLine.color) || me.attr.fillStyle;
+        if (calloutLine) {
+            if (calloutLine.width) {
+                labelCfg.calloutWidth = calloutLine.width;
+            }
+        } else {
+            labelCfg.calloutColor = &#39;none&#39;;
+        }
+
+        if (dataStartY &gt; dataY) {
+            halfText = -halfText;
+        }
+        if (Math.abs(dataY - dataStartY) &lt;= halfText * 2 || labelDisplay === &#39;outside&#39;) {
+            labelCfg.callout = 1;
+        } else {
+            labelCfg.callout = 0;
+        }
+
+        if (hasPendingChanges) {
+            Ext.apply(labelCfg, changes);
+        }
+
+        me.putMarker(&#39;labels&#39;, labelCfg, labelId);
+    },
+
+<span id='Ext-chart-series-sprite-Bar-method-drawBar'>    drawBar: function (ctx, surface, rect, left, top, right, bottom, index) {
+</span>        var me = this,
+            itemCfg = {},
+            renderer = me.attr.renderer,
+            changes;
+
+        itemCfg.x = left;
+        itemCfg.y = top;
+        itemCfg.width = right - left;
+        itemCfg.height = bottom - top;
+        itemCfg.radius = me.attr.radius;
+
+        if (renderer) {
+            changes = Ext.callback(renderer, null,
+                [me, itemCfg, {store: me.getStore()}, index], 0, me.getSeries());
+            Ext.apply(itemCfg, changes);
+        }
+        me.putMarker(&#39;items&#39;, itemCfg, index, !renderer);
+    },
+
+<span id='Ext-chart-series-sprite-Bar-method-renderClipped'>    renderClipped: function (surface, ctx, dataClipRect) {
+</span>        if (this.cleanRedraw) {
+            return;
+        }
+        var me = this,
+            attr = me.attr,
+            dataX = attr.dataX,
+            dataY = attr.dataY,
+            dataText = attr.labels,
+            dataStartY = attr.dataStartY,
+            groupCount = attr.groupCount,
+            groupOffset = attr.groupOffset - (groupCount - 1) * 0.5,
+            inGroupGapWidth = attr.inGroupGapWidth,
+            lineWidth = ctx.lineWidth,
+            matrix = attr.matrix,
+            xx = matrix.elements[0],
+            yy = matrix.elements[3],
+            dx = matrix.elements[4],
+            dy = surface.roundPixel(matrix.elements[5]) - 1,
+            maxBarWidth = Math.abs(xx) - attr.minGapWidth,
+            minBarWidth = ( Math.min(maxBarWidth, attr.maxBarWidth) - inGroupGapWidth * (groupCount - 1) ) / groupCount,
+            barWidth = surface.roundPixel( Math.max(attr.minBarWidth, minBarWidth) ),
+            surfaceMatrix = me.surfaceMatrix,
+            left, right, bottom, top, i, center,
+            halfLineWidth = 0.5 * attr.lineWidth,
+            // Finding min/max so that bars render properly in both LTR and RTL modes.
+            min = Math.min(dataClipRect[0], dataClipRect[2]),
+            max = Math.max(dataClipRect[0], dataClipRect[2]),
+            start = Math.max(0, Math.floor(min)),
+            end = Math.min(dataX.length - 1, Math.ceil(max)),
+            isDrawLabels = dataText &amp;&amp; me.getMarker(&#39;labels&#39;),
+            yLow, yHi;
+
+        // The scaling (xx) and translation (dx) here will already be such that the midpoints
+        // of the first and last bars are not at the surface edges (which would mean that
+        // bars are half-clipped), but padded, so that those bars are fully visible (assuming no pan/zoom).
+
+        for (i = start; i &lt;= end; i++) {
+            yLow = dataStartY ? dataStartY[i] : 0;
+            yHi = dataY[i];
+            center = dataX[i] * xx + dx + groupOffset * (barWidth + inGroupGapWidth);
+            left = surface.roundPixel(center - barWidth / 2) + halfLineWidth;
+            top = surface.roundPixel(yHi * yy + dy + lineWidth);
+            right = surface.roundPixel(center + barWidth / 2) - halfLineWidth;
+            bottom = surface.roundPixel(yLow * yy + dy + lineWidth);
+
+            me.drawBar(ctx, surface, dataClipRect, left, top - halfLineWidth, right, bottom - halfLineWidth, i);
+
+            // We want 0 values to be passed to the renderer
+            if (isDrawLabels &amp;&amp; dataText[i] != null) {
+                me.drawLabel(dataText[i], center, bottom, top, i);
+            }
+            me.putMarker(&#39;markers&#39;, {
+                translationX: surfaceMatrix.x(center, top),
+                translationY: surfaceMatrix.y(center, top)
+            }, i, true);
+        }
+    }
+
+});
+</pre>
+</body>
+</html>

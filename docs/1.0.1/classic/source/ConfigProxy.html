@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-mixin-ConfigProxy'>/**
+</span> * This mixin allows a class to easily forward (or proxy) configs to other objects. Once
+ * mixed in, the using class (and its derived classes) can add a `proxyConfig` object
+ * property to their class body that specifies the accessor and configs to manage.
+ *
+ * For example:
+ *
+ *      Ext.define(&#39;ParentThing&#39;, {
+ *          mixins: [
+ *              &#39;Ext.mixin.ConfigProxy&#39;
+ *          ],
+ *
+ *          config: {
+ *              childThing: {
+ *                  xtype: &#39;panel&#39;
+ *              }
+ *          },
+ *
+ *          proxyConfig: {
+ *              // The keys of this object are themselves configs. Their getters
+ *              // are used to identify the target to which the listed configs are
+ *              // proxied.
+ *
+ *              childThing: [
+ *                  // This list of config names will be proxied to the object
+ *                  // returned by the getter (getChildThing in this case). In
+ *                  // addition, each of these will be defined as configs on this
+ *                  // class but with a special getter and setter.
+ *                  //
+ *                  // These configs cannot be previously defined nor can their
+ *                  // be getters or setters already present.
+ *
+ *                  &#39;title&#39;
+ *              ]
+ *          }
+ *      });
+ *
+ * If the getter for a proxy target returns `null`, the setter for the proxied config
+ * will simply discard the value. It is expected that the target will generally always
+ * exist.
+ *
+ * To proxy methods, the array of config names is replaced by an object:
+ *
+ *      Ext.define(&#39;ParentThing&#39;, {
+ *          mixins: [
+ *              &#39;Ext.mixin.ConfigProxy&#39;
+ *          ],
+ *
+ *          config: {
+ *              childThing: {
+ *                  xtype: &#39;panel&#39;
+ *              }
+ *          },
+ *
+ *          proxyConfig: {
+ *              // The keys of this object are themselves configs. Their getters
+ *              // are used to identify the target to which the listed configs are
+ *              // proxied.
+ *
+ *              childThing: {
+ *                  configs: [
+ *                      // same as when &quot;childThing&quot; was just this array...
+ *                  ],
+ *
+ *                  methods: [
+ *                      // A list of methods to proxy to the childThing.
+ *                      &#39;doStuff&#39;
+ *                  ]
+ *              ]
+ *          }
+ *      });
+ *
+ * @private
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.mixin.ConfigProxy&#39;, function (ConfigProxy) { return {
+    extend: &#39;Ext.Mixin&#39;,
+
+<span id='Ext-mixin-ConfigProxy-property-mixinConfig'>    mixinConfig: {
+</span>        id: &#39;configproxy&#39;,
+
+        extended: function (baseClass, derivedClass, classBody) {
+            var proxyConfig = classBody.proxyConfig;
+
+            derivedClass.$configProxies = Ext.apply({},
+                derivedClass.superclass.self.$configProxies);
+
+            if (proxyConfig) {
+                delete classBody.proxyConfig;
+                ConfigProxy.processClass(derivedClass, proxyConfig);
+            }
+        }
+    },
+
+<span id='Ext-mixin-ConfigProxy-method-onClassMixedIn'>    onClassMixedIn: function (targetClass) {
+</span>        var prototype = targetClass.prototype,
+            proxyConfig = prototype.proxyConfig,
+            initConfig = prototype.initConfig;
+
+        prototype.$proxiedConfigs = null;  // constant shape
+        targetClass.$configProxies = {
+            // contents are basically the same as the proxyConfig object.
+        };
+
+        prototype.initConfig = function (config) {
+            initConfig.apply(this, arguments);
+
+            // ensure future setter calls will pass through to the target:
+            this.$proxiedConfigs = null;
+
+            return this;
+        };
+
+        if (proxyConfig) {
+            delete prototype.proxyConfig;
+            ConfigProxy.processClass(targetClass, proxyConfig);
+        }
+    },
+
+<span id='Ext-mixin-ConfigProxy-method-getProxiedConfigs'>    /**
+</span>     * This method returns an object of all proxied config values for a given target. This
+     * is only useful during the class initialization phase to avoid passing in &quot;wrong&quot;
+     * initial config values for a child object and then proxying down all the configs
+     * from the parent.
+     *
+     * This method is not typically called directly but rather `mergeProxiedConfigs` is
+     * more likely.
+     * @param {String} name The proxy target config name (in the class example, this would
+     * be &quot;childThing&quot;).
+     * @return {Object}
+     * @private
+     * @since 6.5.0
+     */
+    getProxiedConfigs: function (name) {
+        var me = this,
+            configs = me.config,  // the merged config set
+            configProxies = me.self.$configProxies[name],
+            i = configProxies &amp;&amp; configProxies.length,
+            cfg, proxiedConfigs, ret, s, v;
+
+        if (i &amp;&amp; me.isConfiguring) {
+            // Lazily create the $proxiedConfigs map to track the config properties
+            // we are &quot;stealing&quot; away.
+            proxiedConfigs = me.$proxiedConfigs || (me.$proxiedConfigs = {});
+
+            while (i-- &gt; 0) {
+                cfg = configProxies[i];
+                proxiedConfigs[s = cfg.name] = cfg;
+
+                if ((v = configs[s]) !== undefined) {
+                    (ret || (ret = {}))[s] = v;
+                }
+            }
+        }
+
+        return ret;
+    },
+
+<span id='Ext-mixin-ConfigProxy-method-mergeProxiedConfigs'>    /**
+</span>     * This method accepts the normal config object (`itemConfig`) for the child object
+     * (`name`) and merges any proxied configs into a new config object. This is useful
+     * during the class initialization phase to avoid passing in &quot;wrong&quot; initial config
+     * values for a child object and then proxying down the rest of the configs.
+     *
+     * This method is typically called during an &quot;applier&quot; method for a proxy target. If
+     * called at any other time this method simply returns the given `itemConfig`. This
+     * makes it safe to code such appliers as follows:
+     *
+     *      applyChildThing: function (config) {
+     *          config = this.mergeProxiedConfigs(&#39;childThing&#39;, config);
+     *
+     *          return new ChildThing(config);
+     *      }
+     *
+     * @param {String} name The proxy target config name (in the class example, this would
+     * be &quot;childThing&quot;).
+     * @param {Mixed} itemConfig The default configuration for the child item.
+     * @param {Boolean} [alwaysClone] Pass `true` to ensure a new object is returned.
+     * @return {Object}
+     * @private
+     * @since 6.5.0
+     */
+    mergeProxiedConfigs: function (name, itemConfig, alwaysClone) {
+        var me = this,
+            ret = itemConfig,
+            proxied = me.getProxiedConfigs(name),
+            configurator;
+
+        if (proxied) {
+            if (!itemConfig) {
+                ret = proxied;
+            }
+            else if (itemConfig.constructor === Object) {
+                configurator = me.self.getConfigurator();
+
+                // First clone() so don&#39;t mutate the config:
+                ret = configurator.merge(me, Ext.clone(itemConfig), proxied);
+            }
+        }
+
+        if (alwaysClone &amp;&amp; ret === itemConfig) {
+            ret = Ext.clone(ret);
+        }
+
+        return ret;
+    },
+
+    statics: {
+<span id='Ext-mixin-ConfigProxy-static-method-processClass'>        processClass: function (targetClass, proxyConfig) {
+</span>            var ExtConfig = Ext.Config,
+                targetProto = targetClass.prototype,
+                add = {},
+                proxies = targetClass.$configProxies,
+                cfg, configs, itemGetter, i, item, methods, n, name, proxiedConfigs, s;
+
+            for (item in proxyConfig) {
+                itemGetter = ExtConfig.get(item).names.get;
+                configs = proxyConfig[item];
+
+                if (Ext.isArray(configs)) {
+                    methods = null;
+                }
+                else {
+                    methods = configs.methods;
+                    configs = configs.configs;
+                }
+
+                if (!(proxiedConfigs = proxies[item])) {
+                    proxies[item] = proxiedConfigs = [];
+                }
+                else {
+                    // this array comes from the superclass so slice it for this class:
+                    proxies[item] = proxiedConfigs = proxiedConfigs.slice();
+                }
+
+                for (i = 0, n = methods &amp;&amp; methods.length; i &lt; n; ++i) {
+                    if (!targetProto[name = methods[i]]) {
+                        targetProto[name] = ConfigProxy.wrapFn(itemGetter, name);
+                    }
+                    //&lt;debug&gt;
+                    else {
+                        Ext.raise(&#39;Cannot proxy method &quot;&#39; + name + &#39;&quot;&#39;);
+                    }
+                    //&lt;/debug&gt;
+                }
+
+                for (i = 0, n = configs &amp;&amp; configs.length; i &lt; n; ++i) {
+                    cfg = ExtConfig.get(s = configs[i]);
+
+                    //&lt;debug&gt;
+                    if (s in add) {
+                        Ext.raise(&#39;Duplicate proxy config definitions for &quot;&#39; + s + &#39;&quot;&#39;);
+                    }
+                    if (s in targetProto.config) {
+                        Ext.raise(&#39;Config &quot;&#39;+s+&#39;&quot; already defined for class &#39; + targetProto.$className);
+                    }
+                    //&lt;/debug&gt;
+
+                    add[s] = undefined; // sentinel initial value to avoid smashing
+                    proxiedConfigs.push(cfg);
+
+                    if (!targetProto[name = cfg.names.get]) {
+                        targetProto[name] = ConfigProxy.wrapGet(itemGetter, name);
+                    }
+                    //&lt;debug&gt;
+                    else {
+                        Ext.raise(&#39;Cannot proxy &quot;&#39;+s+&#39;&quot; config getter&#39;);
+                    }
+                    //&lt;/debug&gt;
+
+                    if (!targetProto[name = cfg.names.set]) {
+                        targetProto[name] = ConfigProxy.wrapSet(itemGetter, name, s);
+                    }
+                    //&lt;debug&gt;
+                    else {
+                        Ext.raise(&#39;Cannot proxy &quot;&#39;+s+&#39;&quot; config setter&#39;);
+                    }
+                    //&lt;/debug&gt;
+                }
+            }
+
+            targetClass.addConfig(add);
+        },
+
+<span id='Ext-mixin-ConfigProxy-static-method-wrapFn'>        wrapFn: function (itemGetter, name) {
+</span>            return function () {
+                var item = this[itemGetter]();
+
+                return item &amp;&amp; item[name].apply(item, arguments);
+            };
+        },
+
+<span id='Ext-mixin-ConfigProxy-static-method-wrapGet'>        wrapGet: function (itemGetter, configGetter) {
+</span>            return function () {
+                var item = this[itemGetter]();
+
+                return item &amp;&amp; item[configGetter]();
+            };
+        },
+
+<span id='Ext-mixin-ConfigProxy-static-method-wrapSet'>        wrapSet: function (itemGetter, configSetter, itemName) {
+</span>            return function (value) {
+                var me = this,
+                    item, proxiedConfigs;
+
+                // We define the proxied configs with &quot;undefined&quot; value so that we can
+                // detect this and not smash them by default.
+                if (!me.isConfiguring || value !== undefined) {
+                    // If the item&#39;s applier called mergeProxiedConfigs or getProxiedConfigs
+                    // then each config is marked as processed in proxiedConfigs (only during
+                    // initialization).
+                    item = me[itemGetter]();
+
+                    proxiedConfigs = me.$proxiedConfigs; // lazy created by itemGetter
+                    if (proxiedConfigs &amp;&amp; proxiedConfigs[itemName]) {
+                        delete proxiedConfigs[itemName]; // drop only the first set call
+                        item = null;
+                    }
+
+                    if (item) {
+                        item[configSetter](value);
+                    }
+                }
+
+                return me;
+            };
+        }
+    }
+}});
+</pre>
+</body>
+</html>

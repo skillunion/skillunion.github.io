@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-form-field-Radio'>/**
+</span> * @class Ext.form.field.Radio
+ */
+Ext.define(null, {
+    override: &#39;Ext.form.field.Radio&#39;,
+    
+<span id='Ext-form-field-Radio-property-compatibility'>    compatibility: Ext.isIE8,
+</span>    
+<span id='Ext-form-field-Radio-method-getSubTplData'>    getSubTplData: function(fieldData) {
+</span>        var data = this.callParent([fieldData]);
+        
+        // Rendering a radio button with checked attribute
+        // will have a curious side effect in IE8: the DOM
+        // node will have checked property set to `true` but
+        // radio group (radios with the same name attribute)
+        // will behave as if no radio is checked in the group;
+        // tabbing into the group will select first or last
+        // button instead of the checked one.
+        // So instead of rendering the attribute we will set
+        // checked value in the DOM after rendering. Apparently
+        // such a tiny nudge is enough for the browser to behave.
+        delete data.checked;
+        
+        return data;
+    },
+    
+<span id='Ext-form-field-Radio-method-afterRender'>    afterRender: function() {
+</span>        this.callParent();
+        
+        if (this.checked) {
+            this.inputEl.dom.checked = true;
+        }
+    },
+    
+<span id='Ext-form-field-Radio-method-onChange'>    onChange: function(newValue, oldValue) {
+</span>        // We don&#39;t need to bother updating other radio buttons in IE8
+        // since it will fire propertychange event on any change, not only false -&gt; true.
+        // This is unlike standard compliant browsers, see main class.
+        this.callSuper([newValue, oldValue]);
+    }
+});
+</pre>
+</body>
+</html>

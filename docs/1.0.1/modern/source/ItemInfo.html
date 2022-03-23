@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-interactions-ItemInfo'>/**
+</span> * The ItemInfo interaction allows displaying detailed information about a series data
+ * point in a popup panel.
+ *
+ * To attach this interaction to a chart, include an entry in the chart&#39;s
+ * {@link Ext.chart.AbstractChart#interactions interactions} config with the `iteminfo` type:
+ *
+ *     new Ext.chart.AbstractChart({
+ *         renderTo: Ext.getBody(),
+ *         width: 800,
+ *         height: 600,
+ *         store: store1,
+ *         axes: [ ...some axes options... ],
+ *         series: [ ...some series options... ],
+ *         interactions: [{
+ *             type: &#39;iteminfo&#39;,
+ *             listeners: {
+ *                 show: function(me, item, panel) {
+ *                     panel.setHtml(&#39;Stock Price: $&#39; + item.record.get(&#39;price&#39;));
+ *                 }
+ *             }
+ *         }]
+ *     });
+ */
+Ext.define(&#39;Ext.chart.interactions.ItemInfo&#39;, {
+
+    extend: &#39;Ext.chart.interactions.Abstract&#39;,
+
+<span id='Ext-chart-interactions-ItemInfo-property-type'>    type: &#39;iteminfo&#39;,
+</span>    alias: &#39;interaction.iteminfo&#39;,
+
+<span id='Ext-chart-interactions-ItemInfo-event-show'>    /**
+</span>     * @event show
+     * Fires when the info panel is shown.
+     * @param {Ext.chart.interactions.ItemInfo} this The interaction instance
+     * @param {Object} item The item whose info is being displayed
+     * @param {Ext.Panel} panel The panel for displaying the info
+     */
+
+    config: {
+<span id='Ext-chart-interactions-ItemInfo-cfg-gestures'>        /**
+</span>         * @cfg {Object} gestures
+         * Defines the gestures that should trigger the item info panel to be displayed.
+         */
+        gestures: {
+            tap: &#39;onInfoGesture&#39;
+        },
+
+<span id='Ext-chart-interactions-ItemInfo-cfg-panel'>        /**
+</span>         * @cfg {Object} panel
+         * An optional set of configuration overrides for the {@link Ext.Panel} that gets
+         * displayed. This object will be merged with the default panel configuration.
+         */
+        panel: {
+            modal: true,
+            centered: true,
+            width: 300,
+            height: 200,
+            scrollable: &#39;vertical&#39;,
+            hideOnMaskTap: true,
+            fullscreen: false,
+            hidden: false,
+            zIndex: 30
+        }
+    },
+
+<span id='Ext-chart-interactions-ItemInfo-property-item'>    item: null,
+</span>
+<span id='Ext-chart-interactions-ItemInfo-method-applyPanel'>    applyPanel: function (panel, oldPanel) {
+</span>        return Ext.factory(panel, &#39;Ext.Panel&#39;, oldPanel);
+    },
+
+<span id='Ext-chart-interactions-ItemInfo-method-updatePanel'>    updatePanel: function (panel, oldPanel) {
+</span>        if (panel) {
+            panel.on(&#39;hide&#39;, &quot;reset&quot;, this);
+        }
+        if (oldPanel) {
+            oldPanel.un(&#39;hide&#39;, &quot;reset&quot;, this);
+        }
+    },
+
+<span id='Ext-chart-interactions-ItemInfo-method-onInfoGesture'>    onInfoGesture: function (e, element) {
+</span>        var me = this,
+            panel = me.getPanel(),
+            item = me.getItemForEvent(e);
+        if (item) {
+            me.item = item;
+            me.fireEvent(&#39;show&#39;, me, item, panel);
+            Ext.Viewport.add(panel);
+            panel.show(&#39;pop&#39;);
+            item.series.setAttributesForItem(item, { highlighted: true });
+            me.sync();
+        }
+        return false;
+    },
+
+<span id='Ext-chart-interactions-ItemInfo-method-reset'>    reset: function () {
+</span>        var me = this,
+            item = me.item;
+        if (item) {
+            item.series.setAttributesForItem(item, { highlighted: false });
+            me.item = null;
+            me.sync();
+        }
+    }
+});
+</pre>
+</body>
+</html>

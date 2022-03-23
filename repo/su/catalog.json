@@ -1,0 +1,210 @@
+{
+  "format": "1",
+  "packages": [
+    {
+      "name": "su",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.4",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU Core",
+      "detailedDescription": "Skill Union Core Library",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T09:30:43Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "uHEkuNmIwuU\u003d",
+          "signature": "ONwbuXMxDq6zRIA8ko1C1aw0Zgxvg51xcXkzZawnIZue/XZ2TDzqY0CH9ZylTjqQ3mRv5Dro18Q3D8jDxSMoExDimFSB91cJqsfy+ywlCjOUAlaHDWod28ujmfw3b6ArXT46g46L5SdhDyr/p6xkJJEYQ9+s/MiNXgvUTleU+zAbmO9vdBMYXb1t6YTBFWHACff1Fm/ooo+1I6uYaQtByM0OzD0xpyQAI7J8Ujsg8Bl1V3N3JpGvrLd5Ek9TguH2RIa9+ZDIEQkoVXjmmWmVVkphofLCKNAsNUDvdgJhFLgq+OPiwtXGPNkRTYoFIqjtEdiX3Y+ZxRB28/nMYiZKWQ\u003d\u003d"
+        },
+        {
+          "name": "skillunion",
+          "uuid": "16a844e0-a0da-482d-903f-13247471c53c",
+          "created": "2019-06-17T12:42:03Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "QZNdxa8BL1U\u003d",
+          "signature": "OCLlGDgTspuefU3lWCCemMY/Wzr7+vO8reReNKlNHMpfAiLOk1hfR9gRPHNr58maPOoI29MnlTHloaDHjphW37yPYU2zIql9YkksFIulCxsBdKgaUuVsv/P4KbwExVkfvev+Um2xYlLYiLUgPhu65IwPqqxrvQmuOo9gPssS6RRgvOa4kuTic6ZqIjvpHJUDj0UjWRxTyWC4OXM2ekaJaRT3wDIO6zhL8Q6b3DCnithl/duJWgTrGGwtg9l8waJOQuv6B+N8qwdmvpVPqHJSNYTpAYEzzHioMDnnRD7Y6kBUt/8Z5i4HtJ3XwFuPXk+6lSSjkiMjAt1Fx0TQQNhLiw\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "su-classic": {
+          "toolkit": "classic",
+          "theme": "theme-classic",
+          "name": "su-classic"
+        },
+        "su-modern": {
+          "toolkit": "modern",
+          "theme": "theme-material",
+          "name": "su-modern"
+        }
+      }
+    },
+    {
+      "name": "su",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.5",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU Core",
+      "detailedDescription": "Skill Union Core Library",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T09:44:17Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "zCTDAjUz3Qc\u003d",
+          "signature": "XpZS7iaRolxvL1FXrqpT52IcCyka6JVXibVmVJ8ZypPt1B2VjK/7C1U/urmxwUBAux0XOfjZJcEIan3g4rYx2B7mlsrqUFErD39Z0FK+X/SjvD2APZY33FuT10V6ilc5Ei2rX1Ynxwfst6G8aVnBIq0Z60yaU95uU+OzGM7QmJqlHgT7SpkzHNJ98vdgPyrNP475rkMfXH3Bq4T0c1krSa2famlkaCQEzAV4zMV5PibHDh6wvYM2KnAE3SdLZdc91YAEgtNRXfaXX1UbYJ/x8c5IHF9m5aXNqoMYsuYZUEWULmqzG17IyMAsQZuZPfUx0yWBee9OO8KJtB7WXXrMtg\u003d\u003d"
+        },
+        {
+          "name": "skillunion",
+          "uuid": "16a844e0-a0da-482d-903f-13247471c53c",
+          "created": "2019-06-17T12:42:03Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "QZNdxa8BL1U\u003d",
+          "signature": "OCLlGDgTspuefU3lWCCemMY/Wzr7+vO8reReNKlNHMpfAiLOk1hfR9gRPHNr58maPOoI29MnlTHloaDHjphW37yPYU2zIql9YkksFIulCxsBdKgaUuVsv/P4KbwExVkfvev+Um2xYlLYiLUgPhu65IwPqqxrvQmuOo9gPssS6RRgvOa4kuTic6ZqIjvpHJUDj0UjWRxTyWC4OXM2ekaJaRT3wDIO6zhL8Q6b3DCnithl/duJWgTrGGwtg9l8waJOQuv6B+N8qwdmvpVPqHJSNYTpAYEzzHioMDnnRD7Y6kBUt/8Z5i4HtJ3XwFuPXk+6lSSjkiMjAt1Fx0TQQNhLiw\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "su-classic": {
+          "toolkit": "classic",
+          "theme": "theme-classic",
+          "name": "su-classic"
+        },
+        "su-modern": {
+          "toolkit": "modern",
+          "theme": "theme-material",
+          "name": "su-modern"
+        }
+      }
+    },
+    {
+      "name": "su",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.6",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU Core",
+      "detailedDescription": "Skill Union Core Library",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T10:36:44Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "X5cHPUlPbVw\u003d",
+          "signature": "FsV3hgmOscDTJX5KdkLP6nWI1eJXQRqIHa1Szis7WrClS7l0LTXTtbtA4Y6JZm2wYw36j8y9O0qBHkIaL5NcRHv98dVcgg6ivuD5aY3aCf2afteteyqxyYrYe0FwVznrVydHcLnAUIWo/VEYW4i2zpnjvDcoF7Vv5NW5Ee9bkP9hzfFxcElqAd+hpW8h15GI6iOtpOz9KzFVJ5PXFHz2PAlBXdcBw7X5C91gL4d5CuuPaxWU9NDZ/X5YesAStiQTmoE7hSx6mKejPCJQBOQNHjzTlKyW4j0EMiDbzs13xuzcUIrEDwms71oY3TfURNSZwNHJ+ldJGa73JzV9/A0zWA\u003d\u003d"
+        },
+        {
+          "name": "skillunion",
+          "uuid": "16a844e0-a0da-482d-903f-13247471c53c",
+          "created": "2019-06-17T12:42:03Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "QZNdxa8BL1U\u003d",
+          "signature": "OCLlGDgTspuefU3lWCCemMY/Wzr7+vO8reReNKlNHMpfAiLOk1hfR9gRPHNr58maPOoI29MnlTHloaDHjphW37yPYU2zIql9YkksFIulCxsBdKgaUuVsv/P4KbwExVkfvev+Um2xYlLYiLUgPhu65IwPqqxrvQmuOo9gPssS6RRgvOa4kuTic6ZqIjvpHJUDj0UjWRxTyWC4OXM2ekaJaRT3wDIO6zhL8Q6b3DCnithl/duJWgTrGGwtg9l8waJOQuv6B+N8qwdmvpVPqHJSNYTpAYEzzHioMDnnRD7Y6kBUt/8Z5i4HtJ3XwFuPXk+6lSSjkiMjAt1Fx0TQQNhLiw\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "su-classic": {
+          "toolkit": "classic",
+          "theme": "theme-classic",
+          "name": "su-classic"
+        },
+        "su-modern": {
+          "toolkit": "modern",
+          "theme": "theme-material",
+          "name": "su-modern"
+        }
+      }
+    },
+    {
+      "name": "su",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.7",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU Core",
+      "detailedDescription": "Skill Union Core Library",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T10:57:02Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "Lco6952Rti0\u003d",
+          "signature": "qZhn42m99xetv4bw4bKxkX7nGL12lRmItok055pGQyB94ZPz9sSS0pjta2aiCJcoGRCxKyUVjHVHYbPLDMo1BsYsNi50IbvU+0FRzprVTGPkwbBt9jAY6mz4eae8Zd1FgUdvbchx17TbzlvBUeWVXKCI8dll5wqvyPzeK5fzeYUX9oLCQJirz5SGlmHRwBvRDvbp9FbnQIO5r/Am6BIYG69FIpk9AoF09nYlkmjTsixUdh1zzZBmkLZYgkV1TfpNcEla905zv4C2Bj1zi7NwXbuUNC3Zn7HfTQHwbuY6m1ddzvmWzAZxGxeEufF4kLWZjX6oDTv/vGbMSUhE3qp80A\u003d\u003d"
+        },
+        {
+          "name": "skillunion",
+          "uuid": "16a844e0-a0da-482d-903f-13247471c53c",
+          "created": "2019-06-17T12:42:03Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "QZNdxa8BL1U\u003d",
+          "signature": "OCLlGDgTspuefU3lWCCemMY/Wzr7+vO8reReNKlNHMpfAiLOk1hfR9gRPHNr58maPOoI29MnlTHloaDHjphW37yPYU2zIql9YkksFIulCxsBdKgaUuVsv/P4KbwExVkfvev+Um2xYlLYiLUgPhu65IwPqqxrvQmuOo9gPssS6RRgvOa4kuTic6ZqIjvpHJUDj0UjWRxTyWC4OXM2ekaJaRT3wDIO6zhL8Q6b3DCnithl/duJWgTrGGwtg9l8waJOQuv6B+N8qwdmvpVPqHJSNYTpAYEzzHioMDnnRD7Y6kBUt/8Z5i4HtJ3XwFuPXk+6lSSjkiMjAt1Fx0TQQNhLiw\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "su-classic": {
+          "toolkit": "classic",
+          "theme": "theme-classic",
+          "name": "su-classic"
+        },
+        "su-modern": {
+          "toolkit": "modern",
+          "theme": "theme-material",
+          "name": "su-modern"
+        }
+      }
+    },
+    {
+      "name": "su",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.2.3",
+      "compatVersion": "1.0.2",
+      "creator": "skillunion",
+      "summary": "SU Core",
+      "detailedDescription": "Skill Union Core Library",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-22T23:08:55Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "yuQZH8ktbHw\u003d",
+          "signature": "rCZ2Gicm1J3IGH+36JRjUPRxwMrzkrP8VAhTEEPEZuDQJjEaOJgbu4Kbbt3T54SgW+2nIh655RIHBKkKRtvjqgtgp5xA4PxkN5viDulbNkmWKwZAeXErtxSfyJDne8roTQ5Ry9DWJRPJEVOJdsJHD0naTRHOkroFwmgl4aAWB9yRdufwG5XvSIgV2BocswBOP5FR2HyHRZQGkzWNOrZqGUiXYfgGYkx5XdbhOwdt2vkS7I1hw/VjwrneLkKXErLUMoberE+8OmL/cMjpYRNNp6O0QKqg+yMbbTJzLNAMPSjBWyUtAiUDUMxOVUhaN3mR6NrgpYHzCSHmeIYV1ptMJg\u003d\u003d"
+        },
+        {
+          "name": "skillunion",
+          "uuid": "16a844e0-a0da-482d-903f-13247471c53c",
+          "created": "2019-06-17T12:42:03Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "QZNdxa8BL1U\u003d",
+          "signature": "OCLlGDgTspuefU3lWCCemMY/Wzr7+vO8reReNKlNHMpfAiLOk1hfR9gRPHNr58maPOoI29MnlTHloaDHjphW37yPYU2zIql9YkksFIulCxsBdKgaUuVsv/P4KbwExVkfvev+Um2xYlLYiLUgPhu65IwPqqxrvQmuOo9gPssS6RRgvOa4kuTic6ZqIjvpHJUDj0UjWRxTyWC4OXM2ekaJaRT3wDIO6zhL8Q6b3DCnithl/duJWgTrGGwtg9l8waJOQuv6B+N8qwdmvpVPqHJSNYTpAYEzzHioMDnnRD7Y6kBUt/8Z5i4HtJ3XwFuPXk+6lSSjkiMjAt1Fx0TQQNhLiw\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "su-classic": {
+          "toolkit": "classic",
+          "theme": "theme-classic",
+          "name": "su-classic"
+        },
+        "su-modern": {
+          "toolkit": "modern",
+          "theme": "theme-material",
+          "name": "su-modern"
+        }
+      }
+    }
+  ]
+}

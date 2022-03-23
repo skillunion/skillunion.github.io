@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-FileButton'>/**
+</span> * @private
+ */
+Ext.define(&#39;Ext.field.FileButton&#39;, {
+    extend: &#39;Ext.Button&#39;,
+    xtype: &#39;filebutton&#39;,
+
+<span id='Ext-field-FileButton-event-change'>    /**
+</span>     * @event change
+     * Fires when the value has changed.
+     * @param {Ext.field.FileButton} this This FileButton
+     * @param {String} newValue The new value
+     * @param {String} oldValue The original value
+     */
+
+    config: {
+<span id='Ext-field-FileButton-cfg-value'>        /**
+</span>         * @cfg {String}
+         * The value of the file button&#39;s input
+         */
+        value: null,
+
+<span id='Ext-field-FileButton-cfg-multiple'>        /**
+</span>         * @cfg {Boolean}
+         * Allow selection of multiple files
+         */
+        multiple: false,
+
+<span id='Ext-field-FileButton-cfg-accept'>        /**
+</span>         * @cfg {String}
+         * File input accept attribute documented here (http://www.w3schools.com/tags/att_input_accept.asp)
+         * Also can be simple strings -- e.g. audio, video, image
+         */
+        accept: null,
+
+<span id='Ext-field-FileButton-cfg-capture'>        /**
+</span>         * @cfg {String}
+         * File input capture attribute. Accepts values such as &quot;camera&quot;, &quot;camcorder&quot;, &quot;microphone&quot;
+         */
+        capture: null
+    },
+
+<span id='Ext-field-FileButton-cfg-buttonType'>    buttonType: &#39;file&#39;,
+</span><span id='Ext-field-FileButton-cfg-ui'>    ui: &#39;action&#39;,
+</span><span id='Ext-field-FileButton-cfg-text'>    text: &#39;Browse...&#39;,
+</span><span id='Ext-field-FileButton-property-preventDefaultAction'>    preventDefaultAction: false,
+</span><span id='Ext-field-FileButton-property-keyHandlersAdded'>    keyHandlersAdded: true,
+</span>
+<span id='Ext-field-FileButton-cfg-eventHandlers'>    eventHandlers: {
+</span>        change: &#39;onChange&#39;
+    },
+
+<span id='Ext-field-FileButton-method-getButtonTemplate'>    getButtonTemplate: function() {
+</span>        var template = this.callParent();
+
+        template.tag = &#39;input&#39;;
+        template.onchange = &#39;return Ext.doEv(this, event);&#39;;
+
+        return template;
+    },
+
+<span id='Ext-field-FileButton-method-applyAccept'>    applyAccept: function (value) {
+</span>        switch (value) {
+            case &quot;video&quot;:
+            case &quot;audio&quot;:
+            case &quot;image&quot;:
+                value = value + &quot;/*&quot;;
+                break;
+        }
+
+        this.setInputAttribute(&#39;accept&#39;, value);
+    },
+
+<span id='Ext-field-FileButton-method-applyCapture'>    applyCapture: function (value) {
+</span>        this.setInputAttribute(&#39;capture&#39;, value);
+        return value;
+    },
+
+<span id='Ext-field-FileButton-method-applyMultiple'>    applyMultiple: function (value) {
+</span>        this.setInputAttribute(&#39;multiple&#39;, value ? &#39;&#39; : null);
+        return value;
+    },
+
+<span id='Ext-field-FileButton-method-onChange'>    onChange: function(e) {
+</span>        this.setValue(this.buttonElement.dom.value);
+    },
+
+<span id='Ext-field-FileButton-method-updateValue'>    updateValue: function(value, oldValue) {
+</span>        this.fireEvent(&#39;change&#39;, this, value, oldValue);
+    },
+
+<span id='Ext-field-FileButton-method-getFiles'>    /**
+</span>     * Returns the field files.
+     * @return {FileList} List of the files selected.
+     */
+    getFiles: function () {
+        return this.buttonElement.dom.files;
+    },
+
+<span id='Ext-field-FileButton-property-privates'>    privates: {
+</span>        setInputAttribute: function (attribute, newValue) {
+            var buttonElement = this.buttonElement.dom;
+
+            if (!Ext.isEmpty(newValue, true)) {
+                buttonElement.setAttribute(attribute, newValue);
+            }
+            else {
+                buttonElement.removeAttribute(attribute);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

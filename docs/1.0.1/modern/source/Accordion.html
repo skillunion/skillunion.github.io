@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;Ext.dataview.listswiper.Accordion&#39;, {
+    extend: &#39;Ext.dataview.listswiper.Item&#39;,
+    xtype: &#39;listswiperaccordion&#39;,
+
+    classCls: Ext.baseCSSPrefix + &#39;listswiperaccordion&#39;,
+
+    cls: Ext.baseCSSPrefix + &#39;item-no-tap&#39;,
+
+    config: {
+        bodyOffset: null,
+
+        actionDefaults: {
+            cls: Ext.baseCSSPrefix + &#39;listswiperaction&#39;,
+            xtype: &#39;button&#39;,
+            iconAlign: &#39;top&#39;
+        },
+
+        actionUI: &#39;square&#39;,
+
+        singleActionDefaults: {},
+
+        multiActionDefaults: {},
+
+        undo: {
+            cls: Ext.baseCSSPrefix + &#39;listswiperundoable&#39;,
+            ui: &#39;undo&#39;,
+            docked: &#39;right&#39;,
+            ignoreDefaults: true
+        },
+
+        thresholds: null,
+
+<span id='global-cfg-scaleDrag'>        /**
+</span>         * @cfg {Boolean} scaleDrag
+         * Determines if the delta of a drag should be scaled depending on where the drag is started.
+         * This causes drags that start in the middle of an item to move the items faster.
+         * This means shorter drag distances when dragging from the middle or far sides
+         */
+        scaleDrag: true,
+
+<span id='global-cfg-swipeToCommit'>        /**
+</span>         * @cfg {Boolean} swipeToCommit
+         * Determines if a full swipe should trigger the default action
+         * If false a full swipe will result in the accordion being left in the open state
+         */
+        swipeToCommit: true,
+
+<span id='global-cfg-state'>        /**
+</span>         * @cfg {String} state
+         * &#39;dragpeek&#39;,&#39;dragopen&#39;, &#39;dragcommit&#39;, &#39;open&#39;, &#39;undo&#39;
+         */
+
+<span id='global-property-side'>        /**
+</span>         * Current side that is revealed
+         * @private
+         */
+        side: null
+    },
+
+    layout: {
+        type: &#39;hbox&#39;,
+        align: &#39;stretch&#39;
+    },
+
+    template: [{
+        reference: &#39;bodyElement&#39;,
+        cls: Ext.baseCSSPrefix + &#39;body-el&#39;,
+        uiCls: &#39;body-el&#39;,
+
+        children: [{
+            reference: &#39;leftElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;listswiperaccordion-wrapper &#39; + Ext.baseCSSPrefix + &#39;listswiperaccordion-wrapper-left&#39;
+        }, {
+            reference: &#39;rightElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;listswiperaccordion-wrapper &#39; + Ext.baseCSSPrefix + &#39;listswiperaccordion-wrapper-right&#39;
+        }]
+    }],
+
+    scrollDock: null,
+
+    constructor: function (config) {
+        var me = this;
+
+        me.left = {
+            name: &#39;left&#39;,
+            isLeft: true,
+            items: []
+        };
+
+        me.right = {
+            name: &#39;right&#39;,
+            isLeft: false,
+            items: []
+        };
+
+        me.callParent([config]);
+    },
+
+    initialize: function () {
+        var me = this,
+            target = me.getTranslationTarget();
+
+        me.callParent();
+        target.on({
+            scope: me,
+            tap: &#39;onDismissTap&#39;
+        });
+    },
+
+    destroy: function () {
+        var me = this,
+            target = me.getTranslationTarget();
+
+        //&lt;debug&gt;
+        if (me.thresholdEl) {
+            me.thresholdEl.destroy();
+        }
+        //&lt;/debug&gt;
+
+        target.un({
+            scope: me,
+            tap: &#39;onDismissTap&#39;
+        });
+
+        me.callParent();
+    },
+
+    applyLeftActions: function (items) {
+        this.addActions(&#39;left&#39;, items);
+    },
+
+    applyRightActions: function (items) {
+        this.addActions(&#39;right&#39;, items);
+    },
+
+    applySide: function (side) {
+        this.side = side &amp;&amp; this[side];
+        return side;
+    },
+
+    getButtonBackgroundColor: function(button) {
+        var action = button.$action,
+            backgroundColorEl = button[action.backgroundColorEl || &#39;innerElement&#39;];
+
+        return backgroundColorEl.getStyle(&#39;backgroundColor&#39;);
+    },
+
+    addActions: function (side, items) {
+        var me = this,
+            i, config, action, button;
+
+        side = me[side];
+        side.el = side.isLeft ? me.leftElement : me.rightElement;
+        side.multiple = items.length &gt; 1;
+        config = side.multiple ? me.getMultiActionDefaults() : me.getSingleActionDefaults();
+        side.el.toggleCls(me.baseCls + &#39;-multiple&#39;, side.multiple);
+        side.el.toggleCls(me.baseCls + &#39;-single&#39;, !side.multiple);
+        for (i = 0; i &lt; items.length; i++) {
+            action = me.createActionItem(Ext.apply({}, items[i], config));
+            action.$side = side;
+            button = me.add(action);
+            button.addUi(this.getActionUI());
+            button.$action = action;
+            button.$originalHandler = button.getHandler();
+            button.setHandler(me.onActionTap.bind(me, action));
+
+            side.items.push(button);
+        }
+    },
+
+    createActionItem: function (config) {
+        return Ext.apply({}, config, this.getActionDefaults());
+    },
+
+    getSwipeRange: function () {
+        var me = this,
+            side = me.side,
+            plugin = me.owner,
+            swipeMax = plugin.getSwipeMax();
+
+        return me.itemWidth * (swipeMax[side.multiple ? &#39;multiple&#39; : &#39;single&#39;] / 100);
+    },
+
+    onActionTap: function (action, button, e) {
+        var me = this,
+            state = me.getState();
+
+        if (state !== &#39;dragpeek&#39;) {
+            e.stopPropagation();
+            this.commit(e, action, button);
+        }
+    },
+
+    onDismissTap: function () {
+        var me = this,
+            plugin = me.owner,
+            dimissOnTap = plugin.getDismissOnTap();
+
+        if (dimissOnTap) {
+            me.dismiss();
+        }
+    },
+
+    onRender: function () {
+        var me = this,
+            item = me.ownerCmp;
+
+        me.itemWidth = item.el.measure(&#39;w&#39;);
+        me.syncSides();
+    },
+
+    updateSide: function (side, oldSide) {
+        var me = this,
+            layout = me.getLayout();
+        me.el.replaceCls(oldSide, side, me.baseCls + &#39;-side&#39;);
+
+        if (side === &#39;left&#39;) {
+            layout.setPack(&#39;start&#39;);
+        } else {
+            layout.setPack(&#39;end&#39;);
+        }
+    },
+
+    updateState: function (state, oldState) {
+        var me = this,
+            side = me.side,
+            defaultButton = me.getDefaultButton();
+
+        me.callParent([state, oldState]);
+
+        if (side.multiple) {
+            me.el.toggleCls(me.baseCls + &#39;-collapsed&#39;, state === &#39;dragcommit&#39;);
+
+            if (state === &#39;dragcommit&#39;) {
+                defaultButton.el.setStyle({&#39;flex-basis&#39;: side.maxActionWidth + &#39;px&#39;});
+            } else {
+                defaultButton.setStyle({&#39;flex-basis&#39;: null});
+            }
+
+            if (oldState === &#39;dragcommit&#39; &amp;&amp; me.isDragging) {
+                me.el.addCls(me.baseCls + &#39;-was-collapsed&#39;);
+            } else {
+                me.el.removeCls(me.baseCls + &#39;-was-collapsed&#39;);
+            }
+        }
+    },
+
+    privates: {
+        destroyItem: function () {
+            var me = this,
+                plugin = me.owner,
+                item = me.ownerCmp;
+
+            if (!me.destroyed) {
+                me.animating = false;
+                me.el.removeCls(me.baseCls + &#39;-was-collapsed&#39;);
+                plugin.destroyItem(item);
+            }
+        },
+        animateItem: function (offset, config) {
+            config = config || {};
+
+            var me = this,
+                side = me.side,
+                target = this.getTranslationTarget(),
+                duration = config.duration || 150,
+                completeFn;
+
+            return new Ext.Promise(function (resolve) {
+                me.animating = true;
+                me.offset = side.isLeft ? offset : -offset;
+                completeFn = function () {
+                    if (!me.destroyed) {
+                        me.animating = false;
+                        me.el.removeCls(me.baseCls + &#39;-was-collapsed&#39;);
+                    }
+                    resolve();
+                };
+
+                if (target.dom) {
+                    if (side.el.dom) {
+                        side.el.animate({
+                            preserveEndState: true,
+                            duration: duration,
+                            to: {
+                                width: offset
+                            }
+                        });
+                    }
+
+                    target.animate({
+                        preserveEndState: true,
+                        duration: duration,
+                        to: {
+                            transform: {
+                                translateX: me.offset
+                            }
+                        },
+
+                        callback: completeFn
+                    });
+                } else {
+                    completeFn();
+                }
+            });
+        },
+
+        commit: function (e, action, button) {
+            var me = this,
+                plugin = me.owner,
+                undoable, handler,
+                delay, precommitResult, undo, backgroundColor;
+
+            action = action || me.getDefaultAction();
+            button = button || me.getDefaultButton();
+            undoable = action.undoable;
+            handler = button.$originalHandler;
+
+            me.setAction(action);
+            me.$precommitResult = precommitResult = me.invokeAction(action, &#39;precommit&#39;);
+
+            if (handler) {
+                me.snapback().then(function () {
+                    Ext.callback(handler, button.getScope(), [action, e], 0, button);
+                }).then(function() {
+                    me.destroyItem();
+                });
+            } else {
+                if (!undoable) {
+                    me.dismiss();
+                } else {
+                    undo = me.add(me.getUndo());
+                    undo.addUi(button.getUi());
+
+                    me.bodyElement.on({
+                        scope: me,
+                        tap: &#39;onDismissTap&#39;
+                    });
+
+                    Ext.raf(function () {
+                        me.setState(&#39;undo&#39;);
+                        backgroundColor = me.getButtonBackgroundColor(button);
+                        if (backgroundColor) {
+                            me.el.setStyle(&#39;backgroundColor&#39;, backgroundColor);
+                        }
+
+                        undo.setHandler(me.onUndoTap.bind(me));
+
+                        delay = plugin.getCommitDelay();
+                        if (delay) {
+                            if (precommitResult &amp;&amp; precommitResult.then) {
+                                precommitResult.then(function () {
+                                    plugin.dismissAllTask.delay(delay);
+                                });
+                            } else {
+                                plugin.dismissAllTask.delay(delay);
+                            }
+                        }
+                    });
+                }
+            }
+        },
+
+        onUndoTap: function () {
+            this.undo();
+        },
+
+        undo: function () {
+            var me = this,
+                action = me.getAction(),
+                precommitResult = me.$precommitResult;
+
+            me.setState(&#39;open&#39;);
+
+            if (precommitResult &amp;&amp; precommitResult.then) {
+                precommitResult.then(function () {
+                    me.$precommitResult = null;
+                    me.undo();
+                });
+                return;
+            }
+
+            me.snapback().then(function () {
+                me.invokeAction(action, &#39;revert&#39;);
+            }).then(function() {
+                me.destroyItem();
+            });
+        },
+
+        //&lt;debug&gt;
+        createThresholds: function () {
+            var me = this,
+                item = me.ownerCmp,
+                plugin = this.owner,
+                side = me.side,
+                swipeRange = me.getSwipeRange(),
+                commitThreshold = side.commitThreshold,
+                openThreshold = side.openThreshold;
+
+            if (plugin.showThresholds &amp;&amp; !me.thresholdEl) {
+                me.thresholdEl = item.el.append({
+                    style: {
+                        display: &#39;flex&#39;,
+                        flexDirection: &#39;row&#39;,
+                        justifyContent: &#39;flex-end&#39;,
+                        position: &#39;absolute&#39;,
+                        height: &#39;auto&#39;,
+                        top: 0,
+                        left: 0,
+                        right: 0
+                    },
+                    children: [
+                        {
+                            style: {
+                                width: (swipeRange - (commitThreshold - openThreshold) - openThreshold) + &#39;px&#39;,
+                                height: &#39;6px&#39;,
+                                opacity: .8,
+                                backgroundColor: &#39;#EF5350&#39;
+                            }
+                        },
+                        {
+                            style: {
+                                width: (commitThreshold - openThreshold) + &#39;px&#39;,
+                                height: &#39;6px&#39;,
+                                opacity: .8,
+                                backgroundColor: &#39;#FFEE58&#39;
+                            }
+                        },
+                        {
+                            style: {
+                                width: openThreshold + &#39;px&#39;,
+                                height: &#39;6px&#39;,
+                                opacity: .8,
+                                backgroundColor: &#39;#66BB6A&#39;
+                            }
+                        }
+                    ]
+                });
+            }
+
+            if (me.thresholdEl) {
+                me.thresholdEl.setStyle({
+                    flexDirection: !side.isLeft ? &#39;row&#39; : &#39;row-reverse&#39;
+                });
+            }
+        },
+        //&lt;/debug&gt;
+
+        dismiss: function () {
+            var me = this,
+                action = me.getAction(),
+                precommitResult = me.$precommitResult;
+
+            if (precommitResult &amp;&amp; precommitResult.then) {
+                precommitResult.then(function () {
+                    me.$precommitResult = null;
+                    me.dismiss();
+                });
+                return;
+            }
+
+            if (action) {
+                me.snapback().then(function () {
+                    me.invokeAction(action, &#39;commit&#39;);
+                }).then(function() {
+                    me.destroyItem();
+                });
+            } else {
+                me.snapback(true);
+            }
+        },
+
+        onDragStart: function (e) {
+            var me = this,
+                state = me.getState();
+            if (me.animating || state === &#39;undo&#39;) {
+                return;
+            }
+
+            e.claimGesture();
+            me.initialOffset = me.offset || 0;
+            me.startX = e.getX() - me.el.getX() - me.initialOffset;
+            me.isDragging = true;
+            me.syncState(e.deltaX);
+        },
+
+        onDragMove: function (e) {
+            e.preventDefault();
+            this.syncState(e.deltaX);
+        },
+
+        onDragEnd: function (e) {
+            var me = this,
+                state = me.getState();
+
+            e.preventDefault();
+            me.isDragging = false;
+            if (state === &#39;dragcommit&#39;) {
+                me.commit(e);
+            } else if (state === &#39;dragopen&#39;) {
+                me.open();
+            } else {
+                me.snapback(true);
+            }
+        },
+
+        getDefaultButton: function(side) {
+            side = side || this.side;
+
+            var items = side.items;
+            return items[side.isLeft ? 0 : items.length - 1];
+        },
+
+        getDefaultAction: function (side) {
+            var button = this.getDefaultButton(side);
+            return button &amp;&amp; button.$action;
+        },
+
+        getRenderTarget: function (item) {
+            var side = item &amp;&amp; item.$side;
+            if (side) {
+                return side.el;
+            }
+
+            return this.callParent(arguments);
+        },
+
+        open: function () {
+            return this.animateItem(this.side.naturalWidth);
+        },
+
+        snapback: function (destroy) {
+            var me = this,
+                anim = me.animateItem(0);
+
+            return destroy ? anim.then(function() { me.destroyItem(); }) : anim;
+        },
+
+        syncSides: function () {
+            var me = this;
+
+            me.syncSide(&#39;left&#39;);
+            me.syncSide(&#39;right&#39;);
+        },
+
+        syncSide: function (side) {
+            var me = this,
+                thresholds = me.getThresholds(),
+                itemWidth = me.itemWidth,
+                element = side === &#39;left&#39; ? me.leftElement : me.rightElement,
+                children = element.dom.childNodes,
+                maxActionWidth = 0,
+                backgroundColor, defaultButton, childWidth, i, child, naturalWidth;
+
+            side = me[side];
+            defaultButton = this.getDefaultButton(side);
+
+            element.addCls(me.baseCls + &#39;-measure&#39;);
+
+            for (i = 0; i &lt; children.length; i++) {
+                child = Ext.get(children[i]);
+                childWidth = child.measure(&#39;w&#39;);
+
+                if (childWidth &gt; maxActionWidth) {
+                    maxActionWidth = childWidth;
+                }
+            }
+
+            naturalWidth = side.naturalWidth = maxActionWidth * children.length;
+            side.maxActionWidth = maxActionWidth;
+
+            if (thresholds &amp;&amp; thresholds.open) {
+                side.openThreshold = (thresholds.open / 100) * itemWidth;
+            } else {
+                side.openThreshold = maxActionWidth;
+            }
+
+            if (thresholds &amp;&amp; thresholds.commit) {
+                side.commitThreshold = (thresholds.commit / 100) * itemWidth;
+            } else {
+                side.commitThreshold = Math.min(.95 * itemWidth, naturalWidth * 1.4);
+            }
+
+            element.removeCls(me.baseCls + &#39;-measure&#39;);
+
+
+            if (side.multiple) {
+                backgroundColor = me.getButtonBackgroundColor(defaultButton);
+                if (backgroundColor) {
+                    side.el.setStyle(&#39;backgroundColor&#39;, backgroundColor);
+                }
+            }
+        },
+
+        syncState: function (deltaX) {
+            var me = this,
+                plugin = me.owner,
+                itemWidth = me.itemWidth,
+                swipeToCommit = me.getSwipeToCommit(),
+                scaleDrag = me.getScaleDrag(),
+                testOffset = me.initialOffset + deltaX,
+                side = this[(testOffset &lt; 0 ? &#39;right&#39; : &#39;left&#39;)],
+                // Determines the scale (1-3) inwhich to multiple the delta by depending on where you start the drag
+                // drags started in the middle will scale faster allowing for items to be seen without extremly long drags
+                scaler = scaleDrag ? Math.max(1, Math.min(3, Math.abs( (side.isLeft ? 0 : 1) - (me.startX / itemWidth)) * 3)) : 1,
+                offset = me.offset = me.initialOffset + (deltaX * scaler),
+                currentSide = me.side,
+                directionLock = plugin.getDirectionLock(),
+                positiveOffset, swipeRange, openThreshold, commitThreshold;
+
+            if (this.left.items.length === 0 || this.right.items.length === 0) {
+                directionLock = false;
+            }
+
+            // Empty Items or Direction locked will friction drag
+            if (side.items.length === 0 || (currentSide &amp;&amp; (side.name !== currentSide.name &amp;&amp; directionLock))) {
+                offset = me.offset = me.initialOffset + (deltaX * 0.1);
+
+                // Possible first drag was on an empty side, we need to set the side
+                if (side.items.length === 0) {
+                    me.setSide(side.name);
+                }
+                me.setState(&#39;draglocked&#39;);
+            } else {
+                me.setSide(side.name);
+
+                // Depends on side being set, must be done after.
+                swipeRange = me.getSwipeRange();
+                openThreshold = side.openThreshold;
+                commitThreshold = side.commitThreshold;
+
+                positiveOffset = (side.isLeft ? Math.abs(Math.max(0, offset)) : Math.abs(Math.min(0, offset)));
+
+                //&lt;debug&gt;
+                me.createThresholds();
+                //&lt;/debug&gt;
+
+                if (positiveOffset &lt;= openThreshold) {
+                    me.setState(&#39;dragpeek&#39;);
+                } else if (positiveOffset &lt;= commitThreshold || !swipeToCommit) {
+                    me.setState(&#39;dragopen&#39;);
+                } else {
+                    me.setState(&#39;dragcommit&#39;);
+                }
+
+                if (side.isLeft) {
+                    offset = Math.min(offset, swipeRange);
+                } else {
+                    offset = Math.max(offset, -swipeRange);
+                }
+            }
+
+            me.setBodyOffset(offset);
+        },
+
+        updateBodyOffset: function (offset) {
+            var me = this,
+                side = me.side,
+                target = me.getTranslationTarget();
+
+            target.setStyle(&#39;transform&#39;, &#39;translateX(&#39; + offset + &#39;px)&#39;);
+            side.el.setWidth(Math.abs(offset));
+        }
+    }
+});</pre>
+</body>
+</html>

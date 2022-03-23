@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-Form'>/**
+</span> * Form layout renders a single column of form fields, all with the same
+ * {@link #labelWidth label width}.  The default behavior is to size all labels to the
+ * width of the label with the longest text, but the width of the labels can also be
+ * configured.
+ *
+ * The following example uses label-auto-widthing to size all labels to the width of the
+ * largest label.
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         fullscreen: true,
+ *         layout: &#39;form&#39;,
+ *         items: [
+ *             {
+ *                 xtype: &#39;textfield&#39;,
+ *                 label: &#39;First Name&#39;
+ *             },
+ *             {
+ *                 xtype: &#39;textfield&#39;,
+ *                 label: &#39;Last Name&#39;
+ *             },
+ *             {
+ *                 xtype: &#39;textfield&#39;,
+ *                 label: &#39;Bank Account Number&#39;
+ *             },
+ *             {
+ *                 xtype: &#39;checkboxfield&#39;,
+ *                 label: &#39;Approved&#39;
+ *             }
+ *         ]
+ *     });
+ *
+ * **Note** This layout can only accept form fields as children and these fields
+ * cannot use `top` {@link Ext.field.Text#labelAlign}.
+ */
+Ext.define(&#39;Ext.layout.Form&#39;, {
+    extend: &#39;Ext.layout.Auto&#39;,
+    alias: &#39;layout.form&#39;,
+<span id='Ext-layout-Form-property-isFormLayout'>    isFormLayout: true,
+</span><span id='Ext-layout-Form-property-cls'>    cls: Ext.baseCSSPrefix + &#39;layout-form&#39;,
+</span><span id='Ext-layout-Form-property-itemCls'>    itemCls: Ext.baseCSSPrefix + &#39;layout-form-item&#39;,
+</span>
+    config: {
+<span id='Ext-layout-Form-cfg-itemSpacing'>        /**
+</span>         * @cfg {Number} itemSpacing
+         * The amount of space, in pixels, around each form field. Defaults to the value
+         * inherited from the theme&#39;s stylesheet as configured by
+         * {@link Ext.layout.Form#$layout-form-item-spacing $layout-form-item-spacing}.
+         */
+        itemSpacing: null,
+
+<span id='Ext-layout-Form-cfg-labelWidth'>        /**
+</span>         * @cfg {Number/String} [labelWidth=&#39;auto&#39;]
+         * The width of the labels. This can be either a number in pixels, or a valid CSS
+         * &quot;width&quot; style, e.g. `&#39;100px&#39;`, or `&#39;30%&#39;`.  When configured, all labels will assume
+         * this width, and any {@link Ext.form.Labelable#labelWidth labelWidth} specified
+         * on the items will be ignored.
+         *
+         * The default behavior of this layout when no no labelWidth is specified is to size
+         * the labels to the text-width of the label with the longest text.
+         */
+        labelWidth: null
+    },
+
+<span id='Ext-layout-Form-property-hasLabelWidthCls'>    hasLabelWidthCls: Ext.baseCSSPrefix + &#39;has-label-width&#39;,
+</span>
+<span id='Ext-layout-Form-method-onItemAdd'>    //&lt;debug&gt;
+</span>    onItemAdd: function (item, index) {
+        if (item.isInner &amp;&amp; !item.isFormField) {
+            Ext.raise(&quot;Cannot add item to container.  Only Ext.field.Field instances are allowed as inner items in a form layout.&quot;);
+        }
+
+        this.callParent([item, index]);
+    },
+<span id='Ext-layout-Form-method-updateContainer'>    //&lt;/debug&gt;
+</span>
+    updateContainer: function(container, oldContainer) {
+        var colGroup;
+
+        colGroup = this.columnGroupElement = container.getRenderTarget().appendChild({
+            cls: Ext.baseCSSPrefix + &#39;colgroup-el&#39;,
+            cn: [{
+                cls: Ext.baseCSSPrefix + &#39;label-column-el&#39;
+            }, {
+                cls: Ext.baseCSSPrefix + &#39;body-column-el&#39;
+            }]
+        });
+
+        this.labelColumnElement = colGroup.first();
+
+        this.callParent([container, oldContainer]);
+    },
+
+<span id='Ext-layout-Form-method-updateItemSpacing'>    updateItemSpacing: function(itemSpacing) {
+</span>        this.getContainer().getRenderTarget().setStyle(&#39;border-spacing&#39;, Ext.Element.addUnits(itemSpacing));
+    },
+
+<span id='Ext-layout-Form-method-updateLabelWidth'>    updateLabelWidth: function(labelWidth) {
+</span>        this.labelColumnElement.setWidth(labelWidth);
+
+        this.getContainer().getRenderTarget().toggleCls(
+            this.hasLabelWidthCls,
+            labelWidth != null &amp;&amp; labelWidth !== &#39;auto&#39;
+        );
+    }
+});</pre>
+</body>
+</html>

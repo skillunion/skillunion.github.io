@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-DataItem'>/**
+</span> * This is the default type for items in a {@link Ext.dataview.Component component dataview}.
+ * It ties together {@link Ext.data.Model records} to its contained Components.
+ *
+ * Consider the following example:
+ *
+ *      @example
+ *      Ext.create({
+ *          xtype: &#39;componentdataview&#39;,
+ *
+ *          store: [
+ *              { name: &#39;Peter&#39;, age: 26 },
+ *              { name: &#39;Ray&#39;, age: 28 },
+ *              { name: &#39;Egon&#39;, age: 24 },
+ *              { name: &#39;Winston&#39;, age: 29 }
+ *          ],
+ *
+ *          itemConfig: {
+ *              layout: &#39;hbox&#39;,
+ *              padding: 10,
+ *
+ *              items: [{
+ *                  xtype: &#39;component&#39;,
+ *                  reference: &#39;textCmp&#39;
+ *              }, {
+ *                  xtype: &#39;button&#39;,
+ *                  margin: &#39;0 0 0 5&#39;,
+ *                  reference: &#39;checkBtn&#39;,
+ *                  text: &#39;Check&#39;
+ *              }]
+ *          },
+ *
+ *          itemDataMap: {
+ *              textCmp: {
+ *                  html: &#39;name&#39;
+ *              }
+ *          }
+ *      });
+ *
+ * If the mapping of records to components is more complex, you can extend this class and
+ * provide a custom `updateRecord` method or use {@link Ext.app.ViewModel data binding}.
+ *
+ *      @example
+ *      Ext.create({
+ *          xtype: &#39;componentdataview&#39;,
+ *
+ *          store: [
+ *              { name: &#39;Peter&#39;, age: 26 },
+ *              { name: &#39;Ray&#39;, age: 28 },
+ *              { name: &#39;Egon&#39;, age: 24 },
+ *              { name: &#39;Winston&#39;, age: 29 }
+ *          ],
+ *
+ *          itemConfig: {
+ *              layout: &#39;hbox&#39;,
+ *              padding: 10,
+ *              viewModel: true, // enable per-item record binding
+ *
+ *              items: [{
+ *                  xtype: &#39;component&#39;,
+ *                  bind: &#39;Greetings {record.name}!&#39;
+ *              }, {
+ *                  xtype: &#39;button&#39;,
+ *                  margin: &#39;0 0 0 5&#39;,
+ *                  text: &#39;Check&#39;
+ *              }]
+ *          }
+ *      });
+ */
+Ext.define(&#39;Ext.dataview.DataItem&#39;, function (DataItem) { return {
+    extend: &#39;Ext.Container&#39;,
+    alternateClassName: &#39;Ext.dataview.component.DataItem&#39;,
+    xtype: &#39;dataitem&#39;,
+
+    mixins: [
+        &#39;Ext.dataview.GenericItem&#39;
+    ],
+
+    config: {
+<span id='Ext-dataview-DataItem-cfg-itemCls'>        /**
+</span>         * @cfg {String} itemCls
+         * An additional CSS class to apply to items within the DataView.
+         */
+        itemCls: null,
+
+<span id='Ext-dataview-DataItem-cfg-dataMap'>        /**
+</span>         * @cfg {Object} dataMap
+         * The dataMap allows you to map {@link #record} fields to specific configurations
+         * in this component.
+         *
+         * The `dataMap` object&#39;s keys describe the target objects to receive data from
+         * the associated {@link #cfg!record record}. These keys are either `&#39;#&#39;` (for the
+         * item itself) or a {@link Ext.Component#cfg!reference reference} to a component
+         * contained in the item.
+         *
+         * For each target listed in `dataMap`, the value is another map describing the
+         * config name (in the key) and the data field name (as the value).
+         *
+         * For example:
+         *
+         *      dataMap: {
+         *          &#39;#&#39;: {
+         *              title: &#39;fullName&#39;
+         *          },
+         *          text: {
+         *              html: &#39;name&#39;
+         *          }
+         *      }
+         *
+         * The above is equivalent to:
+         *
+         *      this.setTitle(this.getRecord().get(&#39;fullName&#39;));
+         *      this.lookup(&#39;text&#39;).setHtml(this.getRecord().get(&#39;name&#39;));
+         *
+         * **Note:** Prior to version 6.5, the first level keys were names of getter
+         * methods and the second level keys were names of setter methods. While this
+         * form is still supported, it is deprecated and will be removed in 7.0.
+         */
+        dataMap: {
+            cached: true,
+            $value: null
+        }
+    },
+
+<span id='Ext-dataview-DataItem-cfg-html'>    html: &#39;\xA0&#39;,
+</span>
+<span id='Ext-dataview-DataItem-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;dataitem&#39;,
+</span>
+<span id='Ext-dataview-DataItem-property-inheritUi'>    inheritUi: true,
+</span>
+<span id='Ext-dataview-DataItem-cfg-autoSize'>    autoSize: null,
+</span>
+<span id='Ext-dataview-DataItem-cfg-defaultType'>    defaultType: &#39;component&#39;,
+</span>
+<span id='Ext-dataview-DataItem-cfg-referenceHolder'>    // Since DataItem&#39;s are produce in bulk we can be sure they will create
+</span>    // duplicate reference names in the referenceHolder/controller above them
+    // so we can safely assume this would be best.
+    referenceHolder: true,
+
+<span id='Ext-dataview-DataItem-property-template'>    template: [{
+</span>        reference: &#39;bodyElement&#39;,
+        cls: Ext.baseCSSPrefix + &#39;body-el&#39;,
+        uiCls: &#39;body-el&#39;,
+        children: [{
+            reference: &#39;innerElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;inner-el&#39;,
+            uiCls: &#39;inner-el&#39;
+        }]
+    }],
+
+<span id='Ext-dataview-DataItem-method-updateItemCls'>    updateItemCls: function(newCls, oldCls) {
+</span>        this.el.replaceCls(oldCls, newCls);
+    },
+
+<span id='Ext-dataview-DataItem-method-updateRecord'>    /**
+</span>     * Updates this container&#39;s child items, passing through the `dataMap`.
+     * @param {Ext.data.Model} record
+     * @private
+     */
+    updateRecord: function(record) {
+        if (this.destroying || this.destroyed) {
+            return;
+        }
+        
+        var me = this,
+            dataMap = me.getDataMap(),
+            tpl = me.getTpl(),
+            data;
+
+        if (dataMap) {
+            DataItem.executeDataMap(record, me, dataMap);
+        }
+
+        me.syncDirty(record);
+
+        if (tpl || !dataMap || me.hasListeners.updatedata) {
+            data = me.parent.gatherData(record);
+
+            if (tpl) {
+                me.updateData(data);
+            }
+
+<span id='Ext-dataview-DataItem-event-updatedata'>            /**
+</span>             * @event updatedata
+             * Fires whenever the data of the DataItem is updated.
+             * @param {Ext.dataview.DataItem} dataItem The DataItem instance.
+             * @param {Object} newData The new data.
+             */
+            if (me.hasListeners.updatedata) {
+                me.fireEvent(&#39;updatedata&#39;, me, data);
+            }
+        }
+    },
+
+<span id='Ext-dataview-DataItem-method-updateHtml'>    updateHtml: function(html, oldHtml) {
+</span>        this.callParent([this.handleEmptyText(html), oldHtml]);
+    },
+
+<span id='Ext-dataview-DataItem-property-privates'>    privates: {
+</span>        applyDataMap: function (dataMap) {
+            return DataItem.parseDataMap(dataMap);
+        },
+
+        getRenderTarget: function() {
+            return this.innerElement;
+        },
+
+        statics: {
+            assignDataToItem: function (record, target, mappings, legacy) {
+                var configMap = Ext.Config.map,
+                    cfg, dataPath, i, n, name, s, value;
+
+                for (name in mappings) {
+                    s = legacy ? name : ((cfg = configMap[name]) &amp;&amp; cfg.names.set);
+                    if (!target[s]) {
+                        //&lt;debug&gt;
+                        if (legacy) {
+                            Ext.raise(&#39;No method &quot;&#39; + name + &#39;&quot; on &#39; + target.$className);
+                        } else {
+                            Ext.raise(&#39;No config &quot;&#39; + name + &#39;&quot; on &#39; + target.$className);
+                        }
+                        //&lt;/debug&gt;
+                        continue;
+                    }
+
+                    // This is an array of names to follow from the record. Like in
+                    // data binding these names can be association names or field
+                    // names.
+                    dataPath = mappings[name];
+                    value = record;
+                    for (i = 0, n = dataPath.length; value &amp;&amp; i &lt; n; ++i) {
+                        value = value.interpret(dataPath[i]);
+                    }
+
+                    target[s]((i &lt; n) ? null : value);
+                }
+            },
+
+            executeDataMap: function (record, item, dataMap) {
+                var reference, legacy, target, mappings;
+
+                for (reference in dataMap) {
+                    if (!(mappings = dataMap[reference])) {
+                        continue;
+                    }
+
+                    legacy = false;
+                    if (!(target = (reference === &#39;#&#39;) ? item : item.lookup(reference))) {
+                        // Prior to 6.5, this first level of keys was the getter method
+                        // name... so fallback but warn of the removal of this support
+                        if (typeof item[reference] === &#39;function&#39;) {
+                            target = item[reference]();
+                            legacy = true;
+
+                            //&lt;debug&gt;
+                            if (!item.$dataMapWarning) {
+                                item.$dataMapWarning = true;
+                                Ext.log.warn(&#39;Using getters in dataMaps is deprecated (for &#39; +
+                                    item.getId() + &#39;); support will be removed in 7.0&#39;);
+                            }
+                            //&lt;/debug&gt;
+                        }
+
+                        if (!target) {
+                            continue;
+                        }
+                    }
+
+                    DataItem.assignDataToItem(record, target, mappings, legacy);
+                }
+            },
+
+            parseDataMap: function (dataMap) {
+                var map = {},
+                    inner, innerSrc, key1, key2;
+
+                for (key1 in dataMap) {
+                    map[key1] = inner = {};
+                    innerSrc = dataMap[key1];
+
+                    for (key2 in innerSrc) {
+                        inner[key2] = innerSrc[key2].split(&#39;.&#39;);
+                    }
+                }
+
+                return map;
+            }
+        } // statics
+    } // privates
+};
+});
+</pre>
+</body>
+</html>

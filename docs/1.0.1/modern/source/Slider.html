@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-Slider'>/**
+</span> * The slider is a way to allow the user to select a value from a given numerical range. You might use it for choosing
+ * a percentage, combine two of them to get min and max values, or use three of them to specify the hex values for a
+ * color. Each slider contains a single &#39;thumb&#39; that can be dragged along the slider&#39;s length to change the value.
+ * Sliders are equally useful inside {@link Ext.form.Panel forms} and standalone. Here&#39;s how to quickly create a
+ * slider in form, in this case enabling a user to choose a percentage:
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         fullscreen: true,
+ *         items: [
+ *             {
+ *                 xtype: &#39;sliderfield&#39;,
+ *                 label: &#39;Percentage&#39;,
+ *                 value: 50,
+ *                 minValue: 0,
+ *                 maxValue: 100
+ *             }
+ *         ]
+ *     });
+ *
+ * In this case we set a starting value of 50%, and defined the min and max values to be 0 and 100 respectively, giving
+ * us a percentage slider. Because this is such a common use case, the defaults for {@link #minValue} and
+ * {@link #maxValue} are already set to 0 and 100 so in the example above they could be removed.
+ *
+ * It&#39;s often useful to render sliders outside the context of a form panel too. In this example we create a slider that
+ * allows a user to choose the waist measurement of a pair of jeans. Let&#39;s say the online store we&#39;re making this for
+ * sells jeans with waist sizes from 24 inches to 60 inches in 2 inch increments - here&#39;s how we might achieve that:
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         fullscreen: true,
+ *         items: [
+ *             {
+ *                 xtype: &#39;sliderfield&#39;,
+ *                 label: &#39;Waist Measurement&#39;,
+ *                 minValue: 24,
+ *                 maxValue: 60,
+ *                 increment: 2,
+ *                 value: 32
+ *             }
+ *         ]
+ *     });
+ *
+ * Now that we&#39;ve got our slider, we can ask it what value it currently has and listen to events that it fires. For
+ * example, if we wanted our app to show different images for different sizes, we can listen to the {@link #change}
+ * event to be informed whenever the slider is moved:
+ *
+ *     slider.on(&#39;change&#39;, function(field, newValue) {
+ *         if (newValue[0] &gt; 40) {
+ *             imgComponent.setSrc(&#39;large.png&#39;);
+ *         } else {
+ *             imgComponent.setSrc(&#39;small.png&#39;);
+ *         }
+ *     }, this);
+ *
+ * Here we listened to the {@link #change} event on the slider and updated the background image of an
+ * {@link Ext.Img image component} based on what size the user selected. Of course, you can use any logic inside your
+ * event listener.
+ */
+Ext.define(&#39;Ext.field.Slider&#39;, {
+    extend: &#39;Ext.field.Field&#39;,
+    xtype: &#39;sliderfield&#39;,
+    requires: [&#39;Ext.slider.Slider&#39;],
+    alternateClassName: &#39;Ext.form.Slider&#39;,
+
+    mixins: [
+        &#39;Ext.mixin.ConfigProxy&#39;,
+        &#39;Ext.field.BoxLabelable&#39;
+    ],
+
+<span id='Ext-field-Slider-event-change'>    /**
+</span>     * @event change
+     * Fires when the value changes.
+     * @param {Ext.field.Slider} me
+     * @param {Number[]} newValue The new value.
+     * @param {Number[]} oldValue The old value.
+     */
+
+<span id='Ext-field-Slider-event-dragchange'>    /**
+</span>     * @event dragchange
+     * Fires when a thumb value changes via drag.
+     * @param {Ext.field.Slider} me
+     * @param {Ext.slider.Slider} sl Slider Component.
+     * @param {Ext.slider.Thumb} thumb
+     * @param {Number[]} newValue The new value of this thumb.
+     * @param {Number[]} oldValue The old value of this thumb.
+     */
+
+<span id='Ext-field-Slider-event-dragstart'>    /**
+</span>    * @event dragstart
+    * Fires when the slider thumb starts a drag operation.
+    * @param {Ext.field.Slider} this
+    * @param {Ext.slider.Slider} sl Slider Component.
+    * @param {Ext.slider.Thumb} thumb The thumb being dragged.
+    * @param {Array} value The start value.
+    * @param {Ext.event.Event} e
+    */
+
+<span id='Ext-field-Slider-event-drag'>    /**
+</span>    * @event drag
+    * Fires when the slider thumb starts a drag operation.
+    * @param {Ext.field.Slider} this
+    * @param {Ext.slider.Slider} sl Slider Component.
+    * @param {Ext.slider.Thumb} thumb The thumb being dragged.
+    * @param {Ext.event.Event} e
+    */
+
+<span id='Ext-field-Slider-event-dragend'>    /**
+</span>    * @event dragend
+    * Fires when the slider thumb ends a drag operation.
+    * @param {Ext.field.Slider} this
+    * @param {Ext.slider.Slider} sl Slider Component.
+    * @param {Ext.slider.Thumb} thumb The thumb being dragged.
+    * @param {Array} value The end value.
+    * @param {Ext.event.Event} e
+    */
+
+    config: {
+<span id='Ext-field-Slider-cfg-slider'>        /**
+</span>         * @private
+         */
+        slider: {
+            xtype: &#39;slider&#39;,
+            inheritUi: true
+        },
+
+<span id='Ext-field-Slider-cfg-liveUpdate'>        /**
+</span>         * @cfg {Boolean} liveUpdate
+         * `true` to fire change events while the slider is dragging. `false` will
+         * only fire a change once the drag is complete.
+         */
+        liveUpdate: false,
+
+<span id='Ext-field-Slider-cfg-tabIndex'>        /**
+</span>         * @cfg tabIndex
+         * @inheritdoc
+         */
+        tabIndex: -1,
+
+<span id='Ext-field-Slider-cfg-readOnly'>        /**
+</span>         * @cfg readOnly
+         * Will make this field read only, meaning it cannot be changed with used interaction.
+         * @accessor
+         */
+        readOnly: false,
+
+<span id='Ext-field-Slider-cfg-value'>        /**
+</span>         * @cfg value
+         * @inheritdoc Ext.slider.Slider#cfg-value
+         * @accessor
+         */
+        value: 0
+    },
+
+<span id='Ext-field-Slider-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;sliderfield&#39;,
+
+<span id='Ext-field-Slider-property-proxyConfig'>    proxyConfig: {
+</span>        slider: [
+<span id='Ext-field-Slider-cfg-increment'>            /**
+</span>             * @cfg increment
+             * @inheritdoc Ext.slider.Slider#increment
+             */
+            &#39;increment&#39;,
+
+<span id='Ext-field-Slider-cfg-minValue'>            /**
+</span>             * @cfg minValue
+             * @inheritdoc Ext.slider.Slider#minValue
+             */
+            &#39;minValue&#39;,
+
+<span id='Ext-field-Slider-cfg-maxValue'>            /**
+</span>             * @cfg maxValue
+             * @inheritdoc Ext.slider.Slider#maxValue
+             */
+            &#39;maxValue&#39;
+        ]
+    },
+
+<span id='Ext-field-Slider-cfg-bodyAlign'>    /**
+</span>     * @cfg bodyAlign
+     * @inheritdoc
+     */
+    bodyAlign: &#39;stretch&#39;,
+
+<span id='Ext-field-Slider-property-defaultBindProperty'>    /**
+</span>     * @property defaultBindProperty
+     * @inheritdoc
+     */
+    defaultBindProperty: &#39;value&#39;,
+    
+<span id='Ext-field-Slider-cfg-twoWayBindable'>    /**
+</span>     * @cfg twoWayBindable
+     * @inheritdoc
+     */
+    twoWayBindable: {
+        values: 1,
+        value: 1
+    },
+
+<span id='Ext-field-Slider-cfg-values'>    /**
+</span>     * @cfg values
+     * @inheritdoc Ext.slider.Slider#cfg-values
+     */
+
+    constructor: function(config) {
+        config = config || {};
+
+        if (config.hasOwnProperty(&#39;values&#39;)) {
+            config.value = config.values;
+        }
+
+        this.callParent([config]);
+        this.updateMultipleState();
+    },
+
+<span id='Ext-field-Slider-method-initialize'>    /**
+</span>     * @private
+     */
+    initialize: function() {
+        this.callParent();
+
+        this.getSlider().on({
+            scope: this,
+
+            change: &#39;onSliderChange&#39;,
+            dragstart: &#39;onSliderDragStart&#39;,
+            drag: &#39;onSliderDrag&#39;,
+            dragend: &#39;onSliderDragEnd&#39;
+        });
+    },
+
+<span id='Ext-field-Slider-method-getBodyTemplate'>    getBodyTemplate: function () {
+</span>        return this.mixins.boxLabelable.getBodyTemplate.call(this);
+    },
+
+<span id='Ext-field-Slider-method-applySlider'>    applySlider: function (slider) {
+</span>        if (slider &amp;&amp; !slider.isInstance) {
+            slider = this.mergeProxiedConfigs(&#39;slider&#39;, slider);
+            slider.$initParent = this;
+            slider = Ext.create(slider);
+            delete slider.$initParent;
+        }
+
+        this.boxElement.appendChild(slider.el);
+
+        slider.ownerCmp = this;
+
+        return slider;
+    },
+
+<span id='Ext-field-Slider-method-updateSlider'>    updateSlider: function(slider) {
+</span>        slider.doInheritUi();
+    },
+
+<span id='Ext-field-Slider-method-getValue'>    getValue: function() {
+</span>        return this._value;
+    },
+
+<span id='Ext-field-Slider-method-applyValue'>    applyValue: function(value, oldValue) {
+</span>        value = this.callParent([value, oldValue]) || 0;
+        // If we are currently dragging, don&#39;t allow the binding
+        // to push a value over the top of what the user is doing.
+        if (this.dragging &amp;&amp; this.isSyncing(&#39;value&#39;)) {
+            value = undefined;
+        } else if (Ext.isArray(value)) {
+            value = value.slice(0);
+            if (oldValue &amp;&amp; Ext.Array.equals(value, oldValue)) {
+                value = undefined;
+            }
+        } else {
+            value = [value];
+        }
+        return value;
+    },
+
+<span id='Ext-field-Slider-method-updateValue'>    updateValue: function(value, oldValue) {
+</span>        if (!this.dragging) {
+            value = this.setSliderValue(value);
+        }
+
+        this.callParent([value, oldValue]);
+    },
+
+<span id='Ext-field-Slider-method-setSliderValue'>    setSliderValue: function(value) {
+</span>        // Get the value back out after setting
+        return this.getSlider().setValue(value).getValue();
+    },
+
+<span id='Ext-field-Slider-method-onSliderChange'>    onSliderChange: function(slider, thumb, newValue, oldValue) {
+</span>        this.setValue(slider.getValue());
+        this.fireEvent(&#39;dragchange&#39;, this, slider, thumb, newValue, oldValue);
+    },
+
+<span id='Ext-field-Slider-method-onSliderDragStart'>    onSliderDragStart: function(slider, thumb, startValue, e) {
+</span>        this.dragging = true;
+        this.fireEvent(&#39;dragstart&#39;, this, slider, thumb, startValue, e);
+    },
+
+<span id='Ext-field-Slider-method-onSliderDrag'>    onSliderDrag: function(slider, thumb, value, e) {
+</span>        var me = this;
+        if (me.getLiveUpdate()) {
+            me.setValue(slider.getValue());
+        }
+        me.fireEvent(&#39;drag&#39;, me, slider, thumb, value, e);
+    },
+
+<span id='Ext-field-Slider-method-onSliderDragEnd'>    onSliderDragEnd: function(slider, thumb, startValue, e) {
+</span>        this.dragging = false;
+        this.fireEvent(&#39;dragend&#39;, this, slider, thumb, startValue, e);
+    },
+
+<span id='Ext-field-Slider-method-setValues'>    /**
+</span>     * Convenience method. Calls {@link #setValue}.
+     * @param {Object} value
+     */
+    setValues: function(value) {
+        this.setValue(value);
+        this.updateMultipleState();
+    },
+
+<span id='Ext-field-Slider-method-getValues'>    /**
+</span>     * Convenience method. Calls {@link #getValue}
+     * @return {Object}
+     */
+    getValues: function() {
+        return this.getValue();
+    },
+
+<span id='Ext-field-Slider-method-reset'>    reset: function() {
+</span>        var config = this.config,
+            initialValue = (this.config.hasOwnProperty(&#39;values&#39;)) ? config.values : config.value;
+
+        this.setValue(initialValue);
+    },
+
+<span id='Ext-field-Slider-method-updateReadOnly'>    updateReadOnly: function(newValue) {
+</span>        this.getSlider().setReadOnly(newValue);
+    },
+
+<span id='Ext-field-Slider-method-updateMultipleState'>    updateMultipleState: function() {
+</span>        var value = this.getValue();
+        if (value &amp;&amp; value.length &gt; 1) {
+            this.addCls(Ext.baseCSSPrefix + &#39;slider-multiple&#39;);
+        }
+    },
+
+<span id='Ext-field-Slider-method-updateDisabled'>    updateDisabled: function(disabled, oldDisabled) {
+</span>        this.callParent([disabled, oldDisabled]);
+
+        this.getSlider().setDisabled(disabled);
+    },
+
+<span id='Ext-field-Slider-method-doDestroy'>    doDestroy: function() {
+</span>        this.getSlider().destroy();
+        this.callParent();
+    },
+
+<span id='Ext-field-Slider-method-getRefItems'>    getRefItems: function (deep) {
+</span>        var refItems = [],
+            slider = this.getSlider();
+
+        if (slider) {
+            refItems.push(slider);
+
+            if (deep &amp;&amp; slider.getRefItems) {
+                refItems.push.apply(refItems, slider.getRefItems(deep));
+            }
+        }
+
+        return refItems;
+    }
+});
+</pre>
+</body>
+</html>

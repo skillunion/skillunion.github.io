@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-trigger-Expand'>/**
+</span> * A simple &quot;expand&quot; trigger.  Used in {@link Ext.field.Picker Picker Fields}.
+ */
+Ext.define(&#39;Ext.field.trigger.Expand&#39;, {
+    extend: &#39;Ext.field.trigger.Trigger&#39;,
+    xtype: &#39;expandtrigger&#39;,
+    alias: &#39;trigger.expand&#39;,
+<span id='Ext-field-trigger-Expand-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;expandtrigger&#39;,
+</span><span id='Ext-field-trigger-Expand-cfg-handler'>    handler: &#39;onExpandTap&#39;,
+</span><span id='Ext-field-trigger-Expand-cfg-scope'>    scope: &#39;this&#39;
+</span>});
+</pre>
+</body>
+</html>

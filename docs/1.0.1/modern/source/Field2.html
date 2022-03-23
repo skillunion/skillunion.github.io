@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-Field'>/**
+</span> * Field is the base class for all form fields. It provides a lot of shared functionality to all
+ * field subclasses (for example labels, simple validation, {@link #clearable clearing} and tab index management), but
+ * is rarely used directly. Instead, it is much more common to use one of the field subclasses:
+ *
+ *     xtype            Class
+ *     ---------------------------------------
+ *     textfield        {@link Ext.field.Text}
+ *     numberfield      {@link Ext.field.Number}
+ *     textareafield    {@link Ext.field.TextArea}
+ *     hiddenfield      {@link Ext.field.Hidden}
+ *     radiofield       {@link Ext.field.Radio}
+ *     filefield        {@link Ext.field.File}
+ *     checkboxfield    {@link Ext.field.Checkbox}
+ *     selectfield      {@link Ext.field.Select}
+ *     togglefield      {@link Ext.field.Toggle}
+ *     fieldset         {@link Ext.form.FieldSet}
+ *
+ * Fields are normally used within the context of a form and/or fieldset. See the {@link Ext.form.Panel FormPanel}
+ * and {@link Ext.form.FieldSet FieldSet} docs for examples on how to put those together, or the list of links above
+ * for usage of individual field types. If you wish to create your own Field subclasses you can extend this class,
+ * though it is sometimes more useful to extend {@link Ext.field.Text} as this provides additional text entry
+ * functionality.
+ */
+Ext.define(&#39;Ext.field.Field&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    alternateClassName: &#39;Ext.form.Field&#39;,
+    xtype: &#39;field&#39;,
+    
+<span id='Ext-field-Field-property-isField'>    /**
+</span>     * Set to `true` on all Ext.field.Field subclasses. This is used by {@link Ext.form.Panel#getValues} to determine which
+     * components inside a form are fields.
+     * @property isField
+     * @type Boolean
+     */
+    isField: true,
+
+<span id='Ext-field-Field-property-isFormField'>    /**
+</span>     * @private
+     */
+    isFormField: true,
+
+<span id='Ext-field-Field-event-click'>    /**
+</span>     * @event click
+     * Fires whenever the input is clicked.
+     * @param {Ext.event.Event} e The event object.
+     */
+
+<span id='Ext-field-Field-event-keyup'>    /**
+</span>     * @event keyup
+     * Fires whenever keyup is detected.
+     * @param {Ext.event.Event} e The event object.
+     */
+
+<span id='Ext-field-Field-event-paste'>    /**
+</span>     * @event paste
+     * Fires whenever paste is detected.
+     * @param {Ext.event.Event} e The event object.
+     */
+
+<span id='Ext-field-Field-event-mousedown'>    /**
+</span>     * @event mousedown
+     * Fires whenever the input has a mousedown occur.
+     * @param {Ext.event.Event} e The event object.
+     */
+
+<span id='Ext-field-Field-event-errorchange'>    /**
+</span>     * @event errorchange
+     * Fires when the active error message changes.
+     * @param {Ext.field.Field} this
+     * @param {String} error The current error message
+     * @since 6.5.0
+     */
+
+<span id='Ext-field-Field-event-change'>    /**
+</span>     * @event change
+     * Fires when the value has changed.
+     * @param {Ext.field.Field} this This field
+     * @param {String} newValue The new value
+     * @param {String} oldValue The original value
+     */
+
+    cachedConfig: {
+<span id='Ext-field-Field-cfg-bodyAlign'>        /**
+</span>         * @cfg {&#39;start&#39;/&#39;center&#39;/&#39;end&#39;/&#39;stretch&#39;}
+         *
+         * The horizontal alignment the contents of this field&#39;s body element.
+         */
+        bodyAlign: &#39;start&#39;,
+
+<span id='Ext-field-Field-cfg-labelAlign'>        /**
+</span>         * @cfg {&#39;top&#39;/&#39;left&#39;/&#39;bottom&#39;/&#39;right&#39;}
+         * The position to render the label relative to the field body.
+         */
+        labelAlign: &#39;left&#39;,
+
+<span id='Ext-field-Field-cfg-labelCls'>        /**
+</span>         * @cfg {String}
+         * Optional CSS class to add to the Label element.
+         */
+        labelCls: null,
+
+<span id='Ext-field-Field-cfg-labelTextAlign'>        /**
+</span>         * @cfg {&#39;top&#39;/&#39;right&#39;/&#39;bottom&#39;/&#39;left&#39;}
+         *
+         * Text alignment of this field&#39;s label
+         */
+        labelTextAlign: &#39;left&#39;,
+
+<span id='Ext-field-Field-cfg-labelWidth'>        /**
+</span>         * @cfg {Number/String}
+         * Width of this field&#39;s label. Can be a number of pixels or any valid CSS value,
+         * such as `&#39;30%&#39;`. To size the label to its text, use `labelWidth: &#39;auto&#39;`
+         */
+        labelWidth: null,
+
+<span id='Ext-field-Field-cfg-labelMinWidth'>        /**
+</span>         * @cfg {Number/String}
+         * Min-width of this field&#39;s label.
+         */
+        labelMinWidth: null,
+
+<span id='Ext-field-Field-cfg-labelWrap'>        /**
+</span>         * @cfg {Boolean}
+         * `true` to allow the label to wrap. If set to `false`, the label will be truncated
+         * with an ellipsis.
+         */
+        labelWrap: false
+    },
+
+    config: {
+<span id='Ext-field-Field-cfg-name'>        /**
+</span>         * @cfg {String}
+         * The field&#39;s name.  Used by form panels to gather data to be submitted.
+         *
+         * For {@link Ext.field.Input Input Fields} this name is set as the `name` attribute
+         * of the `inputElement`
+         */
+        name: null,
+
+<span id='Ext-field-Field-cfg-label'>        /**
+</span>         * The label of this field
+         * @cfg {String} label
+         * @accessor
+         */
+        label: null,
+
+<span id='Ext-field-Field-cfg-required'>        /**
+</span>         * @cfg {Boolean}
+         * `true` to make this field required.
+         */
+        required: false,
+
+<span id='Ext-field-Field-cfg-requiredMessage'>        /**
+</span>         * @cfg {String}
+         * The error message to display when {@link #required} is `true` and the field&#39;s
+         * value is &quot;empty&quot; (`null`, `undefined`, or empty string).
+         */
+        requiredMessage: &#39;This field is required&#39;,
+
+<span id='Ext-field-Field-cfg-value'>        /**
+</span>         * @cfg {Mixed}
+         * The field&#39;s value
+         */
+        value: null,
+
+<span id='Ext-field-Field-cfg-validators'>        /**
+</span>         * @cfg {Mixed}
+         * A validator or array of validators to be applied to the field.  
+         *
+         * When the field is validated, each validator is applied and if any one of them 
+         * determines the field  is invalid, the field will be marked as invalid.  If you 
+         * examine the field&#39;s validators, you will get an array of Ext.data.Validators.
+         *
+         * Validation currently is synchronous.  If you need to validate a field with interaction
+         * with a server, you would do this when the form is submitted.
+         *
+         * A validator may be:
+         *
+         * * A regexp - if the field fails to match the regexp, it is invalid.
+         * * A function - the function will be called to validate the field; it should return false if invalid.`
+         * * An object - an object with a member fn that is a function to be called to validate the field.
+         * * An instantiated Validator {@link  Ext.data.validator}
+         */
+        validators: null,
+
+<span id='Ext-field-Field-cfg-validationMessage'>        /**
+</span>         * @cfg {String} validationMessage
+         * For validation, regex, etc., this is the error message returned if field is invalid.
+         */
+        validationMessage: &#39;Is in the wrong format&#39;,
+
+<span id='Ext-field-Field-cfg-validateDisabled'>        /**
+</span>         * @cfg {Boolean} [validateDisabled=false]
+         * `true` to validate the field, even if it is disabled.
+         */
+        validateDisabled: null,
+
+<span id='Ext-field-Field-cfg-disabled'>        /**
+</span>         * @cfg {Boolean} [disabled=false] `true` to disable the field.
+         *
+         * Be aware that conformant with the [HTML specification](http://www.w3.org/TR/html401/interact/forms.html),
+         * disabled Fields will not be {@link Ext.form.Panel#method-submit submitted}.
+         * @accessor
+         */
+
+<span id='Ext-field-Field-cfg-fullscreen'>        /**
+</span>         * @cfg {Boolean} fullscreen
+         * @hide
+         */
+
+<span id='Ext-field-Field-cfg-autoFitErrors'>        /**
+</span>         * @cfg {Boolean} [autoFitErrors=true]
+         * Whether to adjust the field&#39;s body width to make room for the
+         * {@link #errorTarget error messages}.
+         */
+        autoFitErrors: null,
+
+<span id='Ext-field-Field-cfg-inline'>        /**
+</span>         * @cfg {Boolean} [inline=false]
+         * `true` to cause this field to layout with inline element behavior.
+         * An inline field&#39;s width is determined by the total width of its label and body
+         * elements instead of automatically expanding to fill the width of its container.
+         */
+        inline: null,
+
+<span id='Ext-field-Field-cfg-error'>        /**
+</span>         * @cfg {String/String[]} error
+         * The error (or errors) to display for this field. This config is typically set
+         * by the field&#39;s {@link #cfg!validators validators} but can be set directly if
+         * an error needs to be associated with a field manually.
+         *
+         * Errors will be HTML encoded as necessary and {@link #cfg!errorTpl formatted}
+         * before becoming the current {@link #cfg!errorMessage}.
+         * @since 6.5.0
+         */
+        error: null,
+
+<span id='Ext-field-Field-cfg-errorMessage'>        /**
+</span>         * @cfg {String} errorMessage
+         * The field&#39;s error message to display as {@link #cfg!errorTarget specified}.
+         * This message must already be properly formatted and encoded as appropriate
+         * for the `errorTarget`.
+         * @since 6.5.0
+         */
+        errorMessage: null,
+
+<span id='Ext-field-Field-cfg-errorTarget'>        /**
+</span>         * @cfg {String} errorTarget
+         * The location where the error message text should display.
+         *
+         * The following are values that have predefined meaning:
+         *
+         * - `qtip` Display a {@link Ext.tip.Manager quick tip} containing the message
+         *  when the user hovers (or taps) the field. For this option to work, quick tips
+         *  must be enabled by calling {@link Ext.tip.Manager#init}.
+         * - `side` Add an error icon to the right of the field, displaying the message
+         *  in a popup on hover or tap.
+         * - `title` Display the message in a default browser `title` attribute.
+         * - `under` Add a `div` beneath the field containing the error message.
+         * @since 6.5.0
+         */
+        errorTarget: &#39;qtip&#39;,
+
+<span id='Ext-field-Field-cfg-errorTpl'>        /**
+</span>         * @cfg {String/String[]/Ext.XTemplate} errorTpl
+         * The template used to format the {@link #cfg!error error} set for this field.
+         * By default, the {@link #cfg!errorTarget errorTarget} is used to determine
+         * whether the error(s) are formatted as an HTML list or as plain text.
+         * @since 6.5.0
+         */
+        errorTpl: null,
+
+<span id='Ext-field-Field-cfg-errorTip'>        /**
+</span>         * @cfg {Object} errorTip
+         * The default config that will be used to display errors in the tooltip.
+         * @since 6.5.0
+         */
+        errorTip: null,
+
+<span id='Ext-field-Field-cfg-sideError'>        /**
+</span>         * @cfg {String}
+         * @private
+         */
+        sideError: null,
+
+<span id='Ext-field-Field-cfg-tipError'>        /**
+</span>         * @cfg {String}
+         * @private
+         */
+        tipError: null,
+
+<span id='Ext-field-Field-cfg-titleError'>        /**
+</span>         * @cfg {String}
+         * @private
+         */
+        titleError: null,
+
+<span id='Ext-field-Field-cfg-underError'>        /**
+</span>         * @cfg {String}
+         * @private
+         */
+        underError: null
+    },
+
+<span id='Ext-field-Field-property-htmlErrorsTpl'>    /**
+</span>     * @property {Ext.XTemplate} htmlErrorsTpl
+     * The default template used to format errors in HTML. This property is promoted
+     * to an `Ext.XTemplate` instance on first use.
+     * @private
+     * @readonly
+     * @since 6.5.0
+     */
+    htmlErrorsTpl: [
+        &#39;&lt;tpl if=&quot;count == 1&quot;&gt;&#39;,
+            &#39;&lt;tpl for=&quot;errors&quot;&gt;{.:htmlEncode}&lt;/tpl&gt;&#39;,
+        &#39;&lt;tpl elseif=&quot;count&quot;&gt;&#39;,
+            &#39;&lt;ul class=&quot;{listCls}&quot;&gt;&#39;,
+                &#39;&lt;tpl for=&quot;errors&quot;&gt;&lt;li&gt;{.:htmlEncode}&lt;/li&gt;&lt;/tpl&gt;&#39;,
+            &#39;&lt;/ul&gt;&#39;,
+        &#39;&lt;/tpl&gt;&#39;
+    ],
+
+<span id='Ext-field-Field-property-plainErrorsTpl'>    /**
+</span>     * @property {Ext.XTemplate} plainErrorsTpl
+     * The default template used to format errors as plain text. This property is promoted
+     * to an `Ext.XTemplate` instance on first use.
+     * @private
+     * @readonly
+     * @since 6.5.0
+     */
+    plainErrorsTpl: [
+        &#39;&lt;tpl if=&quot;count&quot;&gt;&#39;,
+            &#39;&lt;tpl for=&quot;errors&quot; between=&quot;\\n&quot;&gt;{.}&lt;/tpl&gt;&#39;,
+        &#39;&lt;/tpl&gt;&#39;
+    ],
+
+<span id='Ext-field-Field-property-_errorTplMap'>    _errorTplMap: {
+</span>        title: &#39;plainErrorsTpl&#39;
+    },
+
+<span id='Ext-field-Field-property-originalValue'>    /**
+</span>     * @property {Mixed} originalValue
+     * The original value when the field was instantiated.
+     * @private
+     */
+    originalValue: null,
+
+<span id='Ext-field-Field-property-focusable'>    focusable: true,
+</span>
+<span id='Ext-field-Field-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;field&#39;,
+</span><span id='Ext-field-Field-property-requiredCls'>    requiredCls: Ext.baseCSSPrefix + &#39;required&#39;,
+</span><span id='Ext-field-Field-property-noLabelWrapCls'>    noLabelWrapCls: Ext.baseCSSPrefix + &#39;no-label-wrap&#39;,
+</span><span id='Ext-field-Field-property-invalidCls'>    invalidCls: Ext.baseCSSPrefix + &#39;invalid&#39;,
+</span><span id='Ext-field-Field-property-noAutoFitErrorsCls'>    noAutoFitErrorsCls: Ext.baseCSSPrefix + &#39;no-auto-fit-errors&#39;,
+</span><span id='Ext-field-Field-property-inlineCls'>    inlineCls: Ext.baseCSSPrefix + &#39;inline&#39;,
+</span><span id='Ext-field-Field-property-labelAlignVerticalCls'>    labelAlignVerticalCls: Ext.baseCSSPrefix + &#39;label-align-vertical&#39;,
+</span><span id='Ext-field-Field-property-labelAlignHorizontalCls'>    labelAlignHorizontalCls: Ext.baseCSSPrefix + &#39;label-align-horizontal&#39;,
+</span><span id='Ext-field-Field-property-labeledCls'>    labeledCls: Ext.baseCSSPrefix + &#39;labeled&#39;,
+</span>
+<span id='Ext-field-Field-property-verticalLabelMap'>    verticalLabelMap: {
+</span>        top: 1,
+        placeholder: 1,
+        bottom: 1
+    },
+
+<span id='Ext-field-Field-property-horizontalLabelMap'>    horizontalLabelMap: {
+</span>        left: 1,
+        right: 1
+    },
+
+<span id='Ext-field-Field-cfg-nameable'>    nameable: true,
+</span>
+<span id='Ext-field-Field-property-validateOnInit'>    /**
+</span>     * @property {&quot;none&quot;/&quot;auto&quot;/&quot;all&quot;} validateOnInit
+     * Determines how initial values will handle validation
+     * - none: Will not validate any initial values
+     * - auto: Will only validate non-empty initial values
+     * - all: Will validate all initial values
+     */
+    validateOnInit: &#39;auto&#39;,
+
+<span id='Ext-field-Field-property-errorElement'>    errorElement: null,
+</span><span id='Ext-field-Field-property-errorIconElement'>    errorIconElement: null,
+</span><span id='Ext-field-Field-property-errorMessageElement'>    errorMessageElement: null,
+</span>
+<span id='Ext-field-Field-property-element'>    element: {
+</span>        reference: &#39;element&#39;,
+        classList: [
+            Ext.supports.CSSMinContent ? &#39;&#39; : (Ext.baseCSSPrefix + &#39;no-min-content&#39;),
+            Ext.supports.PercentageSizeFlexBug ? (Ext.baseCSSPrefix + &#39;has-percentage-size-flex-bug&#39;) : &#39;&#39;
+        ]
+    },
+
+<span id='Ext-field-Field-method-initialize'>    initialize: function () {
+</span>        var me = this;
+
+        me.callParent();
+
+        if (me.getValue() === &#39;&#39; &amp;&amp; me.validateOnInit === &#39;all&#39;) {
+            me.validate();
+        }
+    },
+
+<span id='Ext-field-Field-method-didValueChange'>    /**
+</span>     * @private
+     * Checks if the value has changed. Allows subclasses to override for
+     * any more complex logic.
+     */
+    didValueChange: function (newVal, oldVal){
+        return !this.isEqual(newVal, oldVal);
+    },
+
+<span id='Ext-field-Field-method-getTemplate'>    getTemplate: function () {
+</span>        return [{
+            reference: &#39;labelElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;label-el&#39;,
+            tag: &#39;label&#39;,
+            children: [{
+                reference: &#39;labelTextElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;label-text-el&#39;,
+                tag: &#39;span&#39;
+            }]
+        }, {
+            reference: &#39;bodyWrapElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;body-wrap-el&#39;,
+            children: [{
+                reference: &#39;bodyElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;body-el&#39;,
+                children: this.getBodyTemplate()
+            }, {
+                reference: &#39;errorElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;error-el&#39;,
+                children: [{
+                    reference: &#39;errorIconElement&#39;,
+                    cls: Ext.baseCSSPrefix + &#39;error-icon-el &#39; +
+                    Ext.baseCSSPrefix + &#39;font-icon&#39;
+                }, {
+                    reference: &#39;errorMessageElement&#39;,
+                    cls: Ext.baseCSSPrefix + &#39;error-message-el&#39;
+                }]
+            }]
+        }];
+    },
+
+<span id='Ext-field-Field-method-getBodyTemplate'>    getBodyTemplate: Ext.emptyFn,
+</span>
+<span id='Ext-field-Field-method-initElement'>    initElement: function () {
+</span>        this.callParent();
+
+        // alias for backward compatibility
+        this.innerElement = this.innerElement || this.bodyElement;
+    },
+
+<span id='Ext-field-Field-method-onFocusLeave'>    onFocusLeave: function(e) {
+</span>        this.callParent([e]);
+
+        this.completeEdit();
+    },
+
+<span id='Ext-field-Field-method-completeEdit'>    /**
+</span>     * @method
+     * @protected
+     * Called when focus leaves this input field.
+     * Used to postprocess raw values and perform conversion and validation.
+     */
+    completeEdit: Ext.emptyFn,
+
+<span id='Ext-field-Field-method-updateBodyAlign'>    updateBodyAlign: function (bodyAlign, oldBodyAlign) {
+</span>        var element = this.element;
+
+        if (oldBodyAlign) {
+            element.removeCls(Ext.baseCSSPrefix + &#39;body-align-&#39; + oldBodyAlign);
+        }
+
+        if (bodyAlign) {
+            element.addCls(Ext.baseCSSPrefix + &#39;body-align-&#39; + bodyAlign);
+        }
+    },
+
+<span id='Ext-field-Field-method-updateAutoFitErrors'>    updateAutoFitErrors: function (autoFitErrors) {
+</span>        this.toggleCls(this.noAutoFitErrorsCls, autoFitErrors === false);
+    },
+
+<span id='Ext-field-Field-method-applyErrorTpl'>    applyErrorTpl: function (tpl) {
+</span>        if (tpl &amp;&amp; !tpl.isTemplate) {
+            tpl = Ext.XTemplate.get(tpl);
+        }
+
+        return tpl;
+    },
+
+<span id='Ext-field-Field-method-formatErrors'>    /**
+</span>     * Formats the given error(s) based on the given {@link #cfg!errorTpl} and the
+     * specified {@link #cfg!errorTarget}.
+     * @param {String[]} errors
+     * @return {String}
+     * @protected
+     * @since 6.5.0
+     */
+    formatErrors: function (errors) {
+        var me = this,
+            tpl = me.getErrorTpl();
+
+        if (!tpl) {
+            tpl = me.lookupTpl(me._errorTplMap[me.getErrorTarget()] || &#39;htmlErrorsTpl&#39;);
+        }
+
+        return tpl.apply({
+            count: errors ? errors.length : 0,
+            label: me.getLabel(),
+            errors: errors
+        });
+    },
+
+<span id='Ext-field-Field-method-updateError'>    updateError: function (value) {
+</span>        var msg = this.formatErrors(Ext.Array.from(value));
+
+        this.setErrorMessage(msg);
+    },
+
+<span id='Ext-field-Field-method-updateErrorMessage'>    updateErrorMessage: function (msg) {
+</span>        var me = this,
+            errorTarget;
+
+        me.fireEvent(&#39;errorchange&#39;, me, msg);
+
+        if (me.preventMark) {
+            return;
+        }
+
+        me.toggleInvalidCls(!!msg);
+
+        errorTarget = me.getErrorTarget();
+
+        switch (errorTarget) {
+            case &#39;side&#39;:
+                me.setSideError(msg);
+                break;
+
+            case &#39;qtip&#39;:
+                me.setTipError(msg);
+                break;
+
+            case &#39;title&#39;:
+                me.setTitleError(msg);
+                break;
+
+            case &#39;under&#39;:
+                me.setUnderError(msg);
+                break;
+
+            case &#39;parent&#39;:
+                var owner = me.up(&#39;[onFieldErrorChange]&#39;);
+
+                if (owner) {
+                    owner.onFieldErrorChange(me, msg);
+                }
+                break;
+
+            //default:
+                //TODO
+                // @method ==&gt; controller
+                // .foo ==&gt; DQ
+        }
+    },
+
+<span id='Ext-field-Field-method-updateErrorTarget'>    updateErrorTarget: function (target, oldTarget) {
+</span>        var me = this,
+            error, owner;
+
+        if (oldTarget) {
+            me.removeCls(Ext.baseCSSPrefix + &#39;error-target-&#39; + oldTarget);
+
+            if (oldTarget === &#39;qtip&#39;) {
+                me.setTipError(null);
+            } else if (oldTarget === &#39;title&#39;) {
+                me.setTitleError(null);
+            } else if (oldTarget === &#39;side&#39;) {
+                me.setSideError(null);
+            } else if (oldTarget === &#39;under&#39;) {
+                me.setUnderError(null);
+            } else if (oldTarget === &#39;parent&#39;) {
+                owner = me.up(&#39;[onFieldErrorChange]&#39;);
+
+                if (owner) {
+                    owner.onFieldErrorChange(me);
+                }
+            }
+        }
+
+        if (target) {
+            me.addCls(Ext.baseCSSPrefix + &#39;error-target-&#39; + target);
+
+            if (!me.isConfiguring) {
+                error = me.getError();
+
+                if (error) {
+                    if (target === &#39;qtip&#39;) {
+                        me.setTipError(error);
+                    } else if (target === &#39;title&#39;) {
+                        me.setTitleError(error);
+                    } else if (target === &#39;side&#39;) {
+                        me.setSideError(error);
+                    } else if (target === &#39;under&#39;) {
+                        me.setUnderError(error);
+                    } else if (target === &#39;parent&#39;) {
+                        owner = me.up(&#39;[onFieldErrorChange]&#39;);
+
+                        if (owner) {
+                            owner.onFieldErrorChange(me, error);
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+<span id='Ext-field-Field-method-updateInline'>    updateInline: function (inline) {
+</span>        this.toggleCls(this.inlineCls, inline);
+    },
+
+<span id='Ext-field-Field-method-updateSideError'>    updateSideError: function (error) {
+</span>        if (error) {
+            error = Ext.apply({
+                html: error
+            }, this.getErrorTip());
+        }
+
+        this.errorElement.getData().qtip = error;
+    },
+
+<span id='Ext-field-Field-method-updateTipError'>    updateTipError: function (error) {
+</span>        if (error) {
+            error = Ext.apply({
+                html: error
+            }, this.getErrorTip());
+        }
+
+        // Using the bodyElement as the target of the qtip ensures that the tip is visually
+        // aligned to the field body, regardless of label positioning or bottom padding added
+        // by the stylesheet to support $field-vertical-spacing
+        this.bodyElement.getData().qtip = error;
+    },
+
+<span id='Ext-field-Field-method-updateTitleError'>    updateTitleError: function (error) {
+</span>        var dom = this.el.dom;
+
+        if (error) {
+            dom.setAttribute(&#39;title&#39;, error);
+        } else {
+            dom.removeAttribute(&#39;title&#39;);
+        }
+    },
+
+<span id='Ext-field-Field-method-updateUnderError'>    updateUnderError: function (error) {
+</span>        this.errorMessageElement.dom.innerHTML = error || &#39;&#39;;
+    },
+
+<span id='Ext-field-Field-method-updateLabel'>    updateLabel: function (label) {
+</span>        this.labelTextElement.setHtml(label);
+        this.el.toggleCls(this.labeledCls, !!label);
+    },
+
+<span id='Ext-field-Field-method-updateLabelAlign'>    updateLabelAlign: function (newLabelAlign, oldLabelAlign) {
+</span>        var me = this,
+            element = me.element;
+
+        if (oldLabelAlign) {
+            element.removeCls(Ext.baseCSSPrefix + &#39;label-align-&#39; + oldLabelAlign);
+        }
+
+        if (newLabelAlign) {
+            element.addCls(Ext.baseCSSPrefix + &#39;label-align-&#39; + newLabelAlign);
+        }
+
+        element.toggleCls(me.labelAlignVerticalCls, newLabelAlign in me.verticalLabelMap);
+        element.toggleCls(me.labelAlignHorizontalCls, newLabelAlign in me.horizontalLabelMap);
+    },
+
+<span id='Ext-field-Field-method-updateLabelTextAlign'>    updateLabelTextAlign: function (labelTextAlign, oldLabelTextAlign) {
+</span>        var element = this.element;
+
+        if (oldLabelTextAlign) {
+            element.removeCls(Ext.baseCSSPrefix + &#39;label-text-align-&#39; + oldLabelTextAlign);
+        }
+
+        if (labelTextAlign) {
+            element.addCls(Ext.baseCSSPrefix + &#39;label-text-align-&#39; + labelTextAlign);
+        }
+    },
+
+<span id='Ext-field-Field-method-updateLabelCls'>    updateLabelCls: function (newLabelCls, oldLabelCls) {
+</span>        var labelElement = this.labelElement;
+
+        if (newLabelCls) {
+            labelElement.addCls(newLabelCls);
+        }
+
+        if (oldLabelCls) {
+            labelElement.removeCls(oldLabelCls);
+        }
+    },
+
+<span id='Ext-field-Field-method-updateLabelWidth'>    updateLabelWidth: function (labelWidth) {
+</span>        this.labelElement.setWidth(labelWidth);
+    },
+
+<span id='Ext-field-Field-method-updateLabelMinWidth'>    updateLabelMinWidth: function (labelMinWidth) {
+</span>        this.labelElement.setStyle(&#39;min-width&#39;, Ext.Element.addUnits(labelMinWidth));
+    },
+
+<span id='Ext-field-Field-method-updateLabelWrap'>    updateLabelWrap: function (labelWrap) {
+</span>        this.element.toggleCls(this.noLabelWrapCls, !labelWrap);
+    },
+
+<span id='Ext-field-Field-method-updateName'>    updateName: function (newName) {
+</span>        this.name = newName;
+    },
+
+<span id='Ext-field-Field-method-updateRequired'>    updateRequired: function (required) {
+</span>        var me = this;
+
+        me.element.toggleCls(me.requiredCls, required);
+
+        if (!me.isConfiguring) {
+            me.validate();
+        }
+    },
+
+<span id='Ext-field-Field-method-updateRequiredMessage'>    updateRequiredMessage: function () {
+</span>        if (!this.isConfiguring) {
+            this.validate();
+        }
+    },
+
+<span id='Ext-field-Field-method-updateDisabled'>    updateDisabled: function (disabled, oldDisabled) {
+</span>        this.callParent([disabled, oldDisabled]);
+
+        if (!this.isConfiguring) {
+            this.validate();
+        }
+    },
+
+<span id='Ext-field-Field-method-updateValidateDisabled'>    updateValidateDisabled: function () {
+</span>        if (!this.isConfiguring) {
+            this.validate();
+        }
+    },
+
+<span id='Ext-field-Field-method-applyValue'>    applyValue: function (value) {
+</span>        if (this.isConfiguring) {
+            this.originalValue = value;
+        }
+
+        return value;
+    },
+
+<span id='Ext-field-Field-method-updateValue'>    updateValue: function (value, oldValue) {
+</span>        var me = this;
+
+        // Don&#39;t try to validate the field if the value transitions between empty values (null,
+        // undefined, &#39;&#39;, etc.). This can happen after initialization when binding value to an
+        // empty record field (e.g while building a creation form, which is initially empty).
+        if (!(Ext.isEmpty(value) &amp;&amp; Ext.isEmpty(oldValue))) {
+            me.validate();
+        }
+
+        if (!me.isConfiguring &amp;&amp; value !== oldValue) {
+            me.fireEvent(&#39;change&#39;, me, value, oldValue);
+        }
+    },
+
+<span id='Ext-field-Field-method-reset'>    /**
+</span>     * Resets the current field value back to the original value on this field when it was created.
+     *
+     *     // This will create a field with an original value
+     *     var field = Ext.Viewport.add({
+     *         xtype: &#39;textfield&#39;,
+     *         value: &#39;first value&#39;
+     *     });
+     *
+     *     // Update the value
+     *     field.setValue(&#39;new value&#39;);
+     *
+     *     // Now you can reset it back to the `first value`
+     *     field.reset();
+     *
+     * @return {Ext.field.Field} this
+     */
+    reset: function() {
+        this.setValue(this.originalValue);
+
+        return this;
+    },
+
+<span id='Ext-field-Field-method-resetOriginalValue'>    /**
+</span>     * Resets the field&#39;s {@link #originalValue} property so it matches the current {@link #getValue value}. This is
+     * called by {@link Ext.form.Panel}.{@link Ext.form.Panel#setValues setValues} if the form&#39;s
+     * {@link Ext.form.Panel#trackResetOnLoad trackResetOnLoad} property is set to true.
+     */
+    resetOriginalValue: function () {
+        this.originalValue = this.getValue();
+    },
+
+<span id='Ext-field-Field-method-isDirty'>    /**
+</span>     * Returns `true` if the value of this Field has been changed from its {@link #originalValue}.
+     * Will return `false` if the field is disabled or has not been rendered yet.
+     *
+     * @return {Boolean} `true` if this field has been changed from its original value (and
+     * is not disabled), `false` otherwise.
+     */
+    isDirty: function () {
+        return this.getValue() !== this.originalValue;
+    },
+
+<span id='Ext-field-Field-method-toggleInvalidCls'>    /**
+</span>     * @private
+     * Add/remove invalid class(es)
+     * @param {Boolean} hasError 
+     */
+    toggleInvalidCls: function (hasError) {
+        this.el[hasError ? &#39;addCls&#39; : &#39;removeCls&#39;](this.invalidCls);
+    },
+
+<span id='Ext-field-Field-method-markInvalid'>    /**
+</span>     * Mark field as invalid.
+     * @deprecated 6.5.0 Use {@link #setError} instead. (for classic compatibility)
+     * @since 6.5.0
+     */
+    markInvalid: function (messages) {
+        this.setError(messages);
+    },
+
+<span id='Ext-field-Field-method-clearInvalid'>    /**
+</span>     * Mark field as valid.
+     * @deprecated 6.5.0 Use {@link #setError setError(null)} instead. (for classic compatibility)
+     * @since 6.5.0
+     */
+    clearInvalid: function () {
+        this.setError(null);
+    },
+
+<span id='Ext-field-Field-method-isValid'>    /**
+</span>     * Returns true if field is valid.
+     */
+    isValid: function () {
+        return !this.getError();
+    },
+
+<span id='Ext-field-Field-method-isEqual'>    /**
+</span>     * Returns whether two field {@link #getValue values} are logically equal. Field implementations may override this
+     * to provide custom comparison logic appropriate for the particular field&#39;s data type.
+     * @param {Object} value1 The first value to compare
+     * @param {Object} value2 The second value to compare
+     * @return {Boolean} True if the values are equal, false if inequal.
+     */
+    isEqual: function (value1, value2) {
+        return String(value1) === String(value2);
+    },
+
+<span id='Ext-field-Field-method-applyValidators'>    /**
+</span>     * @private
+     */
+    applyValidators: function (validators) {
+        var me = this,
+            i, len, ret;
+
+        validators = (validators &amp;&amp; !Ext.isArray(validators)) ? [validators] : validators;
+        len = validators &amp;&amp; validators.length;
+        ret = len ? [] : null;
+
+        for (i = 0; i &lt; len; ++i) {
+            ret.push(me.decodeValidator(validators[i]));
+        }
+
+        return ret;
+    },
+
+<span id='Ext-field-Field-method-wrapValidatorFn'>    wrapValidatorFn: function (fn, validator) {
+</span>        var me = this,
+            scope = validator &amp;&amp; validator.scope;
+
+        return new Ext.data.validator[&#39;Validator&#39;](function(value) {
+            return Ext.callback(fn, scope, [value], 0, me);
+        });
+    },
+
+<span id='Ext-field-Field-method-doValidate'>    /**
+</span>     * This method is called by {@link #method!validate validate} if the value is both
+     * non-empty (not `null`, `undefined` or `&#39;&#39;`) and if the value can be parsed by the
+     * {@link #method!parseValue parseValue} method. This parsing concern is technically
+     * only in play for `Ext.field.Text` and derived classes (such as `Ext.field.Date` and
+     * `Ext.field.Number`) but the guarantee here is that the `value` will be a parsed
+     * value and not the raw string and if the value cannot be parsed, this method will
+     * not be called.
+     *
+     * @param {Mixed} value The (parsed) value
+     * @param {String[]} errors The array of validation errors
+     * @param {Boolean} [skipLazy] `false` (the default) to run all validators.
+     * @private
+     */
+    doValidate: function (value, errors, skipLazy) {
+        var validators = this.getValidators(),
+            len = validators &amp;&amp; validators.length,
+            i, result, validator;
+
+        for (i = 0; i &lt; len; ++i) {
+            validator = validators[i];
+
+            if (!skipLazy || !validator.lazy) {
+                result = validator.validate(value);
+
+                if (result !== true) {
+                    //&lt;debug&gt;
+                    if (!result || typeof result !== &#39;string&#39;) {
+                        Ext.raise(&#39;Validator did not return a valid result.&#39;);
+                    }
+                    //&lt;/debug&gt;
+
+                    errors.push(result);
+                }
+            }
+        }
+    },
+
+<span id='Ext-field-Field-property-parseValue'>    parseValue: Ext.identityFn, // documented on textfield
+</span>
+<span id='Ext-field-Field-method-validate'>    /**
+</span>     * Validate the field and return it&#39;s validity state. 
+     * To get the existing validity state without re-validating current value,
+     * use {@link isValid}.
+     *
+     * @param {Boolean} [skipLazy] (private) Pass `true` to skip validators marked as `lazy`.
+     * @return {Boolean} The new validity state.
+     */
+    validate: function (skipLazy) {
+        var me = this,
+            empty, errors, field, record, validity, value;
+
+        // If we are in configuration and not validating any values, skip out of here
+        if (me.isConfiguring &amp;&amp; me.validateOnInit === &#39;none&#39;) {
+            return true;
+        }
+
+        // if field is disabled and cfg not set to validate if disabled, skip out of here
+        if (!me.getDisabled() || me.getValidateDisabled()) {
+            errors = [];
+
+            // If we are a textual input field, get the input element&#39;s value.
+            // Check the DOM validity state first in case a type=&quot;number&quot;
+            // check has failed.
+            if (me.isInputField &amp;&amp; !me.isSelectField) {
+                value = me.getInputValue();
+                empty = !value;
+                validity = empty &amp;&amp; me.inputElement.dom.validity;
+
+                if (validity &amp;&amp; validity.badInput) {
+                    errors.push(me.badFormatMessage);
+                    empty = false;
+                }
+            }
+            else {
+                value = me.getValue();
+                empty = value === &#39;&#39; || value == null;
+            }
+
+            if (empty &amp;&amp; me.getRequired()) {
+                errors.push(me.getRequiredMessage());
+            }
+            else if (!errors.length) {
+                if (!empty) {
+                    // Pass non-empty values along to parseValue to handle things like
+                    // datefield and numberfield. Technically this concern is more of a
+                    // textfield family issue, but it is awkward to leap out of this
+                    // sequence in such a way as to make a surgical override practical...
+                    // So we simply provide identityFn as the default parseValue impl
+                    value = me.parseValue(value, errors);
+                }
+
+                if (!errors.length) {
+                    field = me._validationField;
+                    record = me._validationRecord;
+
+                    if (field &amp;&amp; record) {
+                        field.validate(value, null, errors, record);
+                    }
+
+                    if (!empty) {
+                        me.doValidate(value, errors, skipLazy);
+                    }
+                }
+            }
+
+            if (errors.length) {
+                me.setError(errors);
+                return false;
+            }
+        }
+
+        me.setError(null);
+        return true;
+    },
+
+<span id='Ext-field-Field-method-getFocusClsEl'>    getFocusClsEl: function () {
+</span>        return this.element;
+    },
+
+<span id='Ext-field-Field-method-updateHeight'>    updateHeight: function(height, oldHeight) {
+</span>        this.callParent([height, oldHeight]);
+        this.syncFormLayoutHeight();
+    },
+
+<span id='Ext-field-Field-method-onAdded'>    onAdded: function(parent, instanced) {
+</span>        this.callParent([parent, instanced]);
+        this.syncFormLayoutHeight();
+        this.validateLayout();
+    },
+
+<span id='Ext-field-Field-method-onRemoved'>    onRemoved: function(destroying) {
+</span>        this.callParent([destroying]);
+        this.syncFormLayoutHeight();
+    },
+
+<span id='Ext-field-Field-property-privates'>    privates: {
+</span>        syncFormLayoutHeight: function() {
+            var me = this,
+                parent = me.parent,
+                height = me.getHeight();
+
+            if (!(height &amp;&amp; parent &amp;&amp; parent.getLayout().isFormLayout)) {
+                height = null;
+            }
+
+            me.bodyElement.setHeight(height);
+        },
+
+        validateLayout: function () {
+            var errorTarget = this.getErrorTarget(),
+                parent = this.parent;
+
+            if (this.isInner &amp;&amp; parent &amp;&amp; parent.getLayout().isFormLayout) {
+                // Form layout only supports left aligned labels
+                this.setLabelAlign(&#39;left&#39;);
+
+                // Form layout does not support &quot;under&quot; error target
+                if (errorTarget === &#39;under&#39;) {
+                    this.setErrorTarget(&#39;side&#39;);
+                }
+            }
+        },
+
+        applyBind: function (bind, currentBindings) {
+            var me = this,
+                valueBinding = currentBindings &amp;&amp; currentBindings.value,
+                bindings, newValueBind;
+
+            bindings = me.callParent([ bind, currentBindings ]);
+
+            if (bindings) {
+                newValueBind = bindings.value;
+                me.hasBindingValue = !!newValueBind;
+
+                if (newValueBind !== valueBinding &amp;&amp; me.getInherited().modelValidation) {
+                    me.updateValueBinding(bindings);
+                }
+            }
+
+            return bindings;
+        },
+
+        updateValueBinding: function (bindings) {
+            var me = this,
+                newBinding = bindings.value,
+                fieldBinding = bindings.$fieldBinding;
+
+            if (fieldBinding) {
+                fieldBinding.destroy();
+                bindings.$fieldBinding = null;
+            }
+
+            if (newBinding &amp;&amp; newBinding.bindValidationField) {
+                me.fieldBinding = newBinding.bindValidationField(&#39;setValidationField&#39;, me);
+            }
+        },
+
+        setValidationField: function (field, record) {
+            this._validationField = field;
+            this._validationRecord = record;
+        },
+
+        decodeValidator: function(validator) {
+            var type = Ext.typeOf(validator),
+                result = validator.fn;
+
+            if (type === &#39;function&#39;) {
+                result = this.wrapValidatorFn(validator);
+            }
+            else if (type === &#39;regexp&#39;) {
+                result = Ext.Factory.validator({
+                    type: &#39;format&#39;,
+                    matcher: validator
+                });
+            }
+            else if (type === &#39;object&#39; &amp;&amp; result &amp;&amp; !validator.isValidator) {
+                result = this.wrapValidatorFn(result, validator);
+            }
+            else {
+                result = Ext.Factory.validator(validator);
+            }
+
+            return result;
+        }
+    }
+});
+</pre>
+</body>
+</html>

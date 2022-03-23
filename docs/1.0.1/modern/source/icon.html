@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">exports.init = function(runtime) {
+    runtime.register({
+        // This function parses arguments from all formats accepted by the icon()
+        // sass mixin and returns an array that always contains 3 elements in the following
+        // order: character, font-family, rotation
+        parseIconArgs: function(glyph) {
+            var newItems = [null, null, null],
+                items, item, len;
+
+            if (glyph.$isFashionList) {
+                items = glyph.items;
+                len = items.length;
+
+                newItems[0] = items[0];
+
+                if (len === 2) {
+                    item = items[1];
+
+                    if (item.$isFashionNumber) {
+                        newItems[2] = item;
+                    } else {
+                        newItems[1] = item;
+                    }
+                } else if (len &gt; 2) {
+                    newItems[1] = items[1];
+                    newItems[2] = items[2];
+                }
+            } else {
+                newItems[0] = glyph;
+            }
+
+            return new Fashion.List(newItems);
+        }
+    });
+};</pre>
+</body>
+</html>

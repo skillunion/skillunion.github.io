@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-legend-LegendBase'>/**
+</span> * The legend base class adapater for modern toolkit.
+ */
+Ext.define(&#39;Ext.chart.legend.LegendBase&#39;, {
+    extend: &#39;Ext.dataview.DataView&#39;,
+    config: {
+<span id='Ext-chart-legend-LegendBase-cfg-itemTpl'>        itemTpl: [
+</span>            &#39;&lt;span class=\&quot;&#39;, Ext.baseCSSPrefix, &#39;legend-item-marker {[ values.disabled ? Ext.baseCSSPrefix + \&#39;legend-item-inactive\&#39; : \&#39;\&#39; ]}\&quot; style=\&quot;background:{mark};\&quot;&gt;&lt;/span&gt;{name}&#39;
+        ],
+<span id='Ext-chart-legend-LegendBase-cfg-inline'>        inline: true,
+</span>
+<span id='Ext-chart-legend-LegendBase-cfg-scrollable'>        scrollable: false // for IE11 vertical align
+</span>    },
+
+<span id='Ext-chart-legend-LegendBase-method-constructor'>    constructor: function (config) {
+</span>        this.callParent([config]);
+
+        var scroller = this.getScrollable(),
+            onDrag = scroller.onDrag;
+
+        scroller.onDrag = function (e) {
+            e.stopPropagation();
+            onDrag.call(this, e);
+        };
+    },
+
+<span id='Ext-chart-legend-LegendBase-method-updateDocked'>    updateDocked: function (docked, oldDocked) {
+</span>        var me = this,
+            el = me.el;
+
+        me.callParent([docked, oldDocked]);
+
+        switch (docked) {
+            case &#39;top&#39;:
+            case &#39;bottom&#39;:
+                el.addCls(me.horizontalCls);
+                el.removeCls(me.verticalCls);
+                break;
+            case &#39;left&#39;:
+            case &#39;right&#39;:
+                el.addCls(me.verticalCls);
+                el.removeCls(me.horizontalCls);
+                break;
+        }
+    },
+
+<span id='Ext-chart-legend-LegendBase-method-onChildTap'>    onChildTap: function (view, context) {
+</span>        this.callParent([view, context]);
+        this.toggleItem(context.viewIndex);
+    }
+});
+</pre>
+</body>
+</html>

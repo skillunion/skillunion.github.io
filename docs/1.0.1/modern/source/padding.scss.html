@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Global_CSS-css_mixin-padding'>/**
+</span> * Creates a padding on an element.
+ * If any item in the list is null it will be excluded.
+ *
+ * @param {number/list} $padding
+ * The padding size.
+ *
+ * @param {Number} $len
+ *
+ * @param {Number} $top
+ * Top padding
+ *
+ * @param {Number} $right
+ * Right padding
+ *
+ * @param {Number} $bottom
+ * Bottom padding
+ *
+ * @param {Number} $left
+ * Left padding
+ *
+ * @member Global_CSS
+ * @private
+ */
+@mixin padding($padding: null) {
+    @if $padding != null {
+        $len: length($padding);
+        @if $len == 1 {
+            padding: $padding;
+        } @else {
+            $top: top($padding);
+            $right: right($padding);
+            $bottom: bottom($padding);
+            $left: left($padding);
+
+            @if $top != null and $top == $bottom and $right != null and $right == $left {
+                padding: $top $right;
+            } @else {
+                padding-top: $top;
+                padding-right: $right;
+                padding-bottom: $bottom;
+                padding-left: $left;
+            }
+        }
+    }
+}</pre>
+</body>
+</html>

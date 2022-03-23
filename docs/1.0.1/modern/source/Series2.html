@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-sprite-Series'>/**
+</span> * Base class for all series sprites.
+ * Defines attributes common to all series sprites, like data in x/y directions and its min/max values,
+ * and configs, like the {@link Ext.chart.series.Series} instance that manages the sprite.
+ *
+ */
+Ext.define(&#39;Ext.chart.series.sprite.Series&#39;, {
+    extend: &#39;Ext.draw.sprite.Sprite&#39;,
+    mixins: {
+        markerHolder: &#39;Ext.chart.MarkerHolder&#39;
+    },
+
+    inheritableStatics: {
+<span id='Ext-chart-series-sprite-Series-static-property-def'>        def: {
+</span>            processors: {
+<span id='Ext-chart-series-sprite-Series-cfg-dataMinX'>                /**
+</span>                 * @cfg {Number} [dataMinX=0] Data minimum on the x-axis.
+                 */
+                dataMinX: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-Series-cfg-dataMaxX'>                /**
+</span>                 * @cfg {Number} [dataMaxX=1] Data maximum on the x-axis.
+                 */
+                dataMaxX: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-Series-cfg-dataMinY'>                /**
+</span>                 * @cfg {Number} [dataMinY=0] Data minimum on the y-axis.
+                 */
+                dataMinY: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-Series-cfg-dataMaxY'>                /**
+</span>                 * @cfg {Number} [dataMaxY=1] Data maximum on the y-axis.
+                 */
+                dataMaxY: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-Series-cfg-rangeX'>                /**
+</span>                 * @cfg {Array} [rangeX=null] Data range derived from all the series bound to the x-axis.
+                 */
+                rangeX: &#39;data&#39;,
+<span id='Ext-chart-series-sprite-Series-cfg-rangeY'>                /**
+</span>                 * @cfg {Array} [rangeY=null] Data range derived from all the series bound to the y-axis.
+                 */
+                rangeY: &#39;data&#39;,
+
+<span id='Ext-chart-series-sprite-Series-cfg-dataX'>                /**
+</span>                 * @cfg {Object} [dataX=null] Data items on the x-axis.
+                 */
+                dataX: &#39;data&#39;,
+
+<span id='Ext-chart-series-sprite-Series-cfg-dataY'>                /**
+</span>                 * @cfg {Object} [dataY=null] Data items on the y-axis.
+                 */
+                dataY: &#39;data&#39;,
+
+<span id='Ext-chart-series-sprite-Series-cfg-labels'>                /**
+</span>                 * @cfg {Object} [labels=null] Labels used in the series.
+                 */
+                labels: &#39;default&#39;,
+
+<span id='Ext-chart-series-sprite-Series-cfg-labelOverflowPadding'>                /**
+</span>                 * @cfg {Number} [labelOverflowPadding=10] Padding around labels to determine overlap.
+                 */
+                labelOverflowPadding: &#39;number&#39;
+            },
+
+            defaults: {
+                dataMinX: 0,
+                dataMaxX: 1,
+                dataMinY: 0,
+                dataMaxY: 1,
+                rangeX: null,
+                rangeY: null,
+                dataX: null,
+                dataY: null,
+                labels: null,
+                labelOverflowPadding: 10
+            },
+
+            triggers: {
+                dataX: &#39;bbox&#39;,
+                dataY: &#39;bbox&#39;,
+                dataMinX: &#39;bbox&#39;,
+                dataMaxX: &#39;bbox&#39;,
+                dataMinY: &#39;bbox&#39;,
+                dataMaxY: &#39;bbox&#39;
+            }
+        }
+    },
+
+    config: {
+<span id='Ext-chart-series-sprite-Series-cfg-store'>        /**
+</span>         * @private
+         * @cfg {Object} store The store that is passed to the renderer.
+         */
+        store: null,
+
+<span id='Ext-chart-series-sprite-Series-cfg-series'>        series: null,
+</span>
+<span id='Ext-chart-series-sprite-Series-cfg-field'>        /**
+</span>         * @cfg {String} field The store field used by the series.
+         */
+        field: null
+    }
+});</pre>
+</body>
+</html>

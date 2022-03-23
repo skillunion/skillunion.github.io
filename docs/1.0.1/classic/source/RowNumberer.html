@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-column-RowNumberer'>/**
+</span> * A special type of Grid {@link Ext.grid.column.Column} that provides automatic
+ * row numbering.
+ *
+ * Usage:
+ *
+ *     columns: [
+ *         {xtype: &#39;rownumberer&#39;},
+ *         {text: &quot;Company&quot;, flex: 1, sortable: true, dataIndex: &#39;company&#39;},
+ *         {text: &quot;Price&quot;, width: 120, sortable: true, renderer: Ext.util.Format.usMoney, dataIndex: &#39;price&#39;},
+ *         {text: &quot;Change&quot;, width: 120, sortable: true, dataIndex: &#39;change&#39;},
+ *         {text: &quot;% Change&quot;, width: 120, sortable: true, dataIndex: &#39;pctChange&#39;},
+ *         {text: &quot;Last Updated&quot;, width: 120, sortable: true, renderer: Ext.util.Format.dateRenderer(&#39;m/d/Y&#39;), dataIndex: &#39;lastChange&#39;}
+ *     ]
+ *
+ */
+Ext.define(&#39;Ext.grid.column.RowNumberer&#39;, {
+    extend: &#39;Ext.grid.column.Column&#39;,
+    alternateClassName: &#39;Ext.grid.RowNumberer&#39;,
+    alias: &#39;widget.rownumberer&#39;,
+
+<span id='Ext-grid-column-RowNumberer-property-isRowNumberer'>    /**
+</span>     * @property {Boolean} isRowNumberer
+     * `true` in this class to identify an object as an instantiated RowNumberer, or subclass thereof.
+     */
+    isRowNumberer: true,
+
+<span id='Ext-grid-column-RowNumberer-cfg-text'>    /**
+</span>     * @cfg {String} text
+     * Any valid text or HTML fragment to display in the header cell for the row number column.
+     */
+    text: &quot;&amp;#160;&quot;,
+
+<span id='Ext-grid-column-RowNumberer-cfg-width'>    /**
+</span>     * @cfg {Number} width
+     * The default width in pixels of the row number column.
+     */
+    width: 30,
+
+<span id='Ext-grid-column-RowNumberer-cfg-sortable'>    /**
+</span>     * @cfg {Boolean} sortable
+     * @hide
+     */
+    sortable: false,
+
+<span id='Ext-grid-column-RowNumberer-cfg-draggable'>    /**
+</span>     * @cfg {Boolean} draggable
+     * False to disable drag-drop reordering of this column.
+     */
+    draggable: false,
+
+<span id='Ext-grid-column-RowNumberer-property-autoLock'>    // Flag to Lockable to move instances of this column to the locked side.
+</span>    autoLock: true,
+
+<span id='Ext-grid-column-RowNumberer-cfg-lockable'>    // May not be moved from its preferred locked side when grid is enableLocking:true
+</span>    lockable: false,
+
+<span id='Ext-grid-column-RowNumberer-cfg-align'>    /**
+</span>     * @cfg align
+     * @inheritdoc
+     */
+    align: &#39;right&#39;,
+
+<span id='Ext-grid-column-RowNumberer-cfg-producesHTML'>    /**
+</span>     * @cfg producesHTML
+     * @inheritdoc
+     */
+    producesHTML: false,
+
+<span id='Ext-grid-column-RowNumberer-cfg-ignoreExport'>    /**
+</span>     * @cfg ignoreExport
+     * @inheritdoc
+     */
+    ignoreExport: true,
+
+<span id='Ext-grid-column-RowNumberer-method-constructor'>    constructor: function (config) {
+</span>        var me = this;
+
+        // Copy the prototype&#39;s default width setting into an instance property to provide
+        // a default width which will not be overridden by Container.applyDefaults use of Ext.applyIf
+        me.width = me.width;
+
+        me.callParent(arguments);
+
+        // Override any setting from the HeaderContainer&#39;s defaults
+        me.sortable = false;
+
+        me.scope = me;
+    },
+
+<span id='Ext-grid-column-RowNumberer-cfg-resizable'>    /**
+</span>     * @cfg resizable
+     * @inheritdoc
+     */
+    resizable: false,
+    
+<span id='Ext-grid-column-RowNumberer-cfg-hideable'>    /**
+</span>     * @cfg hideable
+     * @inheritdoc
+     */
+    hideable: false,
+    
+<span id='Ext-grid-column-RowNumberer-cfg-menuDisabled'>    /**
+</span>     * @cfg menuDisabled
+     * @inheritdoc
+     */
+    menuDisabled: true,
+    
+<span id='Ext-grid-column-RowNumberer-cfg-dataIndex'>    /**
+</span>     * @cfg dataIndex
+     * @inheritdoc
+     */
+    dataIndex: &#39;&#39;,
+    
+<span id='Ext-grid-column-RowNumberer-cfg-cls'>    /**
+</span>     * @cfg cls
+     * @inheritdoc
+     */
+    cls: Ext.baseCSSPrefix + &#39;row-numberer&#39;,
+    
+<span id='Ext-grid-column-RowNumberer-cfg-tdCls'>    /**
+</span>     * @cfg tdCls
+     * @inheritdoc
+     */
+    tdCls: Ext.baseCSSPrefix + &#39;grid-cell-row-numberer &#39; + Ext.baseCSSPrefix + &#39;grid-cell-special&#39;,
+<span id='Ext-grid-column-RowNumberer-property-innerCls'>    innerCls: Ext.baseCSSPrefix + &#39;grid-cell-inner-row-numberer&#39;,
+</span><span id='Ext-grid-column-RowNumberer-property-rowspan'>    rowspan: undefined,
+</span>
+<span id='Ext-grid-column-RowNumberer-method-onAdded'>    onAdded: function() {
+</span>        var me = this;
+        
+        // Coalesce multiple item mutation events by routing them to a buffered function
+        me.renumberRows = Ext.Function.createBuffered(me.renumberRows, 1, me);
+
+        me.callParent(arguments);
+
+        me.storeListener = me.getView().on({
+            itemadd: me.renumberRows,
+            itemremove: me.renumberRows,
+            destroyable: true
+        });
+    },
+
+<span id='Ext-grid-column-RowNumberer-method-onRemoved'>    onRemoved: function() {
+</span>        var me = this;
+
+        me.callParent(arguments);
+        
+        if (me.storeListener) {
+            me.storeListener = me.storeListener.destroy();
+        }
+        
+        if (me.renumberRows.timer) {
+            Ext.undefer(me.renumberRows.timer);
+        }
+        
+        me.renumberRows = null;
+        delete me.renumberRows;
+    },
+
+<span id='Ext-grid-column-RowNumberer-method-defaultRenderer'>    defaultRenderer: function(value, metaData, record, rowIdx, colIdx, dataSource, view) {
+</span>        var me = this,
+            rowspan = me.rowspan,
+            page = dataSource.currentPage,
+            result = record ? view.store.indexOf(record) : value - 1;
+
+        if (metaData &amp;&amp; rowspan) {
+            metaData.tdAttr = &#39;rowspan=&quot;&#39; + rowspan + &#39;&quot;&#39;;
+        }
+
+        if (page &gt; 1) {
+            result += (page - 1) * dataSource.pageSize;
+        }
+        return result + 1;
+    },
+
+<span id='Ext-grid-column-RowNumberer-method-updater'>    updater: function(cell, value, record, view, dataSource) {
+</span>        var cellInner = cell &amp;&amp; cell.querySelector(this.getView().innerSelector);
+        
+        if (cellInner) {
+            cellInner.innerHTML = this.defaultRenderer(value, null, record, null, null, dataSource, view);
+        }
+    },
+
+<span id='Ext-grid-column-RowNumberer-method-renumberRows'>    renumberRows: function() {
+</span>        if (this.destroying || this.destroyed) {
+            return;
+        }
+        
+        var me = this,
+            view = me.getView(),
+            dataSource = view.dataSource,
+            recCount = dataSource.getCount(),
+            context = new Ext.grid.CellContext(view).setColumn(me),
+            rows = me.getView().all,
+            index = rows.startIndex;
+
+        while (index &lt;= rows.endIndex &amp;&amp; index &lt; recCount) {
+            context.setRow(index);
+            me.updater(context.getCell(true), ++index, null, view, dataSource);
+        }
+    }
+});
+</pre>
+</body>
+</html>

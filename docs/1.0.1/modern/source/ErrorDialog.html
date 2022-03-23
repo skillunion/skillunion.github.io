@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * File	      : ErrorDialog.js
+ * Created on : 22.04.2015 13:59:05
+ */
+
+//@require SU.ErrorMessage
+
+<span id='SU-ErrorDialog'>/**
+</span> * Диалоговое окно &#39;Сообщение об ошибке&#39;, вызываемое из Ext#errorMessage.
+ *
+ * @history 30.06.2019
+ * Переработано для ExtJS 6.5.2+ modern
+ *
+ * @history 22.04.2015 
+ * Создание модуля
+ */
+Ext.define(&#39;SU.ErrorDialog&#39;, {
+    extend: &#39;Ext.Dialog&#39;,
+    alias: &#39;widget.errordialog&#39;,
+    alternateClassName: [&#39;Ext.ErrorDialog&#39;],
+
+<span id='SU-ErrorDialog-cfg-width'>    width: &#39;90%&#39;,
+</span><span id='SU-ErrorDialog-cfg-minWidth'>    minWidth: 320,
+</span><span id='SU-ErrorDialog-cfg-maxWidth'>    maxWidth: 600,
+</span><span id='SU-ErrorDialog-cfg-closable'>    closable: true,
+</span><span id='SU-ErrorDialog-cfg-cls'>    cls: &#39;x-error-dialog&#39;,
+</span>
+    //bodyPadding: 0,
+
+<span id='SU-ErrorDialog-property-textOk'>	/**
+</span>	 * @property {String}
+	 * Текст кнопки `Ок`
+	 */
+    textOk: &quot;Ok&quot;,
+
+<span id='SU-ErrorDialog-property-textAdvansed'>	/**
+</span>	 * @property {String}
+	 * Текст кнопки `Подробно`
+	 */
+    textAdvansed: &quot;Advanced&quot;,
+
+<span id='SU-ErrorDialog-property-textErrorTitle'>	/**
+</span>	 * @property {String}
+	 * Текст заголовка окна по умолчанию
+	 */
+    textErrorTitle: &quot;Error message&quot;,
+
+<span id='SU-ErrorDialog-property-textErrorNumber'>	/**
+</span>	 * @property {String}
+	 * Шаблон строки отображения количества сообщений
+	 */
+    textErrorNumber: &quot;Error {0} of {1}&quot;,
+
+<span id='SU-ErrorDialog-cfg-keyMap'>    keyMap: {
+</span>        ESC: &#39;onEscape&#39;,
+        ENTER: &#39;onEscape&#39;,
+        scope: &#39;this&#39;
+    },
+
+<span id='SU-ErrorDialog-method-initialize'>    initialize: function () {
+</span>        var me = this;
+
+        me.setTitle(me.textErrorTitle);
+
+        me.callParent(arguments);
+
+        me.initNavigate();
+        me.initMessageInfo();
+        me.initDescription();
+
+        me.setDefaultFocus(me.btnOk);
+
+        if (Ext.os.deviceType === &#39;Phone&#39;) {
+            me.setFullscreen(true);
+            me.description.setFlex(1);
+        } else {
+            me.description.setHeight(Ext.ADVANSED_HEIGHT);
+        }
+
+    },
+
+
+<span id='SU-ErrorDialog-method-initNavigate'>    initNavigate: function () {
+</span>        var me = this;
+
+<span id='SU-ErrorDialog-property-navigate'>		/**
+</span>		 * @property {Ext.Toolbar}
+		 * Панель отображения перехода между ошибками.
+		 * @private
+		 */
+        me.navigate = me.navigate || me.add({
+            xtype: &#39;toolbar&#39;,
+            docked: &#39;bottom&#39;,
+            ui: &#39;upper&#39;
+        });
+
+<span id='SU-ErrorDialog-property-errorNumber'>		/**
+</span>		 * @property {Ext.Label}
+		 * Поле отображения количества ошибок и номера отображаемой ошибки.
+		 * @private
+		 */
+        me.errorNumber = me.errorNumber || me.navigate.add({
+            xtype: &#39;label&#39;,
+            flex: 1,
+            ui: &#39;light&#39;
+        });
+
+<span id='SU-ErrorDialog-property-btnPrev'>		/**
+</span>		 * @property {Ext.Button}
+		 * Кнопка &#39;Назад&#39; для перехода между ошибками.
+		 * Отображается когда в диалог передано несколько ошибок.
+		 * @private
+		 */
+        me.btnPrev = me.btnPrev || me.navigate.add({
+            width: 50,
+            text: &#39;&lt;&lt;&#39;,
+            cls: &#39;x-error-btn-prev&#39;,
+            focusable: false,
+            handler: &#39;onPrev&#39;,
+            scope: me
+        });
+
+<span id='SU-ErrorDialog-property-btnNext'>		/**
+</span>		 * @property {Ext.Button}
+		 * Кнопка &#39;Вперед&#39; для перехода между ошибками.
+		 * Отображается когда в диалог передано несколько ошибок.
+		 * @private
+		 */
+        me.btnNext = me.btnNext || me.navigate.add({
+            width: 50,
+            text: &#39;&gt;&gt;&#39;,
+            cls: &#39;x-error-btn-next&#39;,
+            focusable: false,
+            handler: &#39;onNext&#39;,
+            scope: me
+        });
+
+    },
+
+<span id='SU-ErrorDialog-method-initMessageInfo'>    initMessageInfo: function () {
+</span>        var me = this,
+            container = me.add({
+                xtype: &#39;container&#39;,
+                layout: { type: &#39;hbox&#39;, align: &#39;stretch&#39;, pack: &#39;end&#39; }
+            }),
+            buttons;
+
+<span id='SU-ErrorDialog-property-icon'>		/**
+</span>		 * Иконка сообщения
+		 * @property {Ext.Component}
+		 * @private
+		 */
+        me.icon = container.add({
+            xtype: &#39;component&#39;,
+            itemId: &#39;erroricon&#39;,
+            cls: &#39;x-error-icon&#39;
+        });
+
+<span id='SU-ErrorDialog-property-message'>		/**
+</span>		 * Поле отображения информации об ошибке.
+		 * @property {Ext.Component}
+		 * @private
+		 */
+        me.message = container.add({
+            xtype: &#39;component&#39;,
+            itemId: &#39;errormessage&#39;,
+            height: 125,
+            flex: 1,
+            cls: &#39;x-error-message&#39;,
+            scrollable: true
+        });
+
+        buttons = container.add({
+            xtype: &#39;container&#39;,
+            width: 115,
+            layout: { align: &#39;stretch&#39;, type: &#39;vbox&#39; }
+        });
+
+<span id='SU-ErrorDialog-property-btnOk'>		/**
+</span>		 * Кнопка &#39;OK&#39;
+		 * @property {Ext.Button}
+		 * @private
+		 */
+        me.btnOk = buttons.add({
+            xtype: &#39;button&#39;,
+            margin: 5,
+            ui: &#39;action&#39;,
+            text: me.textOk,
+            handler: &#39;onOk&#39;,
+            scope: me
+        });
+
+<span id='SU-ErrorDialog-property-btnAdvansed'>		/**
+</span>		 * Кнопка &#39;Подробно&#39;. Скрывает или показывает подробности сообщения.
+		 * @property {Ext.SegmentedButton}
+		 * @private
+		 */
+        me.btnAdvansed = buttons.add({
+            xtype: &#39;button&#39;,
+            docked: &#39;bottom&#39;,
+            margin: 5,
+            ui: &#39;action&#39;,
+            text: me.textAdvansed,
+            focusable: false,
+            enableToggle: true,
+            toggleHandler: &#39;onAdvansed&#39;,
+            scope: me
+        });
+
+    },
+
+<span id='SU-ErrorDialog-method-initDescription'>    initDescription: function () {
+</span>        var me = this;
+
+<span id='SU-ErrorDialog-property-description'>		/**
+</span>		 * Контейнер отображения дополнительной информации об ошибке.
+		 * @property {Ext.Container}
+		 * @private
+		 */
+        me.description = me.description || me.add({
+            xtype: &#39;container&#39;,
+            itemId: &#39;description&#39;,
+            //hidden: true,
+            scrollable: true,
+            border: 1,
+            cls: &#39;x-error-description&#39;
+        });
+
+    },
+
+<span id='SU-ErrorDialog-method-afterRender'>    afterRender: function () {
+</span>        var me = this;
+
+        me.callParent(arguments);
+        me.focus();
+
+        //me.setKeyMap({
+        //    ENTER: function () { me.close(); }
+        //});
+    },
+
+<span id='SU-ErrorDialog-method-updateNavigate'>	/**
+</span>	 * Обновляет сведения о количестве ошибок.
+	 *
+	 * @param {Object} config
+	 * @param {Number} config.count количество ошибок
+	 * @param {Object} config.current номер отображаемой ошибки
+	 *
+	 * @protected
+	 */
+    updateNavigate: function (config) {
+        config = config || {};
+
+        var me = this,
+            index = config.count ? config.current || 0 : -1,
+            prevEnable = index &gt; 0 &amp;&amp; config.count &gt; 1,
+            nextEnable = index &lt; config.count - 1 &amp;&amp; config.count &gt; 1,
+            visible = config.count &gt; 1;
+
+        me.navigate.setHidden(!visible);
+        me.btnNext.setDisabled(!nextEnable);
+        me.btnPrev.setDisabled(!prevEnable);
+        me.errorNumber.setHtml(
+            Ext.String.format(me.textErrorNumber, index + 1, config.count)
+        );
+    },
+
+<span id='SU-ErrorDialog-method-updateException'>	/**
+</span>	 * Обновление данных информационных полей из объекта ошибки
+	 *
+	 * @param {Ext.Error|Object} exception 
+     * Сообщение об ошибке
+     * 
+	 * @param {String} exception.message 
+     * текст сообщения об ошибке
+     * 
+	 * @param {String} exception.description (optional) 
+     * текст дополнительного описания ошибки
+     * 
+	 * @param {String} exception.title (optional) 
+     * заголовок окна
+     * 
+	 * @param {String} exception.icon (optional) 
+     * CSS класс иконки сообщения. По умолчанию {@link Ext#ERROR}.
+     * 
+     * False - скрытие иконки
+	 *
+	 * @protected
+	 */
+    updateException: function (exception) {
+        var me = this,
+            description = exception.description || &#39;&#39;,
+            msg = exception.message || exception.msg || exception.toString();
+
+        me.setTitle(exception.title || me.textErrorTitle);
+
+        msg = msg || &#39;UNKNOWN&#39;;
+        //me.message.setHtml(msg.replace(/\n/g, &#39;&lt;br /&gt;&#39;));
+        me.message.setHtml(msg);
+
+        me.icon.removeCls([Ext.INFO, Ext.WARNING, Ext.QUESTION, Ext.ERROR]);
+        me.icon.addCls(exception.icon || Ext.ERROR);
+        me.icon.setHidden(exception.icon === false);
+
+        if (exception.stack
+            &amp;&amp; me.statics().APPEND_STACK
+            &amp;&amp; (me.statics().APPEND_STACK_EMPTY_DESCRIPTION || !!description)
+        ) {
+            description += &#39;\n\n&#39;;
+            description += exception.stack;
+        }
+
+        me.description.setHtml(description || &#39;&#39;);
+
+        me.btnAdvansed.setHidden(!description);
+        me.description.setHidden(me.btnAdvansed.getHidden() || !me.btnAdvansed.getPressed());
+    },
+
+<span id='SU-ErrorDialog-method-doToggleAdvansed'>	/**
+</span>	 * Обработка переключения кнопки `Дополнительно`.
+	 *
+	 * @private
+	 */
+    doToggleAdvansed: function () {
+        var me = this,
+            errorDescription = me.down(&#39;#errordescription&#39;),
+            errorAdvansed = me.down(&#39;#erroradvansed&#39;),
+            visibled = errorAdvansed.pressed &amp;&amp; errorAdvansed.isVisible();
+
+        me.setMinHeight(visibled ? 260 : null);
+        me.setHeight(null);
+        errorDescription.setVisible(visibled);
+    },
+
+<span id='SU-ErrorDialog-method-onPrev'>	/**
+</span>	 * Обработка нажатия кнопки {@link #btnPrev переход к предыдущей ошибке}.
+	 * @param {Ext.Button} btn Кнопка
+	 * @param {Ext.event.Event} e Событие
+	 * @private
+	 */
+    onPrev: function (btn, e) {
+        e.stopEvent();
+        this.fireEvent(&quot;changepos&quot;, btn, -1);
+    },
+
+<span id='SU-ErrorDialog-method-onNext'>	/**
+</span>	 * Обработка нажатия кнопки {@link #btnNext переход к следующей ошибке}.
+	 * @param {Ext.Button} btn Кнопка
+	 * @param {Ext.event.Event} e Событие
+	 * @private
+	 */
+    onNext: function (btn, e) {
+        e.stopEvent();
+        this.fireEvent(&quot;changepos&quot;, btn, 1);
+    },
+
+<span id='SU-ErrorDialog-method-onOk'>	/**
+</span>	 * Обработка нажатия кнопки {@link #btnOk закрытия диалогового окна}.
+	 *
+	 * @param {Ext.Button} btn Кнопка
+	 * @param {Ext.event.Event} e Событие
+	 * @private
+	 */
+    onOk: function (btn, e) {
+        e.stopEvent();
+        this.destroy();
+    },
+
+<span id='SU-ErrorDialog-method-onAdvansed'>	/**
+</span>	 * Обработка нажатий кнопки {@link #btnAdvansed скрыть|показать подробности сообщения}.
+	 *
+	 * @param {Ext.Button} btn Кнопка
+	 * @param {Boolean} pressed Состояние кнопки
+	 *
+	 * @private
+	 */
+    onAdvansed: function (btn, pressed) {
+        this.description.setHidden(!pressed);
+    },
+
+    statics: {
+
+<span id='SU-ErrorDialog-static-property-APPEND_STACK'>		/**
+</span>		 * Управляет добавлением данных стека, при их наличии, в описание ошибки
+		 */
+        APPEND_STACK: true,
+
+<span id='SU-ErrorDialog-static-property-APPEND_STACK_EMPTY_DESCRIPTION'>		/**
+</span>		 * Управляет добавлением данных стека в пустое описание.
+		 *
+		 * Как правило, пустое описание связано с выводом информационных сообщений.
+		 * Для ошибок описание всегда существует.
+		 */
+        APPEND_STACK_EMPTY_DESCRIPTION: false
+
+    }
+
+});
+
+
+</pre>
+</body>
+</html>

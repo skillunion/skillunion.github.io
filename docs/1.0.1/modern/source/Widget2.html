@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-cell-Widget'>/**
+</span> * This class is used for {@link Ext.grid.Grid grid} cells that contain a child
+ * {@link Ext.Component} or {@link Ext.Widget}. This cell type is typically used by
+ * specifying {@link Ext.grid.column.Widget} column type.
+ *
+ * {@link Ext.grid.Row Rows} create cells based on the {@link Ext.grid.column.Column#cell}
+ * config. Application code would rarely create cells directly.
+ */
+Ext.define(&#39;Ext.grid.cell.Widget&#39;, {
+    extend: &#39;Ext.grid.cell.Base&#39;,
+    xtype: &#39;widgetcell&#39;,
+
+<span id='Ext-grid-cell-Widget-property-isWidgetCell'>    isWidgetCell: true,
+</span>
+    config: {
+<span id='Ext-grid-cell-Widget-cfg-forceWidth'>        /**
+</span>         * @cfg {Boolean} forceWidth
+         * `true` to measure the available width of the cell and set that
+         * width on the underlying widget. If `false`, the widget width will auto
+         * size.
+         */
+        forceWidth: false,
+
+<span id='Ext-grid-cell-Widget-cfg-widget'>        /**
+</span>         * @cfg {Object} widget (required)
+         * The config object for a {@link Ext.Component} or {@link Ext.Widget}.
+         *
+         * @cfg {String} widget.xtype (required) The type of component or widget to create.
+         */
+        widget: null
+    },
+
+<span id='Ext-grid-cell-Widget-cfg-align'>    /**
+</span>     * @cfg align
+     * @inheritdoc
+     */
+    align: &#39;center&#39;,
+
+<span id='Ext-grid-cell-Widget-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;widgetcell&#39;,
+
+<span id='Ext-grid-cell-Widget-cfg-selectable'>    /**
+</span>     * @cfg selectable
+     * @inheritdoc
+     */
+    selectable: false,
+
+<span id='Ext-grid-cell-Widget-method-getRefItems'>    getRefItems: function(deep) {
+</span>        var result = [],
+            widget = this.getWidget();
+
+        if (widget) {
+            result.push(widget);
+            if (deep &amp;&amp; widget.getRefItems) {
+                result.push.apply(result, widget.getRefItems(deep));
+            }
+        }
+
+        return result;
+    },
+
+<span id='Ext-grid-cell-Widget-method-setValue'>    setValue: function (value) {
+</span>        // If it&#39;s an object, its internals may have changed, but the simple
+        // equality test of the config&#39;s setter will reject it, so
+        // go directly to the updater.
+        if (value &amp;&amp; typeof value === &#39;object&#39;) {
+            // we still need to update _value otherwise the Base cell refresh() will ignore us.
+            this._value = value;
+            this.updateValue(value);
+        } else {
+            if (value === undefined) {
+                // The config system doesn&#39;t do well w/setFoo(undefined)
+                value = null;
+            }
+
+            this.callParent([value]);
+        }
+
+        return this;
+    },
+
+<span id='Ext-grid-cell-Widget-method-updateValue'>    updateValue: function (value) {
+</span>        var me = this,
+            widget = me.getWidget(), // this may create the widget &amp; set defaultBindCfg
+            defaultBindCfg = me.defaultBindCfg;
+
+        if (defaultBindCfg &amp;&amp; widget) {
+            widget[defaultBindCfg.names.set](value);
+        }
+    },
+
+<span id='Ext-grid-cell-Widget-method-applyWidget'>    applyWidget: function (widget) {
+</span>        var me = this;
+
+        if (widget) {
+            widget = Ext.apply({
+                ownerCmp: me
+            }, widget);
+
+            widget = Ext.create(widget);
+        }
+
+        return widget;
+    },
+
+<span id='Ext-grid-cell-Widget-method-updateWidget'>    updateWidget: function(widget, oldWidget) {
+</span>        var me = this,
+            defaultBindCfg;
+
+        if (oldWidget) {
+            me.widgetChangeListener = Ext.destroy(me.widgetChangeListener);
+            oldWidget.measurer = null;
+            oldWidget.destroy();
+        }
+
+        if (widget) {
+            // in FF/Edge the cell body should only contain the widget canvas and nothing else
+            // otherwise the widget is not visible
+            me.bodyElement.setHtml(&#39;&#39;);
+            me.bodyElement.appendChild(widget.element);
+
+            if (me.getForceWidth()) {
+                me.setWidgetWidth(me.getWidth());
+            }
+
+            defaultBindCfg = widget.defaultBindProperty;
+            defaultBindCfg = widget.self.getConfigurator().configs[defaultBindCfg];
+            me.defaultBindCfg = defaultBindCfg || null;
+
+            //&lt;debug&gt;
+            if (!defaultBindCfg || !widget[defaultBindCfg.names.get] ||
+                    !widget[defaultBindCfg.names.set]) {
+                Ext.raise(&#39;Invalid config &quot;&#39; + widget.defaultBindProperty + &#39;&quot; for &#39; +
+                    widget.$className);
+            }
+            //&lt;/debug&gt;
+
+            if (me.dataIndex) {
+                me.widgetChangeListener = widget.on({
+                    change: &#39;onWidgetChange&#39;,
+                    scope: me
+                });
+            }
+        }
+    },
+
+<span id='Ext-grid-cell-Widget-method-onWidgetChange'>    onWidgetChange: function (widget) {
+</span>        if (!this.refreshContext) {
+            var me = this,
+                record = me.getRecord(),
+                defaultBindCfg = me.defaultBindCfg,
+                dataIndex = me.dataIndex;
+
+            if (record &amp;&amp; !record.isSummaryRecord &amp;&amp; dataIndex &amp;&amp; defaultBindCfg) {
+                record.set(dataIndex, widget[defaultBindCfg.names.get]());
+            }
+        }
+    },
+
+<span id='Ext-grid-cell-Widget-method-updateWidth'>    updateWidth: function(width, oldWidth) {
+</span>        this.callParent([width, oldWidth]);
+        if (this.getForceWidth()) {
+            this.setWidgetWidth(width);
+        }
+    },
+
+<span id='Ext-grid-cell-Widget-method-onRender'>    onRender: function() {
+</span>        var me = this;
+
+        if (me.getForceWidth()) {
+            me.setWidgetWidth(me.getWidth());
+        }
+    },
+
+<span id='Ext-grid-cell-Widget-method-doDestroy'>    doDestroy: function() {
+</span>        this.setWidget(null);
+        this.callParent();
+    },
+
+<span id='Ext-grid-cell-Widget-property-privates'>    privates: {
+</span>        setWidgetWidth: function(width) {
+            var me = this,
+                el = me.bodyElement,
+                widget, column, leftPad, rightPad;
+
+            if (!me.rendered) {
+                return;
+            }
+
+            widget = me.getWidget();
+            if (widget) {
+                column = me.getColumn();
+                leftPad = parseInt(column.getCachedStyle(el, &#39;padding-left&#39;), 10) || 0;
+                rightPad = parseInt(column.getCachedStyle(el, &#39;padding-right&#39;), 10) || 0;
+                // Give the widget a reference to ourself to allow it to do any extra measuring
+                widget.measurer = column;
+                widget.setWidth(width - leftPad - rightPad);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-validator-Phone'>/**
+</span> * Validates that the value is a valid phone.
+ */
+Ext.define(&#39;Ext.data.validator.Phone&#39;, {
+    extend: &#39;Ext.data.validator.Format&#39;,
+    alias: &#39;data.validator.phone&#39;,
+
+<span id='Ext-data-validator-Phone-property-type'>    type: &#39;phone&#39;,
+</span>
+    // https://www.sitepoint.com/community/t/phone-number-regular-expression-validation/2204/2
+    //      (modified)
+
+<span id='Ext-data-validator-Phone-cfg-message'>    /**
+</span>     * @cfg {String} message
+     * The error message to return when the value is not a valid phone.
+     * @locale
+     */
+    message: &#39;Is not a valid phone number&#39;,
+
+<span id='Ext-data-validator-Phone-cfg-matcher'>    /**
+</span>     * @cfg {RegExp} matcher
+     * A matcher to check for simple phones. This may be overridden.
+     */
+    matcher: new RegExp(
+        &#39;^ *&#39; +
+
+        // optional country code
+        &#39;(?:&#39; +
+            &#39;\\+?&#39; + // maybe + prefix
+            &#39;(\\d{1,3})&#39; +
+            // optional separator
+            &#39;[- .]?&#39; +
+        &#39;)?&#39; +
+
+        // optional area code
+        &#39;(?:&#39; +
+            &#39;(?:&#39; +
+                &#39;(\\d{3})&#39; + //without ()
+                &#39;|&#39; +
+                &#39;\\((\\d{3})\\)&#39; + //with ()
+            &#39;)?&#39;+
+            // optional separator
+            &#39;[- .]?&#39;+
+        &#39;)&#39; +
+
+        // CO code (3 digit prefix)
+        &#39;(?:&#39; +
+            &#39;([2-9]\\d{2})&#39;+
+            // optional separator
+            &#39;[- .]?&#39; +
+        &#39;)&#39; +
+
+        // line number (4 digits)
+        &#39;(\\d{4})&#39; +
+
+        // optional extension
+        &#39;(?: *(?:e?xt?) *(\\d*))?&#39; +
+
+        &#39; *$&#39;
+    )
+});
+</pre>
+</body>
+</html>

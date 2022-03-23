@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-plugin-CellEditing'>/**
+</span> * The Cell Editing plugin utilizes an `Ext.Editor` to provide inline cell editing for
+ * grid cells.
+ *
+ *     @example
+ *     var store = Ext.create(&#39;Ext.data.Store&#39;, {
+ *         fields: [&#39;fname&#39;, &#39;lname&#39;, &#39;talent&#39;],
+ *         data: [
+ *             { &#39;fname&#39;: &#39;Barry&#39;,  &#39;lname&#39;: &#39;Allen&#39;, &#39;talent&#39;: &#39;Speedster&#39;},
+ *             { &#39;fname&#39;: &#39;Oliver&#39;, &#39;lname&#39;: &#39;Queen&#39;, &#39;talent&#39;: &#39;Archery&#39;},
+ *             { &#39;fname&#39;: &#39;Kara&#39;,   &#39;lname&#39;: &#39;Zor-El&#39;, &#39;talent&#39;: &#39;All&#39;},
+ *             { &#39;fname&#39;: &#39;Helena&#39;, &#39;lname&#39;: &#39;Bertinelli&#39;, &#39;talent&#39;: &#39;Weapons Expert&#39;},
+ *             { &#39;fname&#39;: &#39;Hal&#39;,    &#39;lname&#39;: &#39;Jordan&#39;, &#39;talent&#39;: &#39;Willpower&#39;  },
+ *         ]
+ *     });
+ *
+ *     Ext.create(&#39;Ext.grid.Grid&#39;, {
+ *         title: &#39;DC Personnel&#39;,
+ *
+ *         store: store,
+ *         plugins: {
+ *             cellediting: true
+ *         },
+ *         columns: [
+ *             { text: &#39;First Name&#39;, dataIndex: &#39;fname&#39;,  flex: 1, editable: true },
+ *             { text: &#39;Last Name&#39;,  dataIndex: &#39;lname&#39;,  flex: 1 },
+ *             { text: &#39;Talent&#39;,     dataIndex: &#39;talent&#39;, flex: 1 }
+ *         ],
+ *         fullscreen: true
+ *     });
+ *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.grid.plugin.CellEditing&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: [&#39;plugin.gridcellediting&#39;, &#39;plugin.cellediting&#39;],
+
+    requires: [
+        &#39;Ext.grid.CellEditor&#39;,
+        &#39;Ext.grid.Location&#39;
+    ],
+
+    config: {
+<span id='Ext-grid-plugin-CellEditing-cfg-grid'>        /**
+</span>         * @private
+         */
+        grid: null,
+
+<span id='Ext-grid-plugin-CellEditing-cfg-triggerEvent'>        /**
+</span>         * @cfg {String} [triggerEvent=doubletap]
+         * An optional pointer event to trigger cell editing.
+         *
+         * By default, cell editing begins when actionable mode is entered by pressing
+         * `ENTER` or `F2` when focused on the cell.
+         */
+        triggerEvent: &#39;doubletap&#39;,
+
+<span id='Ext-grid-plugin-CellEditing-cfg-selectOnEdit'>        /**
+</span>         * @cfg {Boolean} [selectOnEdit=false]
+         * Configure as `true` to have the cell editor *select* the cell it is editing (If
+         * cell selection enabled), or the record it is editing (if row selection enabled)
+         */
+        selectOnEdit: null
+    },
+
+<span id='Ext-grid-plugin-CellEditing-method-init'>    init: function(grid) {
+</span>        this.setGrid(grid);
+
+        grid.setTouchAction({
+            doubleTapZoom: false
+        });
+
+        grid.$cellEditing = true;
+    },
+
+<span id='Ext-grid-plugin-CellEditing-method-getEditor'>    getEditor: function(location) {
+</span>        var column = location.column,
+            fieldName = column.getDataIndex(),
+            record = location.record,
+            editable = column.getEditable(),
+            editor, field;
+
+        if (!(editor = editable !== false &amp;&amp; column.getEditor(location.record)) &amp;&amp; editable) {
+            editor = Ext.create(column.getDefaultEditor());
+        }
+
+        if (editor) {
+            if (!editor.isCellEditor) {
+                editor = Ext.create({
+                    xtype: &#39;celleditor&#39;,
+                    field: editor
+                });
+            }
+            column.setEditor(editor);
+            editor.editingPlugin = this;
+
+            field = editor.getField();
+            field.addUi(&#39;celleditor&#39;);
+
+            // Enforce the Model&#39;s validation rules
+            field.setValidationField(record.getField(fieldName), record);
+        }
+
+        return editor;
+    },
+
+<span id='Ext-grid-plugin-CellEditing-method-getActiveEditor'>    getActiveEditor: function() {
+</span>        return this.activeEditor;
+    },
+
+<span id='Ext-grid-plugin-CellEditing-method-updateGrid'>    updateGrid: function(grid, oldGrid) {
+</span>        if (oldGrid) {
+            oldGrid.unregisterActionable(this);
+        }
+
+        if (grid) {
+            grid.registerActionable(this);
+        }
+    },
+
+<span id='Ext-grid-plugin-CellEditing-method-activateCell'>    /**
+</span>     * @protected
+     * Part of the grid Actionable interface.
+     *
+     * Callback called by the NavigationModel on entry into actionable mode at the specified
+     * position.
+     * @param {Ext.grid.Location} location The position at which to enter actionable mode.
+     * @return {Ext.grid.Location} The location where actionable mode was successfully started.
+     */
+    activateCell: function(location) {
+        var me = this,
+            activeEditor = me.activeEditor,
+            previousEditor = me.$previousEditor,
+            editor, selModel, result;
+
+        //&lt;debug&gt;
+        if (!location) {
+            Ext.raise(&#39;A grid Location must be passed into CellEditing#activateCell&#39;);
+        }
+        //&lt;/debug&gt;
+
+        // Do not restart editor on the same cell. This may happen when an actionable&#39;s
+        // triggerEvent happens in a cell editor, and the event bubbles up to the
+        // NavigationModel which will try to activate the owning cell.
+        // In this case, we return the location to indicate that it&#39;s still a successful edit.
+        if (activeEditor &amp;&amp; activeEditor.$activeLocation.cell === location.cell) {
+            return activeEditor.$activeLocation;
+        } else {
+            editor = me.getEditor(location);
+            if (editor) {
+                if (previousEditor) {
+                    if (previousEditor.isCancelling) {
+                        previousEditor.cancelEdit();
+                    } else {
+                        previousEditor.completeEdit();
+                    }
+                }
+
+                result = editor.startEdit(location);
+                if (editor.editing) {
+
+                    // Select the edit location if possible if we have been configured to do so.
+                    if (me.getSelectOnEdit()) {
+                        selModel = me.getGrid().getSelectable();
+                        if (selModel.getCells()) {
+                            selModel.selectCells(location, location);
+                        } else if (selModel.getRows()) {
+                            selModel.select(location.record);
+                        }
+                    }
+                    me.$previousEditor = editor;
+                    return result;
+                }
+            }
+        }
+    },
+
+<span id='Ext-grid-plugin-CellEditing-method-startEdit'>    // for compatibility
+</span>    startEdit: function(record, column) {
+        this.activateCell(new Ext.grid.Location(this.getGrid(), {
+            record: record,
+            column: column
+        }));
+    },
+
+<span id='Ext-grid-plugin-CellEditing-method-destroy'>    destroy: function() {
+</span>        var grid = this.getGrid();
+
+        if (grid) {
+            grid.$cellEditing = false;
+        }
+
+        this.$previousEditor = null;
+        this.callParent();
+    }
+});
+</pre>
+</body>
+</html>

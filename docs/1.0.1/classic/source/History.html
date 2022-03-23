@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-util-History'>/**
+</span> * History management component that allows you to register arbitrary tokens that signify application
+ * history state on navigation actions.  You can then handle the history {@link #change} event in order
+ * to reset your application UI to the appropriate state when the user navigates forward or backward through
+ * the browser history stack.
+ *
+ * ## Initializing
+ *
+ * The {@link #init} method of the History object must be called before using History. This sets up the internal
+ * state and must be the first thing called before using History.
+ */
+Ext.define(&#39;Ext.util.History&#39;, {
+    singleton: true,
+    alternateClassName: &#39;Ext.History&#39;,
+    mixins: {
+        observable: &#39;Ext.util.Observable&#39;
+    },
+
+<span id='Ext-util-History-property-useTopWindow'>    /**
+</span>     * @property
+     * True to use `window.top.location.hash` or false to use `window.location.hash`. Must be set before {@link #init} is called
+     * because the `hashchange` event listener is added to the window at initialization time.
+     */
+    useTopWindow: false,
+
+<span id='Ext-util-History-property-hashbang'>    /**
+</span>     * @property {Boolean} hashbang If set to `true`, when a hash is set, the hash will be prefixed
+     * with an exclamation making it a hash bang instead of just a hash.
+     *
+     *     Ext.util.History.add(&#39;foo&#39;); // will result in #foo
+     *
+     *     Ext.util.History.hashbang = true;
+     *     Ext.util.History.add(&#39;bar&#39;); // will result in #!bar
+     */
+
+<span id='Ext-util-History-property-currentToken'>    /**
+</span>     * @property {String} currentToken The current token.
+     * @private
+     */
+
+<span id='Ext-util-History-event-ready'>    /**
+</span>     * @event ready
+     * Fires when the Ext.util.History singleton has been initialized and is ready for use.
+     * @param {Ext.util.History} history The Ext.util.History singleton.
+     */
+
+<span id='Ext-util-History-event-change'>    /**
+</span>     * @event change
+     * Fires when navigation back or forwards within the local page&#39;s history occurs.
+     * @param {String} token An identifier associated with the page state at that point in its history.
+     */
+
+    hashRe: /^(#?!?)/,
+
+<span id='Ext-util-History-method-constructor'>    constructor: function() {
+</span>        var me = this;
+
+        me.ready = false;
+        me.currentToken = null;
+        me.mixins.observable.constructor.call(me);
+    },
+
+<span id='Ext-util-History-method-getHash'>    /**
+</span>     * Gets the actual hash from the url. This shouldn&#39;t need to be used directly but use the
+     * {@link #getToken} method instead.
+     *
+     * @return {String} The hash from the window object.
+     * @private
+     */
+    getHash: function() {
+        return this.win.location.hash.replace(this.hashRe, &#39;&#39;);
+    },
+
+<span id='Ext-util-History-method-setHash'>    /**
+</span>     * Updates the hash on the window. This shouldn&#39;t need to be used directly but use the
+     * {@link #add} method instead.
+     *
+     * @param {String} hash The hash to use
+     * @param {Boolean} replace If `true`, the hash passed in will replace the current resource
+     * by using the `location.replace()` API.
+     * @private
+     */
+    setHash: function(hash, replace) {
+        var me = this,
+            hashRe = me.hashRe,
+            loc = me.win.location;
+
+        // may or may not already be prefixed with # or #! already
+        hash = hash.replace(hashRe, me.hashbang ? &#39;#!&#39; : &#39;#&#39;);
+
+        try {
+            if (replace) {
+                loc.replace(hash);
+            } else {
+                loc.hash = hash;
+            }
+
+            //need to make sure currentToken is not prefixed
+            me.currentToken = hash.replace(hashRe, &#39;&#39;);
+        } catch (e) {
+            // IE can give Access Denied (esp. in popup windows)
+        }
+    },
+
+<span id='Ext-util-History-method-handleStateChange'>    /**
+</span>     * Handles when the hash in the URL has been updated. Will also fired the change event.
+     *
+     * @param {String} token The token that was changed to
+     * @private
+     */
+    handleStateChange: function(token) {
+        // browser won&#39;t have # here but may have !
+        token = token.replace(this.hashRe, &#39;&#39;);
+
+        this.fireEvent(&#39;change&#39;, this.currentToken = token);
+    },
+
+<span id='Ext-util-History-method-startUp'>    /**
+</span>     * Bootstraps the initialization the location.hash.
+     * @private
+     */
+    startUp: function () {
+        var me = this;
+
+        me.currentToken = me.getHash();
+
+        Ext.get(me.win).on(&#39;hashchange&#39;, me.onHashChange, me);
+
+        me.ready = true;
+        me.fireEvent(&#39;ready&#39;, me);
+    },
+
+<span id='Ext-util-History-method-onHashChange'>    onHashChange: function () {
+</span>        var me = this,
+            newHash = me.getHash();
+
+        if (newHash !== me.hash) {
+            me.hash = newHash;
+            me.handleStateChange(newHash);
+        }
+    },
+
+<span id='Ext-util-History-method-init'>    /**
+</span>     * Initializes the global History instance.
+     * @param {Function} [onReady] A callback function that will be called once the history
+     * component is fully initialized.
+     * @param {Object} [scope] The scope (`this` reference) in which the callback is executed.
+     * Defaults to the browser window.
+     */
+    init: function(onReady, scope) {
+        var me = this;
+
+        if (me.ready) {
+            Ext.callback(onReady, scope, [me]);
+            return;
+        }
+
+        if (!Ext.isReady) {
+            Ext.onInternalReady(function() {
+                me.init(onReady, scope);
+            });
+            return;
+        }
+
+        me.win = me.useTopWindow ? window.top : window;
+        me.hash = me.getHash();
+
+        if (onReady) {
+            me.on(&#39;ready&#39;, onReady, scope, {single: true});
+        }
+        me.startUp();
+    },
+
+<span id='Ext-util-History-method-add'>    /**
+</span>     * Add a new token to the history stack. This can be any arbitrary value, although it would
+     * commonly be the concatenation of a component id and another id marking the specific history
+     * state of that component. Example usage:
+     *
+     *     // Handle tab changes on a TabPanel
+     *     tabPanel.on(&#39;tabchange&#39;, function(tabPanel, tab){
+     *          Ext.History.add(tabPanel.id + &#39;:&#39; + tab.id);
+     *     });
+     *
+     * @param {String} token The value that defines a particular application-specific history state
+     * @param {Boolean} [preventDuplicates=true] When true, if the passed token matches the current token
+     * it will not save a new history step. Set to false if the same state can be saved more than once
+     * at the same history stack location.
+     *
+     * @return {Boolean} Whether the token was set in the case if the current token matches the token
+     * passed.
+     */
+    add: function(token, preventDuplicates) {
+        var me = this,
+            set = false;
+
+        if (preventDuplicates === false || me.getToken() !== token) {
+            me.setHash(token);
+            set = true;
+        }
+
+        return set;
+    },
+
+<span id='Ext-util-History-method-replace'>    /**
+</span>     * Replaces the current resource in history.
+     *
+     * @param {String} token The value that will replace the current resource in the history state.
+     * @param {Boolean} [preventDuplicates=true] When `true`, if the passed token matches the current token
+     * it will not save a new history step. Set to `false` if the same state can be saved more than once
+     * at the same history stack location.
+     *
+     * @return {Boolean} Whether the token was set in the case if the current token matches the token
+     * passed.
+     */
+    replace: function(token, preventDuplicates) {
+        var me = this,
+            set = false;
+
+        if (preventDuplicates === false || me.getToken() !== token) {
+            this.setHash(token, true);
+            set = true;
+        }
+
+        return set;
+    },
+
+<span id='Ext-util-History-method-back'>    /**
+</span>     * Programmatically steps back one step in browser history (equivalent to the user pressing the Back button).
+     */
+    back: function() {
+        this.win.history.go(-1);
+    },
+
+<span id='Ext-util-History-method-forward'>    /**
+</span>     * Programmatically steps forward one step in browser history (equivalent to the user pressing the Forward button).
+     */
+    forward: function(){
+        this.win.history.go(1);
+    },
+
+<span id='Ext-util-History-method-getToken'>    /**
+</span>     * Retrieves the currently-active history token.
+     * @return {String} The token
+     */
+    getToken: function() {
+        return this.ready ? this.currentToken : this.getHash();
+    }
+});
+</pre>
+</body>
+</html>

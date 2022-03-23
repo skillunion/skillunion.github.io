@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}gridcolumn {
+    // allows the resizer-el to escape the bounds of the column
+    overflow: visible;
+
+    .#{$prefix}header-el {
+        position: relative;
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+    }
+
+    .#{$prefix}title-wrap-el {
+        overflow: hidden;
+    }
+
+    .#{$prefix}title-el {
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+    }
+
+    .#{$prefix}text-el {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &amp;.#{$prefix}align-center &gt; .#{$prefix}header-el {
+        justify-content: center;
+    }
+
+    &amp;.#{$prefix}align-right &gt; .#{$prefix}header-el {
+        justify-content: flex-end;
+    }
+
+    &amp;.#{$prefix}group {
+        &gt; .#{$prefix}header-el &gt; {
+            .#{$prefix}title-wrap-el,
+            .#{$prefix}tool-dock {
+                // group headers should be widthed according to the combined widths of their children
+                width: 0;
+                min-width: 100%;
+            }
+        }
+
+        &amp;.#{$prefix}align-center &gt; .#{$prefix}header-el .#{$prefix}title-el {
+            justify-content: center;
+        }
+
+        &amp;.#{$prefix}align-right &gt; .#{$prefix}header-el .#{$prefix}title-el {
+            justify-content: flex-end;
+        }
+    }
+
+    &amp;.#{$prefix}leaf {
+        .#{$prefix}header-el {
+            border-bottom: 0;
+        }
+
+        .#{$prefix}gridcolumn-body-el {
+            display: none;
+        }
+    }
+
+    .#{$prefix}trigger-el {
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    &gt; .#{$prefix}header-el:hover .#{$prefix}trigger-el,
+    &amp;.#{$prefix}menu-open &gt; .#{$prefix}header-el .#{$prefix}trigger-el {
+        opacity: 1;
+    }
+
+    &amp;.#{$prefix}resizing .#{$prefix}trigger-el {
+        opacity: 0 !important;
+    }
+
+    // resizer element
+    &gt; .#{$prefix}header-el:after {
+        content: &#39;&#39;;
+        width: 0;
+        height: 100%;
+        position: absolute;
+        right: 0;
+        top: 0;
+        display: none;
+    }
+
+    &amp;.#{$prefix}resizing &gt; .#{$prefix}header-el:after {
+        display: block;
+    }
+}
+
+.#{$prefix}gridcolumn-body-el {
+    flex: none;
+    overflow: visible;
+}
+</pre>
+</body>
+</html>

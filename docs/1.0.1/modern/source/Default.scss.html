@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}viewport-body-el {
+    z-index: 0;
+    // TODO: this should have its own variable
+    background-color: $panel-body-background-color;
+}
+
+.#{$prefix}orientation-inspector {
+    display: none;
+}
+
+// Set it to display block in landscape, portrait when not so
+// we can detect it for browsers that don&#39;t have a better way
+// to calculate it
+@media (orientation : landscape) {
+    .#{$prefix}orientation-inspector-landscape {
+        display: block;
+    }
+}
+
+@media (orientation : portrait) {
+    .#{$prefix}orientation-inspector-landscape {
+        display: none;
+    }
+}
+</pre>
+</body>
+</html>

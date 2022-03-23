@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}numberfield {
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    // Firefox shows the spinner buttons on input[type=number] elements and this rule hides them
+    input {
+        -moz-appearance:textfield;
+    }
+
+    // EXTJS-21260 - Firefox validates input[type=number] fields and this rule hides the red border on the input field
+    // The other solution is to have a &quot;novalidate&quot; attribute on the form element
+    input:invalid {
+        box-shadow: none;
+    }
+}</pre>
+</body>
+</html>

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-route-Route'>/**
+</span> * Enables reactive actions to handle changes in the hash by using the
+ * {@link Ext.route.Mixin#routes routes} configuration in a controller.
+ * An example configuration would be:
+ *
+ *     Ext.define(&#39;MyApp.view.main.MainController&#39;, {
+ *         extend: &#39;Ext.app.ViewController&#39;,
+ *         alias: &#39;controller.app-main&#39;,
+ *
+ *         routes: {
+ *             &#39;user/:id&#39;: &#39;onUser&#39;
+ *         },
+ *
+ *         onUser: function (id) {
+ *             // ...
+ *         }
+ *     });
+ *
+ * The `routes` object can also receive an object to further configure
+ * the route, for example you can configure a `before` action that will
+ * be executed before the `action` or can cancel the route execution:
+ *
+ *     Ext.define(&#39;MyApp.view.main.MainController&#39;, {
+ *         extend: &#39;Ext.app.ViewController&#39;,
+ *         alias: &#39;controller.app-main&#39;,
+ *
+ *         routes: {
+ *             &#39;user/:id&#39;: {
+ *                 action: &#39;onUser&#39;,
+ *                 before: &#39;onBeforeUser&#39;
+ *             }
+ *         },
+ *
+ *         onBeforeUser: function (id) {
+ *             return new Ext.Promise(function (resolve, reject) {
+ *                 Ext.Ajax
+ *                     .request({
+ *                         url: &#39;/check/permission&#39;,
+ *                         params: {
+ *                             route: &#39;user&#39;,
+ *                             meta: {
+ *                                 id: id
+ *                             }
+ *                         }
+ *                     })
+ *                     .then(resolve, reject);
+ *             });
+ *         },
+ *
+ *         onUser: function (id) {
+ *             // ...
+ *         }
+ *     });
+ */
+Ext.define(&#39;Ext.route.Route&#39;, {
+    requires: [
+        &#39;Ext.route.Action&#39;
+    ],
+
+<span id='Ext-GlobalEvents-event-beforeroute'>    /**
+</span>     * @event beforeroute
+     * @member Ext.GlobalEvents
+     *
+     * Fires when a route is about to be executed. This allows pre-processing to add additional
+     * {@link Ext.route.Action#before before} or {@link Ext.route.Action#action action} handlers
+     * when the {@link Ext.route.Action Action} is run.
+     *
+     * The route can be prevented from executing by returning `false` in a listener
+     * or executing the {@link Ext.route.Action#stop stop} method on the action.
+     *
+     * @param {Ext.route.Route} route The route being executed.
+     * @param {Ext.route.Action} action The action that will be run.
+     */
+
+    config: {
+<span id='Ext-route-Route-cfg-name'>        /**
+</span>         * @cfg {String} name The name of this route. The name can be used when using
+         * {@link Ext.route.Mixin#redirectTo}.
+         */
+        name: null,
+
+<span id='Ext-route-Route-cfg-url'>        /**
+</span>         * @cfg {String} url (required) The url regex to match against.
+         */
+        url: null,
+
+<span id='Ext-route-Route-cfg-allowInactive'>        /**
+</span>         * @cfg {Boolean} [allowInactive=false] `true` to allow this route to be triggered on
+         * a controller that is not active.
+         */
+        allowInactive: false,
+
+<span id='Ext-route-Route-cfg-caseInsensitive'>        /**
+</span>         * @cfg {Boolean} [caseInsensitive=false] `true` to allow the tokens to be matched with
+         * case-insensitive.
+         */
+        caseInsensitive: false,
+
+<span id='Ext-route-Route-cfg-handler'>        /**
+</span>         * @private
+         * @cfg {Object[]} [handler=[]] The array of connected handlers to this route. Each handler
+         * must defined a `scope` and can define an `action`, `before` and/or `exit` handler:
+         *
+         *     handlers: [{
+         *         action: function() {
+         *             //...
+         *         },
+         *         scope: {}
+         *     }, {
+         *         action: function() {
+         *             //...
+         *         },
+         *         before: function() {
+         *             //...
+         *         },
+         *         scope: {}
+         *     }, {
+         *         exit: function() {
+         *             //...
+         *         },
+         *         scope: {}
+         *     }]
+         *
+         * The `action`, `before` and `exit` handlers can be a string that will be resolved
+         * from the `scope`:
+         *
+         *     handlers: [{
+         *         action: &#39;onAction&#39;,
+         *         before: &#39;onBefore&#39;,
+         *         exit: &#39;onExit&#39;,
+         *         scope: {
+         *             onAction: function () {
+         *                 //...
+         *             },
+         *             onBefore: function () {
+         *                 //...
+         *             },
+         *             onExit: function () {
+         *                 //...
+         *             }
+         *         }
+         *     }]
+         */
+        handlers: []
+    },
+
+<span id='Ext-route-Route-cfg-conditions'>    /**
+</span>     * @cfg {Object} conditions Optional set of conditions for each token in the url
+     * string. Each key should be one of the tokens, each value should be a regex that the
+     * token should accept. For example, if you have a Route with a url like
+     * `&quot;files/:fileName&quot;` and you want it to match urls like &quot;files/someImage.jpg&quot; then
+     * you can set these conditions to allow the :fileName token to accept strings
+     * containing a period (&quot;.&quot;):
+     *
+     *     conditions: {
+     *         &#39;:fileName&#39;: &quot;[0-9a-zA-Z\.]+&quot;
+     *     }
+     */
+
+<span id='Ext-route-Route-property-defaultMatcher'>    /**
+</span>     * @property {String} [defaultMatcher=&#39;([%a-zA-Z0-9\\-\\_\\s,]+)&#39;] The default RegExp string
+     * to use to match parameters with.
+     */
+    defaultMatcher: &#39;([%a-zA-Z0-9\\-\\_\\s,]+)&#39;,
+
+<span id='Ext-route-Route-property-matcherRegex'>    /**
+</span>     * @private
+     * @property {RegExp} matcherRegex A regular expression to match the token to the configured {@link #url}.
+     */
+<span id='Ext-route-Route-property-paramMatchingRegex'>    /**
+</span>     * @private
+     * @property {RegExp} paramMatchingRegex A regular expression to check if there are parameters in the configured {@link #url}.
+     */
+    paramMatchingRegex: /:([0-9A-Za-z\_]*)/g,
+<span id='Ext-route-Route-property-paramsInMatchString'>    /**
+</span>     * @private
+     * @property {Array} paramsInMatchString An array of parameters in the configured {@link #url}.
+     */
+
+<span id='Ext-route-Route-property-isRoute'>    /**
+</span>     * @protected
+     * @property {Boolean} [isRoute=true]
+     */
+    isRoute: true,
+
+<span id='Ext-route-Route-method-constructor'>    constructor: function (config) {
+</span>        var me = this,
+            url;
+
+        this.initConfig(config);
+
+        Ext.apply(me, config, {
+            conditions: {}
+        });
+
+        url = me.getUrl();
+
+        me.paramsInMatchString = url.match(me.paramMatchingRegex) || [];
+        me.matcherRegex = me.createMatcherRegex(url);
+    },
+
+<span id='Ext-route-Route-method-recognize'>    /**
+</span>     * Attempts to recognize a given url string and return a meta data object including
+     * any URL parameter matches.
+     *
+     * @param {String} url The url to recognize.
+     * @return {Object/Boolean} The matched data, or `false` if no match.
+     */
+    recognize: function (url) {
+        var me = this,
+            recognized = me.recognizes(url),
+            matches, urlParams;
+
+        if (url === me.lastToken) {
+            //url matched the lastToken
+            return true;
+        }
+
+        if (recognized) {
+            matches = me.matchesFor(url);
+            urlParams = url.match(me.matcherRegex);
+
+            urlParams.shift();
+
+            return Ext.applyIf(matches, {
+                historyUrl: url,
+                urlParams: urlParams
+            });
+        }
+
+        return false;
+    },
+
+<span id='Ext-route-Route-method-recognizes'>    /**
+</span>     * Returns true if this {@link Ext.route.Route} matches the given url string.
+     *
+     * @param {String} url The url to test.
+     * @return {Boolean} `true` if this {@link Ext.route.Route} recognizes the url.
+     */
+    recognizes: function (url) {
+        return this.matcherRegex.test(url);
+    },
+
+<span id='Ext-route-Route-method-execute'>    /**
+</span>     * The method to execute the action using the configured before function which will
+     * kick off the actual {@link #actions} on the {@link #controller}.
+     *
+     * @param token
+     * @param {Object} argConfig The object from the {@link Ext.route.Route}&#39;s
+     * recognize method call.
+     * @return {Ext.promise.Promise}
+     */
+    execute: function (token, argConfig) {
+        var me = this,
+            allowInactive = me.getAllowInactive(),
+            handlers = me.getHandlers(),
+            queue = Ext.route.Router.getQueueRoutes(),
+            length = handlers.length,
+            befores = [],
+            actions = [],
+            urlParams = (argConfig &amp;&amp; argConfig.urlParams) || [],
+            i, handler, scope, action, promises;
+
+        me.lastToken = token;
+
+        if (!queue) {
+            promises = [];
+        }
+
+        return new Ext.Promise(function (resolve, reject) {
+            for (i = 0; i &lt; length; i++) {
+                handler = handlers[i];
+                scope = handler.scope;
+
+                if (!allowInactive &amp;&amp; scope.isActive &amp;&amp; !scope.isActive()) {
+                    continue;
+                }
+
+                if (queue) {
+                    if (handler.before) {
+                        befores.push({
+                            fn: handler.before,
+                            scope: scope
+                        });
+                    }
+
+                    if (handler.action) {
+                        actions.push({
+                            fn: handler.action,
+                            scope: scope
+                        });
+                    }
+                } else {
+                    action = {
+                        urlParams: urlParams
+                    };
+
+                    if (handler.before) {
+                        action.befores = {
+                            fn: handler.before,
+                            scope: scope
+                        };
+                    }
+
+                    if (handler.action) {
+                        action.actions = {
+                            fn: handler.action,
+                            scope: scope
+                        };
+                    }
+
+                    action = new Ext.route.Action(action);
+
+                    if (Ext.fireEvent(&#39;beforeroute&#39;, action, me) === false) {
+                        action.destroy();
+                    } else {
+                        promises.push(action.run());
+                    }
+                }
+            }
+
+            if (queue) {
+                action = new Ext.route.Action({
+                    actions: actions,
+                    befores: befores,
+                    urlParams: urlParams
+                });
+
+                if (Ext.fireEvent(&#39;beforeroute&#39;, action, me) === false) {
+                    action.destroy();
+
+                    reject();
+                } else {
+                    action.run().then(resolve, reject);
+                }
+            } else {
+                Ext.Promise.all(promises).then(resolve, reject);
+            }
+        });
+    },
+
+<span id='Ext-route-Route-method-matchesFor'>    /**
+</span>     * Returns a hash of matching url segments for the given url.
+     *
+     * @param {String} url The url to extract matches for
+     * @return {Object} matching url segments
+     */
+    matchesFor: function (url) {
+        var params = {},
+            keys = this.paramsInMatchString,
+            values = url.match(this.matcherRegex),
+            length = keys.length,
+            i;
+
+        //first value is the entire match so reject
+        values.shift();
+
+        for (i = 0; i &lt; length; i++) {
+            params[keys[i].replace(&#39;:&#39;, &#39;&#39;)] = values[i];
+        }
+
+        return params;
+    },
+
+<span id='Ext-route-Route-method-createMatcherRegex'>    /**
+</span>     * Takes the configured url string including wildcards and returns a regex that can be
+     * used to match against a url.
+     *
+     * @param {String} url The url string.
+     * @return {RegExp} The matcher regex.
+     */
+    createMatcherRegex: function (url) {
+        // Converts a route string into an array of symbols starting with a colon. e.g.
+        // &quot;:controller/:action/:id&quot; =&gt; [&#39;:controller&#39;, &#39;:action&#39;, &#39;:id&#39;]
+        var paramsInMatchString = this.paramsInMatchString,
+            conditions = this.conditions,
+            defaultMatcher = this.defaultMatcher,
+            length = paramsInMatchString.length,
+            modifiers = this.getCaseInsensitive() ? &#39;i&#39; : &#39;&#39;,
+            i, params, matcher;
+
+        if (url === &#39;*&#39;) {
+            // handle wildcard routes, won&#39;t have conditions
+            url = url.replace(&#39;*&#39;, &#39;\\*&#39;);
+        } else {
+            for (i = 0; i &lt; length; i++) {
+                params = paramsInMatchString[i];
+                matcher = conditions[params] || defaultMatcher;
+                url = url.replace(new RegExp(params), matcher);
+            }
+        }
+
+        //we want to match the whole string, so include the anchors
+        return new RegExp(&#39;^&#39; + url + &#39;$&#39;, modifiers);
+    },
+
+<span id='Ext-route-Route-method-addHandler'>    /*
+</span>     * Adds a handler to the {@link #handlers} stack.
+     *
+     * @param {Object} handler An object to describe the handler. A handler should define a `fn`
+     * and `scope`. If the `fn` is a String, the function will be resolved from the `scope`.
+     * @return {Ext.route.Route} this
+     */
+    addHandler: function (handler) {
+        var handlers = this.getHandlers();
+
+        handlers.push(handler);
+
+        return this;
+    },
+
+<span id='Ext-route-Route-method-removeHandler'>    /**
+</span>     * Removes a handler from th {@link #handlers} stack. This normally happens when
+     * destroying a class instance.
+     *
+     * @param {Object/Ext.Base} scope The class instance to match handlers with.
+     * @param {Object} config An optional object to describe which handlers to remove.
+     * This can be used to remove all handlers with a certain `before` or `action`.
+     * @return {Ext.route.Route} this
+     */
+    removeHandler: function (scope, config) {
+        var handlers = this.getHandlers(),
+            length = handlers.length,
+            newHandlers = [],
+            i, handler;
+
+        for (i = 0; i &lt; length; i++) {
+            handler = handlers[i];
+
+            if (handler.scope === scope) {
+                if (!config ||
+                    (
+                        Ext.isDefined(config.action) ? handler.action === config.action : true &amp;&amp;
+                        Ext.isDefined(config.before) ? handler.before === config.before : true
+                    )
+                ) {
+                    continue;
+                }
+            }
+
+            newHandlers.push(handler);
+        }
+
+        this.setHandlers(newHandlers);
+
+        return this;
+    }
+});
+</pre>
+</body>
+</html>

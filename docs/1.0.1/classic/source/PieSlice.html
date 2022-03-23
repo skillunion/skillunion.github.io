@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-sprite-PieSlice'>/**
+</span> * @class Ext.chart.series.sprite.PieSlice
+ *
+ * Pie slice sprite.
+ */
+Ext.define(&#39;Ext.chart.series.sprite.PieSlice&#39;, {
+    extend: &#39;Ext.draw.sprite.Sector&#39;,
+    mixins: {
+        markerHolder: &#39;Ext.chart.MarkerHolder&#39;
+    },
+    alias: &#39;sprite.pieslice&#39;,
+
+    inheritableStatics: {
+<span id='Ext-chart-series-sprite-PieSlice-static-property-def'>        def: {
+</span>            processors: {
+<span id='Ext-chart-series-sprite-PieSlice-cfg-doCallout'>                /**
+</span>                 * @cfg {Boolean} [doCallout=true]
+                 * &#39;true&#39; if the pie series uses label callouts.
+                 */
+                doCallout: &#39;bool&#39;,
+
+<span id='Ext-chart-series-sprite-PieSlice-cfg-label'>                /**
+</span>                 * @cfg {String} [label=&#39;&#39;]
+                 * Label associated with the Pie sprite.
+                 */
+                label: &#39;string&#39;,
+
+                // @deprecated Use series.label.orientation config instead.
+                // @since 5.0.1
+                rotateLabels: &#39;bool&#39;,
+
+<span id='Ext-chart-series-sprite-PieSlice-cfg-labelOverflowPadding'>                /**
+</span>                 * @cfg {Number} [labelOverflowPadding=10]
+                 * Padding around labels to determine overlap.
+                 * Any negative number allows the labels to overlap.
+                 */
+                labelOverflowPadding: &#39;number&#39;,
+
+                renderer: &#39;default&#39;
+            },
+            defaults: {
+                doCallout: true,
+                rotateLabels: true,
+                label: &#39;&#39;,
+                labelOverflowPadding: 10,
+                renderer: null
+            }
+        }
+    },
+
+    config: {
+<span id='Ext-chart-series-sprite-PieSlice-cfg-rendererData'>        /**
+</span>         * @private
+         * @cfg {Object} rendererData The object that is passed to the renderer.
+         *
+         * For instance when the PieSlice sprite is used in a Gauge chart, the object
+         * contains the &#39;store&#39; and &#39;angleField&#39; properties, and the &#39;value&#39; as well
+         * for that one PieSlice that is used to draw the needle of the Gauge.
+         */
+        rendererData: null,
+<span id='Ext-chart-series-sprite-PieSlice-cfg-rendererIndex'>        rendererIndex: 0,
+</span><span id='Ext-chart-series-sprite-PieSlice-cfg-series'>        series: null
+</span>    },
+
+<span id='Ext-chart-series-sprite-PieSlice-method-setGradientBBox'>    setGradientBBox: function (ctx, rect) {
+</span>        var me = this,
+            attr = me.attr,
+            hasGradients = (attr.fillStyle &amp;&amp; attr.fillStyle.isGradient) ||
+                           (attr.strokeStyle &amp;&amp; attr.strokeStyle.isGradient);
+
+        if (hasGradients &amp;&amp; !attr.constrainGradients) {
+            var midAngle = me.getMidAngle(),
+                margin = attr.margin,
+                cx = attr.centerX,
+                cy = attr.centerY,
+                r = attr.endRho,
+                matrix = attr.matrix,
+                scaleX = matrix.getScaleX(),
+                scaleY = matrix.getScaleY(),
+                w = scaleX * r,
+                h = scaleY * r,
+                bbox = {
+                    width: w + w,
+                    height: h + h
+                };
+            if (margin) {
+                cx += margin * Math.cos(midAngle);
+                cy += margin * Math.sin(midAngle);
+            }
+            bbox.x = matrix.x(cx, cy) - w;
+            bbox.y = matrix.y(cx, cy) - h;
+            ctx.setGradientBBox(bbox);
+        } else {
+            me.callParent([ctx, rect]);
+        }
+    },
+
+<span id='Ext-chart-series-sprite-PieSlice-method-render'>    render: function (surface, ctx, rect) {
+</span>        var me = this,
+            attr = me.attr,
+            itemCfg = {},
+            changes;
+
+        if (attr.renderer) {
+            itemCfg = {
+                type: &#39;sector&#39;,
+                centerX: attr.centerX,
+                centerY: attr.centerY,
+                margin: attr.margin,
+                startAngle: Math.min(attr.startAngle, attr.endAngle),
+                endAngle: Math.max(attr.startAngle, attr.endAngle),
+                startRho: Math.min(attr.startRho, attr.endRho),
+                endRho: Math.max(attr.startRho, attr.endRho)
+            };
+            changes = Ext.callback(attr.renderer, null,
+                [me, itemCfg, me.getRendererData(), me.getRendererIndex()], 0, me.getSeries());
+            me.setAttributes(changes);
+            me.useAttributes(ctx, rect);
+        }
+
+        // Draw the sector
+        me.callParent([surface, ctx, rect]);
+
+        // Draw the labels
+        if (attr.label &amp;&amp; me.getMarker(&#39;labels&#39;)) {
+            me.placeLabel();
+        }
+    },
+
+<span id='Ext-chart-series-sprite-PieSlice-method-placeLabel'>    placeLabel: function () {
+</span>        var me = this,
+            attr = me.attr,
+            attributeId = attr.attributeId,
+            startAngle = Math.min(attr.startAngle, attr.endAngle),
+            endAngle = Math.max(attr.startAngle, attr.endAngle),
+            midAngle = (startAngle + endAngle) * 0.5,
+            margin = attr.margin,
+            centerX = attr.centerX,
+            centerY = attr.centerY,
+            sinMidAngle = Math.sin(midAngle),
+            cosMidAngle = Math.cos(midAngle),
+            startRho = Math.min(attr.startRho, attr.endRho) + margin,
+            endRho = Math.max(attr.startRho, attr.endRho) + margin,
+            midRho = (startRho + endRho) * 0.5,
+            surfaceMatrix = me.surfaceMatrix,
+            labelCfg = me.labelCfg || (me.labelCfg = {}),
+            label = me.getMarker(&#39;labels&#39;),
+            labelTpl = label.getTemplate(),
+            hideLessThan = labelTpl.getHideLessThan(),
+            calloutLine = labelTpl.getCalloutLine(),
+            labelBox, x, y, changes, params, calloutLineLength;
+
+        if (calloutLine) {
+            calloutLineLength = calloutLine.length || 40;
+        } else {
+            calloutLineLength = 0;
+        }
+
+        surfaceMatrix.appendMatrix(attr.matrix);
+
+        labelCfg.text = attr.label;
+
+        x = centerX + cosMidAngle * midRho;
+        y = centerY + sinMidAngle * midRho;
+        labelCfg.x = surfaceMatrix.x(x, y);
+        labelCfg.y = surfaceMatrix.y(x, y);
+
+        x = centerX + cosMidAngle * endRho;
+        y = centerY + sinMidAngle * endRho;
+        labelCfg.calloutStartX = surfaceMatrix.x(x, y);
+        labelCfg.calloutStartY = surfaceMatrix.y(x, y);
+
+        x = centerX + cosMidAngle * (endRho + calloutLineLength);
+        y = centerY + sinMidAngle * (endRho + calloutLineLength);
+        labelCfg.calloutPlaceX = surfaceMatrix.x(x, y);
+        labelCfg.calloutPlaceY = surfaceMatrix.y(x, y);
+
+        if (!attr.rotateLabels) {
+            labelCfg.rotationRads = 0;
+            //&lt;debug&gt;
+            Ext.log.warn(&quot;&#39;series.style.rotateLabels&#39; config is deprecated. &quot; +
+                &quot;Use &#39;series.label.orientation&#39; config instead.&quot;);
+            //&lt;/debug&gt;
+        } else {
+            switch (labelTpl.attr.orientation) {
+                case &#39;horizontal&#39;:
+                    labelCfg.rotationRads = midAngle + Math.atan2(
+                        surfaceMatrix.y(1, 0) - surfaceMatrix.y(0, 0),
+                        surfaceMatrix.x(1, 0) - surfaceMatrix.x(0, 0)
+                    ) + Math.PI/2;
+                    break;
+                case &#39;vertical&#39;:
+                    labelCfg.rotationRads = midAngle + Math.atan2(
+                        surfaceMatrix.y(1, 0) - surfaceMatrix.y(0, 0),
+                        surfaceMatrix.x(1, 0) - surfaceMatrix.x(0, 0)
+                    );
+                    break;
+            }
+        }
+        labelCfg.calloutColor = (calloutLine &amp;&amp; calloutLine.color) || me.attr.fillStyle;
+        if (calloutLine) {
+            if (calloutLine.width) {
+                labelCfg.calloutWidth = calloutLine.width;
+            }
+        } else {
+            labelCfg.calloutColor = &#39;none&#39;;
+        }
+        labelCfg.globalAlpha = attr.globalAlpha * attr.fillOpacity;
+
+        // If a slice is empty, don&#39;t display the label.
+        // This behavior can be overridden by a renderer.
+        if (labelTpl.display !== &#39;none&#39;) {
+            labelCfg.hidden = (attr.startAngle == attr.endAngle);
+        }
+
+        if (labelTpl.attr.renderer) {
+            // Note: the labels are &#39;put&#39; by the Ext.chart.series.Pie.updateLabelData, so we can
+            // be sure the label sprite instances will exist and can be accessed from the label
+            // renderer on first render. For example, with &#39;bar&#39; series this isn&#39;t the case,
+            // so we make a check and create a label instance if necessary.
+            params = [me.attr.label, label, labelCfg, me.getRendererData(), me.getRendererIndex()];
+            changes = Ext.callback(labelTpl.attr.renderer, null, params, 0, me.getSeries());
+            if (typeof changes === &#39;string&#39;) {
+                labelCfg.text = changes;
+            } else {
+                Ext.apply(labelCfg, changes);
+            }
+        }
+        me.putMarker(&#39;labels&#39;, labelCfg, attributeId);
+
+        labelBox = me.getMarkerBBox(&#39;labels&#39;, attributeId, true);
+        if (labelBox) {
+            if (attr.doCallout &amp;&amp; ((endAngle - startAngle) * endRho &gt; hideLessThan || attr.highlighted)) {
+                if (labelTpl.attr.display === &#39;outside&#39;) {
+                    me.putMarker(&#39;labels&#39;, {
+                        callout: 1
+                    }, attributeId);
+                } else if (labelTpl.attr.display === &#39;inside&#39;) {
+                    me.putMarker(&#39;labels&#39;, {
+                        callout: 0
+                    }, attributeId);
+                } else {
+                    me.putMarker(&#39;labels&#39;, {
+                        callout: 1 - me.sliceContainsLabel(attr, labelBox)
+                    }, attributeId);
+                }
+            } else {
+                me.putMarker(&#39;labels&#39;, {
+                    globalAlpha: me.sliceContainsLabel(attr, labelBox)
+                }, attributeId);
+            }
+        }
+    },
+
+<span id='Ext-chart-series-sprite-PieSlice-method-sliceContainsLabel'>    sliceContainsLabel: function (attr, bbox) {
+</span>        var padding = attr.labelOverflowPadding,
+            middle = (attr.endRho + attr.startRho) / 2,
+            outer = middle + (bbox.width + padding) / 2,
+            inner = middle - (bbox.width + padding) / 2,
+            sliceAngle, l1, l2, l3;
+
+        if (padding &lt; 0) {
+            return 1;
+        }
+        if (bbox.width + padding * 2 &gt; (attr.endRho - attr.startRho)) {
+            return 0;
+        }
+        l1 = Math.sqrt(attr.endRho * attr.endRho - outer * outer);
+        l2 = Math.sqrt(attr.endRho * attr.endRho - inner * inner);
+        sliceAngle = Math.abs(attr.endAngle - attr.startAngle);
+        l3 = (sliceAngle &gt; Math.PI/2 ? inner : Math.abs(Math.tan(sliceAngle / 2)) * inner);
+        if (bbox.height + padding * 2 &gt; Math.min(l1, l2, l3) * 2) {
+            return 0;
+        }
+        return 1;
+    }
+});
+</pre>
+</body>
+</html>

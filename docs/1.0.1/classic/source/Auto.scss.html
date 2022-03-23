@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}autocontainer-outerCt {
+    display: table;
+
+    .#{$prefix}mobile-safari &amp; {
+        // https://sencha.jira.com/browse/EXTJS-22339
+        // iOS safari has mysterious repaint issues in some scenarios when using auto layout.
+        // using translateZ enables hardware accelerated rendering and the issue disappears.
+        transform: translateZ(0);
+    }
+}
+
+// hardware acceleration causes flickering problems on clipped elements.
+// disable it while an element is clipped.
+.#{$prefix}clipped .#{$prefix}autocontainer-outerCt {
+    transform: initial;
+}
+
+.#{$prefix}autocontainer-innerCt {
+    display: table-cell;
+    // height:100% is required on the innerCt in order for percentage-height
+    // children to work in IE, firefox, and opera
+    height: 100%;
+    vertical-align: top;
+}
+</pre>
+</body>
+</html>

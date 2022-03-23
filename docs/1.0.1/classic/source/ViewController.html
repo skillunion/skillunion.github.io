@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-app-ViewController'>/**
+</span> * A view controller is a controller that can be attached to a specific view
+ * instance so it can manage the view and its child components. Each instance of the view
+ * will have a new view controller, so the instances are isolated.
+ * 
+ * When a view controller is specified on a view, events and other handlers that use strings as
+ * values will be automatically connected with the appropriate methods in the controller&#39;s class.
+ *
+ * Sample usage:
+ * 
+ *     @example
+ *     Ext.define(&#39;MyViewController&#39;, {
+ *         extend : &#39;Ext.app.ViewController&#39;,
+ *         alias: &#39;controller.myview&#39;,
+ *       
+ *         // This method is called as a &quot;handler&quot; for the Add button in our view
+ *         onAddClick: function() {
+ *             Ext.Msg.alert(&#39;Add&#39;, &#39;The Add button was clicked&#39;);
+ *         }
+ *     });
+ *   
+ *     Ext.define(&#39;MyView&#39;, {
+ *         extend: &#39;Ext.Panel&#39;,
+ *         controller: &#39;myview&#39;,
+ *
+ *         items: [{
+ *             xtype: &#39;button&#39;,
+ *             text: &#39;Add&#39;,
+ *             handler: &#39;onAddClick&#39;,  // calls MyViewController&#39;s onAddClick method
+ *         }]
+ *     });
+ *   
+ *     Ext.onReady(function() {
+ *         new MyView({
+ *             renderTo: Ext.getBody(),
+ *             width: 400,
+ *             height: 200
+ *         });
+ *     }); 
+ */
+Ext.define(&#39;Ext.app.ViewController&#39;, {
+    extend: &#39;Ext.app.BaseController&#39;,
+    alias: &#39;controller.controller&#39;,
+    
+    requires: [
+        &#39;Ext.app.domain.View&#39;
+    ],
+    
+    mixins: [
+        &#39;Ext.mixin.Factoryable&#39;
+    ],
+    
+<span id='Ext-app-ViewController-property-isViewController'>    isViewController: true,
+</span>
+<span id='Ext-app-ViewController-property-factoryConfig'>    /**
+</span>     * @property factoryConfig
+     * @inheritdoc
+     */
+    factoryConfig: { // configure Factoryable
+        type: &#39;controller&#39;
+    },
+
+    config: {
+<span id='Ext-app-ViewController-cfg-bindings'>        /**
+</span>         * @cfg {Object} bindings
+         * A declarative set of bindings to the {@link #getViewModel} for this
+         * controller. The key should be the method, the value should be
+         * the bind statement:
+         *
+         *     Ext.define(&#39;MyApp.TestController&#39;, {
+         *         extend: &#39;Ext.app.ViewController&#39;,
+         *
+         *         bindings: {
+         *             onTotalChange: &#39;{total}&#39;,
+         *             onCoordsChange: &#39;({x}, {y})&#39;,
+         *             onProductChange: {
+         *                 amount: &#39;{qty}&#39;,
+         *                 rating: &#39;{rating}&#39;
+         *             }
+         *         },
+         *
+         *          onTotalChange: function(total) {
+         *              console.log(total);
+         *          },
+         *
+         *          onCoordsChange: function(coords) {
+         *              console.log(&#39;The coordinates are: &#39;, coords);
+         *          },
+         *
+         *          onProductChange: function(productInfo) {
+         *              console.log(&#39;Amount: &#39;, productInfo.amount, &#39; Rating: &#39;, productInfo.rating);
+         *          }
+         *     });
+         *
+         * @since 6.5.0
+         */
+        bindings: {
+            $value: null,
+            lazy: true
+        },
+<span id='Ext-app-ViewController-cfg-closeViewAction'>        closeViewAction: &#39;destroy&#39;
+</span>    },
+
+<span id='Ext-app-ViewController-property-view'>    view: null,
+</span>
+<span id='Ext-app-ViewController-method-constructor'>    constructor: function(config) {
+</span>        this.compDomain = new Ext.app.domain.View(this);
+        this.callParent([config]);
+    },
+
+<span id='Ext-app-ViewController-method-beforeInit'>    /**
+</span>     * @method beforeInit
+     *
+     * Called before the view initializes. This is called before the view&#39;s
+     * initComponent method has been called.
+     * @param {Ext.Component} view The view
+     * @protected
+     */
+    beforeInit: Ext.emptyFn,
+
+<span id='Ext-app-ViewController-method-init'>    /**
+</span>     * @method init
+     *
+     * Called when the view initializes. This is called after the view&#39;s initComponent
+     * method has been called.
+     * @param {Ext.Component} view The view
+     * @protected
+     */
+    init: Ext.emptyFn,
+
+<span id='Ext-app-ViewController-method-initViewModel'>    /**
+</span>     * @method initViewModel
+     *
+     * Called when the view model instance for an attached view is first created.
+     * @param {Ext.app.ViewModel} viewModel The ViewModel
+     * @protected
+     */
+    initViewModel: Ext.emptyFn,
+
+<span id='Ext-app-ViewController-method-destroy'>    /**
+</span>     * Destroy the view controller.
+     */
+    destroy: function() {
+        var me = this,
+            domain = me.compDomain,
+            bind, b, key;
+
+        if (me.$hasBinds) {
+            bind = me.getBindings();
+            for (key in bind) {
+                b = bind[key];
+                if (b) {
+                    b.destroy();
+                }
+            }
+        }
+
+        if (domain) {
+            domain.unlisten(me);
+            domain.destroy();
+        }
+        me.compDomain = me.view = null;
+        me.callParent();
+    },
+
+<span id='Ext-app-ViewController-method-closeView'>    /**
+</span>     * This method closes the associated view. The manner in which this is done (that is,
+     * the method called to close the view) is specified by `closeViewAction`.
+     *
+     * It is common for views to map one or more events to this method to allow the view
+     * to be closed.
+     */
+    closeView: function () {
+        var view = this.getView(),
+            action;
+
+        if (view) {
+            action = this.getCloseViewAction();
+            view[action]();
+        }
+    },
+
+<span id='Ext-app-ViewController-method-control'>    control: function(selectors, listeners) {
+</span>        var obj = selectors;
+        if (Ext.isString(selectors)) {
+            obj = {};
+            obj[selectors] = listeners;
+        }
+
+        this.compDomain.listen(obj, this);
+    },
+    
+<span id='Ext-app-ViewController-method-listen'>    listen: function(to, controller) {
+</span>        var component = to.component;
+        if (component) {
+            to = Ext.apply({}, to);
+            delete to.component;
+            this.control(component);
+        }
+        this.callParent([to, controller]);
+    },
+
+<span id='Ext-app-ViewController-method-applyId'>    applyId: function(id) {
+</span>        if (!id) {
+            id = Ext.id(null, &#39;controller-&#39;);
+        }
+        return id;
+    },
+
+<span id='Ext-app-ViewController-method-getReferences'>    /**
+</span>     * @method getReferences
+     * @inheritdoc Ext.mixin.Container#method!getReferences
+     * @since 5.0.0
+     */
+    getReferences: function () {
+        var view = this.view;
+        return view &amp;&amp; view.getReferences();
+    },
+
+<span id='Ext-app-ViewController-method-getView'>    /**
+</span>     * Get the view for this controller.
+     * @return {Ext.Component} The view.
+     */
+    getView: function() {
+        return this.view;
+    },
+
+<span id='Ext-app-ViewController-method-lookup'>    /**
+</span>     * Gets a reference to the component with the specified {@link Ext.Component#reference}
+     * value.
+     *
+     * The method is a short-hand for the {@link #lookupReference} method.
+     *
+     * @param {String} key The name of the reference to lookup.
+     * @return {Ext.Component} The component, `null` if the reference doesn&#39;t exist.
+     * @since 6.0.1
+     */
+    lookup: function (key) {
+        var view = this.view;
+        return view &amp;&amp; view.lookup(key);
+    },
+
+<span id='Ext-app-ViewController-method-lookupReference'>    /**
+</span>     * Gets a reference to the component with the specified {@link Ext.Component#reference}
+     * value.
+     *
+     * The {@link #lookup} method is a short-hand version of this method.
+     *
+     * @param {String} key The name of the reference to lookup.
+     * @return {Ext.Component} The component, `null` if the reference doesn&#39;t exist.
+     * @since 5.0.0
+     */
+    lookupReference: function (key) {
+        return this.lookup(key);
+    },
+
+<span id='Ext-app-ViewController-method-getSession'>    /**
+</span>     * Get a {@link Ext.data.Session} attached to the view for this controller.
+     * See {@link Ext.Component#lookupSession}.
+     * 
+     * @return {Ext.data.Session} The session. `null` if no session is found.
+     *
+     * @since 5.0.0
+     */
+    getSession: function () {
+        var view = this.view;
+        return view &amp;&amp; view.lookupSession();
+    },
+
+<span id='Ext-app-ViewController-method-getViewModel'>    /**
+</span>     * Get a {@link Ext.app.ViewModel} attached to the view for this controller.
+     * See {@link Ext.Component#lookupViewModel}.
+     * 
+     * @return {Ext.app.ViewModel} The ViewModel. `null` if no ViewModel is found.
+     *
+     * @since 5.0.0
+     */
+    getViewModel: function () {
+        var view = this.view;
+        return view &amp;&amp; view.lookupViewModel();
+    },
+
+<span id='Ext-app-ViewController-method-getStore'>    /**
+</span>     * Get a {@link Ext.data.Store} attached to the {@link #getViewModel ViewModel} attached to
+     * this controller. See {@link Ext.app.ViewModel#getStore}.
+     * @param {String} name The name of the store.
+     * @return {Ext.data.Store} The store. `null` if no store is found, or there is no 
+     * {@link Ext.app.ViewModel} attached to the view for this controller.
+     *
+     * @since 5.0.0
+     */
+    getStore: function(name) {
+        var viewModel = this.getViewModel();
+        return viewModel ? viewModel.getStore(name) : null;
+    },
+
+<span id='Ext-app-ViewController-method-fireViewEvent'>    /**
+</span>     * Fires an event on the view. See {@link Ext.Component#fireEvent}.
+     * @param {String} eventName The name of the event to fire.
+     * @param {Object...} args Variable number of parameters are passed to handlers.
+     * @return {Boolean} returns false if any of the handlers return false otherwise it returns true.
+     * @protected
+     */
+    fireViewEvent: function (eventName, args) {
+        var view = this.view,
+            result = false,
+            a = arguments;
+
+        if (view) {
+            if (view !== args) {
+                a = Ext.Array.slice(a);
+
+                a.splice(1, 0, view); // insert view at [1]
+            }
+
+            result = view.fireEvent.apply(view, a);
+        }
+
+        return result;
+    },
+
+<span id='Ext-app-ViewController-method-setBind'>    /**
+</span>     * @method setBind
+     * @hide
+     */
+
+    applyBindings: function(bindings) {
+        if (!bindings) {
+            return null;
+        }
+
+        var me = this,
+            viewModel = me.getViewModel(),
+            getBindTemplateScope = me.getBindTemplateScope(),
+            b, fn, descriptor;
+
+        me.$hasBinds = true;
+        //&lt;debug&gt;
+        if (!viewModel) {
+            Ext.raise(&#39;Cannot use bind config without a viewModel&#39;);
+        }
+        //&lt;/debug&gt;
+
+        for (fn in bindings) {
+            descriptor = bindings[fn];
+            b = null;
+
+            if (descriptor) {
+                b = viewModel.bind(descriptor, fn, me);
+                b.getTemplateScope = getBindTemplateScope;
+            }
+            bindings[fn] = b;
+        }
+
+        return bindings;
+    },
+
+<span id='Ext-app-ViewController-property-privates'>    //=========================================================================
+</span>    privates: {
+        view: null,
+
+<span id='Ext-app-ViewController-method-attachReference'>        /**
+</span>         * Set a reference to a component.
+         * @param {Ext.Component} component The component to reference
+         * @private
+         */
+        attachReference: function (component) {
+            var view = this.view;
+            if (view) {
+                view.attachReference(component);
+            }
+        },
+
+        getBindTemplateScope: function() {
+            // This method is called as a method on a Binding instance, so the &quot;this&quot; pointer
+            // is that of the Binding. The &quot;scope&quot; of the Binding is the controller.
+            return this.scope;
+        },
+
+        initBindings: function() {
+            // Force bind creation
+            this.getBindings();
+        },
+
+<span id='Ext-app-ViewController-method-setView'>        /**
+</span>         * Sets the view for this controller. To be called by the view
+         * when it initializes.
+         * @param {Object} view The view.
+         *
+         * @private
+         */
+        setView: function(view) {
+            this.view = view;
+
+            if (!this.beforeInit.$nullFn) {
+                this.beforeInit(view);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

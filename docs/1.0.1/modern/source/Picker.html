@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-Picker'>/**
+</span> * An abstract class for fields that have a single trigger which opens a &quot;picker&quot; popup
+ * above the field. It provides a base implementation for toggling the picker&#39;s
+ * visibility when the trigger is tapped.
+ *
+ * You would not normally use this class directly, but instead use it as the parent
+ * class for a specific picker field implementation.
+ */
+Ext.define(&#39;Ext.field.Picker&#39;, {
+    extend: &#39;Ext.field.Text&#39;,
+    xtype: &#39;pickerfield&#39;,
+
+    requires: [
+        &#39;Ext.field.trigger.Expand&#39;
+    ],
+
+    config: {
+
+<span id='Ext-field-Picker-cfg-picker'>        /**
+</span>         * @cfg {String/Object} [picker=&#39;auto&#39;]
+         *
+         * A string representing the type of picker to use.  Can be one of the following values.
+         *
+         * - `&#39;edge&#39;` to use the {@link #edgePicker}, generally used on small formfactor devices.
+         * - `&#39;floated&#39;` to use the {@link #floatedPicker}, generally used on tablets or desktops.
+         * - `&#39;auto&#39;` to allow the framework to select the appropriate picker for the device.
+         *
+         * Can also be a config object for the picker.
+         *
+         */
+        picker: {
+            lazy: true,
+            $value: &#39;auto&#39;
+        },
+
+<span id='Ext-field-Picker-cfg-floatedPicker'>        /**
+</span>         * A configuration object, containing an {@link cfg#xtype} property which specifies the widget to
+         * create if `{@link #cfg!picker}: &#39;floated&#39;` (or if it&#39;s &#39;`auto&#39;` and the app is *not* on a phone)
+         * Replaces `defaultTabletPicker`
+         * @since 6.5.0
+         */
+        floatedPicker: {
+            lazy: true,
+            $value: null
+        },
+
+<span id='Ext-field-Picker-cfg-edgePicker'>        /**
+</span>         * A configuration object, containing an {@link cfg#xtype} property which specifies the widget to
+         * create if `{@link #cfg!picker}: &#39;edge&#39;` (or if it&#39;s &#39;`auto&#39;` and the app is on a phone)
+         * Replaces `defaultPhonePicker`
+         * @since 6.5.0
+         */
+        edgePicker: {
+            lazy: true,
+            $value: null
+        },
+
+<span id='Ext-field-Picker-cfg-clearable'>        clearable: false,
+</span>
+<span id='Ext-field-Picker-cfg-matchFieldWidth'>        /**
+</span>         * @cfg {Boolean} [matchFieldWidth=true]
+         * *Only valid when the `{@link #cfg!picker}: &#39;floated&#39;` is used.
+         * Whether the {@link #cfg!floatedPicker}&#39;s width should be explicitly set to match the width of the input element.
+         */
+        matchFieldWidth: true,
+
+<span id='Ext-field-Picker-cfg-floatedPickerAlign'>        /**
+</span>         * @cfg {String} [floatedPickerAlign=tl-bl?]
+         * *Only valud when the {@link #cfg!floatedPicker} is used.
+         * The {@link Ext.Component#method!showBy} alignment string to use when showing the floated picker
+         * by the input field.
+         */
+        floatedPickerAlign: &#39;tl-bl?&#39;,
+
+<span id='Ext-field-Picker-cfg-pickerSlotAlign'>        /**
+</span>         * @cfg {String} pickerSlotAlign
+         * The alignment of text in the picker created by this Select
+         * @private
+         */
+        pickerSlotAlign: &#39;center&#39;,
+
+<span id='Ext-field-Picker-cfg-hideTrigger'>        /**
+</span>         * @cfg {Boolean} hideTrigger
+         * `true` to hide the expand {@link #triggers trigger}.
+         */
+        hideTrigger: false,
+
+<span id='Ext-field-Picker-cfg-focusTrap'>        /**
+</span>         * @private
+         */
+        focusTrap: {
+            lazy: true,
+            $value: {
+                tabIndex: -1,
+                cls: &#39;x-hidden-clip&#39;
+            }
+        }
+    },
+
+<span id='Ext-field-Picker-cfg-triggers'>    triggers: {
+</span>        expand: {
+            type: &#39;expand&#39;
+        }
+    },
+
+<span id='Ext-field-Picker-cfg-alignTarget'>    /**
+</span>     * @cfg {String} alignTarget
+     * The element reference to which the {@link #cfg!picker floated picker} aligns
+     * and sizes to. By default, it sizes to the `bodyElement` which encapsulates the
+     * input field and triggers.
+     *
+     * An alternate value which may be useful if using `floated` pickers on phone platforms
+     * could be `el`, to align the picker to the field&#39;s encapsulating element.
+     */
+    alignTarget: &#39;bodyElement&#39;,
+
+<span id='Ext-field-Picker-cfg-keyMap'>    keyMap: {
+</span>        scope: &#39;this&#39;,
+        DOWN: &#39;onDownArrow&#39;,
+        ESC: &#39;onEsc&#39;
+    },
+<span id='Ext-field-Picker-cfg-keyMapTarget'>    keyMapTarget: &#39;inputElement&#39;,
+</span>
+<span id='Ext-field-Picker-cfg-autoComplete'>    /**
+</span>     * @cfg {Boolean} [autoComplete=false]
+     * Autocomplete is disabled on Picker fields by default.
+     */
+    autoComplete: false,
+
+<span id='Ext-field-Picker-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;pickerfield&#39;,
+</span>
+<span id='Ext-field-Picker-event-expand'>    /**
+</span>     * @event expand
+     * Fires when the field&#39;s picker is expanded.
+     * @param {Ext.form.field.Picker} field This field instance
+     */
+
+<span id='Ext-field-Picker-event-collapse'>    /**
+</span>     * @event collapse
+     * Fires when the field&#39;s picker is collapsed.
+     * @param {Ext.form.field.Picker} field This field instance
+     */
+
+<span id='Ext-field-Picker-method-initialize'>    /**
+</span>     * @private
+     */
+    initialize: function () {
+        var me = this;
+
+        me.callParent();
+
+        Ext.on(&#39;hide&#39;, &#39;onGlobalHide&#39;, me);
+        me.inputElement.on(&#39;click&#39;, &#39;onInputElementClick&#39;, me);
+    },
+
+<span id='Ext-field-Picker-method-onFocus'>    onFocus: function (e) {
+</span>        this.callParent([e]);
+
+        if (Ext.isTouchMode()) {
+            this.getFocusTrap().focus();
+            this.expand();
+        }
+    },
+
+<span id='Ext-field-Picker-method-onFocusMove'>    onFocusMove: function (info) {
+</span>        var me = this,
+            focusTrap;
+
+        me.callParent([info]);
+
+        if (Ext.isTouchMode()) {
+            // Avoid creating the focus trap if not in touch mode
+            focusTrap = me.getFocusTrap();
+
+            if (info.fromElement === focusTrap.dom &amp;&amp; info.toElement === me.getFocusEl().dom) {
+                if (me.getEditable()) {
+                    // virtual keyboard is about to display. collapse the picker
+                    me.collapse();
+                } else {
+                    // No keyboard can be displayed, so ensure the picker
+                    // is always visible
+                    focusTrap.focus();
+                    me.expand();
+                }
+            }
+        }
+    },
+
+<span id='Ext-field-Picker-method-onFocusLeave'>    onFocusLeave: function (e) {
+</span>        this.callParent([e]);
+
+        // Callparent first; collapse listener needs to read correct containsFocus state
+        this.collapse();
+    },
+
+<span id='Ext-field-Picker-method-onEsc'>    /**
+</span>     * @private
+     */
+    onEsc: function (e) {
+        if (Ext.isIE) {
+            // Stop the esc key from &quot;restoring&quot; the previous value in IE
+            // For example, type &quot;foo&quot;. Highlight all the text, hit backspace.
+            // Hit esc, &quot;foo&quot; will be restored. This behaviour doesn&#39;t occur
+            // in any other browsers
+            e.preventDefault();
+        }
+
+        if (this.expanded) {
+            this.collapse();
+            e.stopEvent();
+        }
+    },
+
+<span id='Ext-field-Picker-method-onDownArrow'>    onDownArrow: function (e) {
+</span>        var me = this;
+
+        if ((e.time - me.lastDownArrow) &gt; 150) {
+            delete me.lastDownArrow;
+        }
+
+        if (!me.expanded) {
+            // Do not let the down arrow event propagate into the picker
+            e.stopEvent();
+
+            // Don&#39;t call expand() directly as there may be additional processing involved before
+            // expanding, e.g. in the case of a ComboBox query.
+            me.onExpandTap();
+
+            // Tell setPickerLocation that it&#39;s invoked from the keyboard so
+            // that it may set the location regardless of other settings.
+            // For example, ComboBox has autoSelect and autoSelectLast which *may*
+            // be set to false for some applications. This information
+            // can override that.
+            me.setPickerLocation(true);
+
+            me.lastDownArrow = e.time;
+        }
+        else if (!e.stopped &amp;&amp; (e.time - me.lastDownArrow) &lt; 150) {
+            delete me.lastDownArrow;
+        }
+    },
+
+<span id='Ext-field-Picker-method-setPickerLocation'>    /**
+</span>     * @template
+     * @method
+     * @param {Boolean} [fromKeyboard=false] Passed as `true` if the keyboard was used
+     * to open the picker. This usually means that picker location should be set.
+     *
+     * A function which may be implemented in subclasses which moves the focus
+     * to the value in the {@link #cfg!picker} which matches this field&#39;s value.
+     *
+     * For example, if you were writing a time picker, this method would be where
+     * you synced the picker&#39;s value with the field&#39;s value.
+     */
+    setPickerLocation: Ext.emptyFn,
+
+<span id='Ext-field-Picker-method-updateHideTrigger'>    updateHideTrigger: function(hideTrigger) {
+</span>        var triggers = this.getTriggers(),
+            expand = triggers &amp;&amp; triggers.expand;
+
+        if (expand) {
+            expand.setHidden(hideTrigger);
+        }
+    },
+
+<span id='Ext-field-Picker-method-applyPicker'>    applyPicker: function (picker) {
+</span>        var me = this,
+            pickerListeners = {
+                show: &#39;onPickerShow&#39;,
+                hide: &#39;onPickerHide&#39;,
+                scope: me
+            },
+            type = picker,
+            config;
+
+        if (!type) {
+            type = &#39;auto&#39;;
+        }
+        else if (Ext.isObject(picker)) {
+            type = null;
+
+            if (!picker.isWidget &amp;&amp; !picker.xtype) {
+                config = picker;
+                type = &#39;auto&#39;;
+            }
+        }
+
+        if (type) {
+            if (type === &#39;auto&#39;) {
+                type = Ext.platformTags.phone ? &#39;edge&#39; : &#39;floated&#39;;
+            }
+
+            if (type === &#39;edge&#39;) {
+                picker = me.createEdgePicker(config);
+            }
+            //&lt;debug&gt;
+            else if (type !== &#39;floated&#39;) {
+                Ext.raise(&#39;Picker type must be &quot;edge&quot; or &quot;floated&quot; not &quot;&#39; + type + &#39;&quot;&#39;);
+            }
+            //&lt;/debug&gt;
+            else {
+                picker = me.createFloatedPicker(config);
+                pickerListeners.resize = pickerListeners.hiddenchange = &#39;realignFloatedPicker&#39;;
+            }
+        }
+
+        if (picker.isWidget) {
+            picker.ownerField = me;
+        } else {
+            picker = Ext.apply({
+                ownerField: me
+            }, picker);
+            
+            // Allow mutation of the picker configuration
+            me.fireEvent(&#39;beforepickercreate&#39;, me, picker);
+
+            picker = Ext.create(picker);
+        }
+
+        // Detect whether we are using a floated or edge picker.
+        me.pickerType = type || (picker.isViewportMenu ? &#39;edge&#39; : &#39;floated&#39;);
+
+        // Allow configuration of the instantiated picker
+        me.fireEvent(&#39;pickercreate&#39;, me, picker);
+
+        picker.on(pickerListeners);
+        return picker;
+    },
+
+<span id='Ext-field-Picker-method-updatePicker'>    updatePicker: function (picker) {
+</span>        var value = this.getValue();
+
+        if (picker &amp;&amp; picker.setValue &amp;&amp; value != null) {
+            if (this.pickerType === &#39;floated&#39; || picker.isPicker) {
+                picker.setValue(value);
+            }
+        }
+    },
+
+<span id='Ext-field-Picker-method-applyFocusTrap'>    applyFocusTrap: function (focusTrap) {
+</span>        var result = this.el.appendChild(Ext.dom.Element.create(focusTrap));
+
+        // Flag to indicate that it should not be considered for programmatic focus.
+        // For example Grid Location actionable navigation ignores elements
+        // with this property set when searching for actionable elements.
+        result.$isFocusTrap = true;
+        return result;
+    },
+
+<span id='Ext-field-Picker-method-onResize'>    onResize: function () {
+</span>        // See if the picker has been created
+        var picker = this.getConfig(&#39;picker&#39;, false, true);
+
+        if (picker &amp;&amp; picker.isVisible()) {
+            this.realignFloatedPicker();
+        }
+    },
+
+<span id='Ext-field-Picker-method-realignFloatedPicker'>    /**
+</span>     * @private
+     */
+    realignFloatedPicker: function (picker) {
+        var me = this;
+
+        picker = me.getConfig(&#39;picker&#39;, false, true);
+
+        if (picker &amp;&amp; picker.isVisible()) {
+            if (me.getMatchFieldWidth()) {
+                picker.setWidth(me[me.alignTarget].getWidth());
+            }
+            picker.realign(me[me.alignTarget], me.getFloatedPickerAlign(), {
+                minHeight: 100
+            });
+            me.setPickerLocation();
+        }
+    },
+
+<span id='Ext-field-Picker-method-onInputElementClick'>    onInputElementClick: function (e) {
+</span>        var me = this;
+
+        if (e.pointerType === &#39;mouse&#39; &amp;&amp; (!me.getEditable() &amp;&amp; !me.getReadOnly())) {
+            me[me.expanded ? &#39;collapse&#39; : &#39;expand&#39;]();
+        }
+    },
+
+<span id='Ext-field-Picker-method-onExpandTap'>    onExpandTap: function () {
+</span>        if (this.expanded) {
+            this.collapse();
+        } else {
+            this.expand();
+        }
+
+        return false;
+    },
+
+<span id='Ext-field-Picker-method-expand'>    expand: function () {
+</span>        if (!this.expanded &amp;&amp; !this.getDisabled()) {
+            this.showPicker();
+        }
+    },
+
+<span id='Ext-field-Picker-method-collapse'>    collapse: function () {
+</span>        var picker;
+
+        if (this.expanded) {
+            picker = this.getPicker();
+
+            // If we are collapsing an edge picker, we must not leave it as the default
+            // edge swipe menu for that side. It must only be shown by the trigger (or
+            // touch-tapping the unfocused field)
+            if (this.pickerType === &#39;edge&#39;) {
+                Ext[&#39;Viewport&#39;].removeMenu(picker.getSide(), true);
+            } else {
+                picker.hide();
+            }
+        }
+    },
+
+<span id='Ext-field-Picker-method-collapseIf'>    /**
+</span>     * @private
+     * Runs on touchstart of doc to check to see if we should collapse the picker.
+     */
+    collapseIf: function (e) {
+        var me = this;
+
+        // If what was mousedowned on is outside of this Field, then collapse.
+        if (!me.destroyed &amp;&amp; (!e.within(me.bodyElement, false, true) &amp;&amp; !me.owns(e.target))) {
+
+            // If they have clicked on a focusable, we will let the default browser behaviour
+            // take its course.
+            // If they clicked on non-focusable content, then do not blur the input field, but
+            // allow automatic focus reversion to jump safely back into the field.
+            // TODO: wtf?
+            // if (!Ext.fly(e.target).isFocusable()) {
+            //     // Don&#39;t blur the input field
+            //     e.preventDefault();
+            // }
+            me.collapse();
+        }
+    },
+
+<span id='Ext-field-Picker-method-showPicker'>    showPicker: function () {
+</span>        var me = this,
+            alignTarget = me[me.alignTarget],
+            picker = me.getPicker(),
+            value;
+
+        // TODO: what if virtual keyboard is present
+
+        if (me.pickerType === &#39;floated&#39;) {
+            if (me.getMatchFieldWidth()) {
+                picker.setWidth(alignTarget.getWidth());
+            }
+            picker.showBy(alignTarget, me.getFloatedPickerAlign(), {
+                minHeight: 100
+            });
+
+            // Collapse on touch outside this component tree.
+            // Because touch platforms do not focus document.body on touch
+            // so no focusleave would occur to trigger a collapse.
+            me.touchListeners = Ext.getDoc().on({
+                // Do not translate on non-touch platforms.
+                // mousedown will blur the field.
+                translate: false,
+                touchstart: me.collapseIf,
+                scope: me,
+                delegated: false,
+                destroyable: true
+            });
+        } else {
+            picker.show();
+            me.setShowPickerValue(picker);
+        }
+    },
+
+<span id='Ext-field-Picker-method-updatePickerValue'>    updatePickerValue: function (picker, value) {
+</span>        var slot = picker.getSlots()[0],
+            name = slot.name || slot.getName(),
+            pickerValue = {};
+
+        pickerValue[name] = value;
+
+        picker.setValue(pickerValue);
+    },
+
+<span id='Ext-field-Picker-method-onPickerShow'>    onPickerShow: function () {
+</span>        var me = this;
+
+        me.expanded = true;
+
+        // If there&#39;s an edge picker encroaching, then ensure this field is still visible.
+        if (me.pickerType === &#39;edge&#39;) {
+            me.el.dom.scrollIntoView();
+        }
+
+        // We have to explicitly hide on any pointer event outside the field&#39;s component tree
+        // relying on focus is not enough because you can mousedown on a window header and
+        // drag it, and the default will be prevented.
+        // Scrolling of anything which causes this field to move should collapse
+        me.hideEventListeners = Ext.on({
+            mousedown: &#39;collapseIf&#39;,
+            scroll: &#39;onGlobalScroll&#39;,
+            scope: me,
+            destroyable: true
+        });
+
+        me.fireEvent(&#39;expand&#39;, me);
+    },
+
+<span id='Ext-field-Picker-method-onPickerHide'>    onPickerHide: function () {
+</span>        var me = this;
+
+        me.expanded = false;
+        Ext.destroy(me.hideEventListeners, me.touchListeners);
+        me.fireEvent(&#39;collapse&#39;, me);
+    },
+
+<span id='Ext-field-Picker-method-doDestroy'>    doDestroy: function () {
+</span>        this.destroyMembers(&#39;picker&#39;, &#39;hideEventListeners&#39;, &#39;touchListeners&#39;, &#39;focusTrap&#39;);
+        this.callParent();
+    },
+
+<span id='Ext-field-Picker-property-privates'>    privates: {
+</span>        onGlobalHide: function(cmp) {
+            // hide picker if ancestor is hidden
+            if (this === cmp || cmp.isAncestor(this)) {
+                this.collapse();
+            }
+        },
+
+        onGlobalScroll: function (scroller, x, y) {
+            var me = this,
+                scrollingEl = scroller.getElement();
+
+            if (me.expanded) {
+
+                // Edge pickers are modal and anchored. We do not care if other
+                // parts of the app scroll.
+                if (me.pickerType === &#39;edge&#39;) {
+                    return;
+                }
+
+                // Collapse if the scroll is anywhere but inside the picker
+                // Also ignore body element scrolling, that won&#39;t affect the alignment.
+                if (!me.getPicker().owns(scrollingEl) &amp;&amp; scrollingEl.dom !== document.body) {
+                    me.collapse();
+                }
+            }
+        },
+
+        revertFocusTo: function (target) {
+            if (Ext.isTouchMode()) {
+                this.getFocusTrap().focus();
+            } else {
+                target.focus();
+            }
+        },
+
+        setShowPickerValue: function(picker) {
+            var value = this.getValue();
+
+            if (value != null) {
+                this.updatePickerValue(picker, value);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

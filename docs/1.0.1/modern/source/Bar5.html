@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-Bar'>/**
+</span> * @class Ext.chart.series.Bar
+ * @extends Ext.chart.series.StackedCartesian
+ * 
+ * Creates a Bar or Column Chart (depending on the value of the
+ * {@link Ext.chart.CartesianChart#flipXY flipXY} config).
+ *
+ * Note: &#39;bar&#39; series is meant to be used with the
+ * {@link Ext.chart.axis.Category &#39;category&#39;} axis as its x-axis.
+ * 
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;cartesian&#39;, 
+ *        renderTo: document.body,
+ *        width: 600,
+ *        height: 400,
+ *        store: {
+ *            fields: [&#39;name&#39;, &#39;value&#39;],
+ *            data: [{
+ *                name: &#39;metric one&#39;,
+ *                value: 10
+ *            }, {
+ *                name: &#39;metric two&#39;,
+ *                value: 7
+ *            }, {
+ *                name: &#39;metric three&#39;,
+ *                value: 5
+ *            }, {
+ *                name: &#39;metric four&#39;,
+ *                value: 2
+ *            }, {
+ *                name: &#39;metric five&#39;,
+ *                value: 27
+ *            }]
+ *        },
+ *        axes: [{
+ *            type: &#39;numeric&#39;,
+ *            position: &#39;left&#39;,
+ *            title: {
+ *                text: &#39;Sample Values&#39;,
+ *                fontSize: 15
+ *            },
+ *            fields: &#39;value&#39;
+ *        }, {
+ *            type: &#39;category&#39;,
+ *            position: &#39;bottom&#39;,
+ *            title: {
+ *                text: &#39;Sample Values&#39;,
+ *                fontSize: 15
+ *            },
+ *            fields: &#39;name&#39;
+ *        }],
+ *        series: {
+ *            type: &#39;bar&#39;,
+ *            subStyle: {
+ *                fill: [&#39;#388FAD&#39;],
+ *                stroke: &#39;#1F6D91&#39;
+ *            },
+ *            xField: &#39;name&#39;,
+ *            yField: &#39;value&#39;
+ *        }
+ *     });
+ */
+Ext.define(&#39;Ext.chart.series.Bar&#39;, {
+
+    extend: &#39;Ext.chart.series.StackedCartesian&#39;,
+
+    alias: &#39;series.bar&#39;,
+<span id='Ext-chart-series-Bar-property-type'>    type: &#39;bar&#39;,
+</span><span id='Ext-chart-series-Bar-property-seriesType'>    seriesType: &#39;barSeries&#39;,
+</span><span id='Ext-chart-series-Bar-property-isBar'>    isBar: true,
+</span>
+    requires: [
+        &#39;Ext.chart.series.sprite.Bar&#39;,
+        &#39;Ext.draw.sprite.Rect&#39;
+    ],
+
+    config: {
+<span id='Ext-chart-series-Bar-cfg-itemInstancing'>        /**
+</span>         * @private
+         * @cfg {Object} itemInstancing Sprite template used for series.
+         */
+        itemInstancing: {
+            type: &#39;rect&#39;,
+            animation: {
+                customDurations: {
+                    x: 0,
+                    y: 0,
+                    width: 0,
+                    height: 0,
+                    radius: 0
+                }
+            }
+        }
+    },
+
+<span id='Ext-chart-series-Bar-method-getItemForPoint'>    getItemForPoint: function (x, y) {
+</span>        if (this.getSprites().length) {
+            var chart = this.getChart(),
+                padding = chart.getInnerPadding(),
+                isRtl = chart.getInherited().rtl;
+
+            // Convert the coordinates because the &quot;items&quot; sprites that draw
+            // the bars ignore the chart&#39;s InnerPadding.
+            arguments[0] = x + (isRtl ? padding.right : -padding.left);
+            arguments[1] = y + padding.bottom;
+
+            return this.callParent(arguments);
+        }
+    },
+
+<span id='Ext-chart-series-Bar-method-updateXAxis'>    updateXAxis: function (xAxis) {
+</span>        //&lt;debug&gt;
+        if (!this.is3D &amp;&amp; !xAxis.isCategory) {
+            Ext.raise(&quot;&#39;bar&#39; series should be used with a &#39;category&#39; axis. Please refer to the bar series docs.&quot;);
+        }
+        //&lt;/debug&gt;
+        xAxis.setExpandRangeBy(0.5);
+        this.callParent(arguments);
+    },
+
+<span id='Ext-chart-series-Bar-method-updateHidden'>    updateHidden: function (hidden) {
+</span>        this.callParent(arguments);
+        this.updateStacked();
+    },
+
+<span id='Ext-chart-series-Bar-method-updateStacked'>    updateStacked: function (stacked) {
+</span>        var me = this,
+            attributes = {},
+            sprites = me.getSprites(),
+            spriteCount = sprites.length,
+            visibleSprites = [],
+            visibleSpriteCount,
+            i;
+
+        for (i = 0; i &lt; spriteCount; i++) {
+            if (!sprites[i].attr.hidden) {
+                visibleSprites.push(sprites[i]);
+            }
+        }
+
+        visibleSpriteCount = visibleSprites.length;
+
+        if (me.getStacked()) {
+            attributes.groupCount = 1;
+            attributes.groupOffset = 0;
+            for (i = 0; i &lt; visibleSpriteCount; i++) {
+                visibleSprites[i].setAttributes(attributes);
+            }
+        } else {
+            attributes.groupCount = visibleSpriteCount;
+            for (i = 0; i &lt; visibleSpriteCount; i++) {
+                attributes.groupOffset = i;
+                visibleSprites[i].setAttributes(attributes);
+            }
+        }
+        me.callParent(arguments);
+    }
+});
+</pre>
+</body>
+</html>

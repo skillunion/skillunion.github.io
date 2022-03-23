@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-list-TreeItem'>/**
+</span> * @class Ext.list.TreeItem
+ */
+
+Ext.define(&#39;Ext.overrides.list.TreeItem&#39;, {
+    override: &#39;Ext.list.TreeItem&#39;,
+
+<span id='Ext-list-TreeItem-method-runAnimation'>    runAnimation: function(animation) {
+</span>        return this.itemContainer.animate(animation);
+    },
+
+<span id='Ext-list-TreeItem-method-stopAnimation'>    stopAnimation: function(animation) {
+</span>        animation.end();
+    },
+
+<span id='Ext-list-TreeItem-method-refreshInnerState'>    refreshInnerState: Ext.emptyFn,
+</span>
+<span id='Ext-list-TreeItem-method-applyFloated'>    applyFloated: function (floated, wasFloated) {
+</span>        this.initialized = true;
+        this.callParent([floated, wasFloated]);
+        return floated;
+    },
+
+<span id='Ext-list-TreeItem-method-updateFloated'>    updateFloated: function (floated, wasFloated) {
+</span>        var me = this,
+            ownerTree,
+            toolElement = me.getToolElement(),
+            node, wasExpanded;
+
+        if (floated) {
+            me.wasExpanded = me.getExpanded();
+            me.nextElementSibling = me.el.dom.nextSibling;
+            me.setExpanded(true);
+        } else {
+            wasExpanded = me.wasExpanded;
+            node = me.getNode();
+            me.setExpanded(me.wasExpanded);
+            if (!wasExpanded &amp;&amp; node.isExpanded()) {
+                me.preventAnimation = true;
+                node.collapse();
+                me.preventAnimation = false;
+            }
+        }
+        me.callParent([floated, wasFloated]);
+        if (floated) {
+            // Add the necessary CSS classes for the theming to apply to the item.
+            ownerTree = me.getOwner();
+            me.floatWrap.addCls([
+                Ext.baseCSSPrefix + &#39;treelist&#39;,
+                ownerTree.uiPrefix + ownerTree.getUi(),
+                Ext.baseCSSPrefix + &#39;treelist-float-wrap&#39;
+            ]);
+            me.floatWrap.alignTo(toolElement, &#39;tl-tr&#39;);
+            me.floatWrap.on({
+                click: ownerTree.onClick,
+                mouseover: ownerTree.onMouseOver,
+                scope: ownerTree
+            });
+        } else {
+            // Reinsert this el back into the tree
+            me.getOwner().rootItem.el.dom.insertBefore(me.el.dom, me.nextElementSibling);
+        }
+        toolElement.toggleCls(me.floatedToolCls, floated);
+    }
+});
+</pre>
+</body>
+</html>

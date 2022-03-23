@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-Toggle'>/**
+</span> * Specialized {@link Ext.field.Slider} with a single thumb which only supports two {@link #value values}.
+ *
+ * ## Examples
+ *
+ *     @example
+ *     Ext.Viewport.add({
+ *         xtype: &#39;togglefield&#39;,
+ *         name: &#39;awesome&#39;,
+ *         label: &#39;Are you awesome?&#39;,
+ *         labelWidth: &#39;40%&#39;
+ *     });
+ *
+ * Having a default value of &#39;toggled&#39;:
+ *
+ *     @example
+ *     Ext.Viewport.add({
+ *         xtype: &#39;togglefield&#39;,
+ *         name: &#39;awesome&#39;,
+ *         value: 1,
+ *         label: &#39;Are you awesome?&#39;,
+ *         labelWidth: &#39;40%&#39;
+ *     });
+ *
+ * And using the {@link #value} {@link #toggle} method:
+ *
+ *     @example
+ *     Ext.Viewport.add([
+ *         {
+ *             xtype: &#39;togglefield&#39;,
+ *             name: &#39;awesome&#39;,
+ *             value: 1,
+ *             label: &#39;Are you awesome?&#39;,
+ *             labelWidth: &#39;40%&#39;
+ *         },
+ *         {
+ *             xtype: &#39;toolbar&#39;,
+ *             docked: &#39;top&#39;,
+ *             items: [
+ *                 {
+ *                     xtype: &#39;button&#39;,
+ *                     text: &#39;Toggle&#39;,
+ *                     flex: 1,
+ *                     handler: function() {
+ *                         Ext.ComponentQuery.query(&#39;togglefield&#39;)[0].toggle();
+ *                     }
+ *                 }
+ *             ]
+ *         }
+ *     ]);
+ */
+Ext.define(&#39;Ext.field.Toggle&#39;, {
+    extend: &#39;Ext.field.SingleSlider&#39;,
+    xtype : &#39;togglefield&#39;,
+    alternateClassName: &#39;Ext.form.Toggle&#39;,
+    requires: [&#39;Ext.slider.Toggle&#39;],
+
+<span id='Ext-field-Toggle-cfg-twoWayBindable'>    /**
+</span>     * @cfg twoWayBindable
+     * @inheritdoc
+     */
+    twoWayBindable: {
+        value: 1
+    },
+
+<span id='Ext-field-Toggle-cfg-publishes'>    /**
+</span>     * @cfg publishes
+     * @inheritdoc
+     */
+    publishes: {
+        value: 1
+    },
+
+    config: {
+<span id='Ext-field-Toggle-cfg-slider'>        /**
+</span>         * @cfg slider
+         * @inheritdoc
+         */
+        slider: {
+            xtype: &#39;toggleslider&#39;
+        },
+
+<span id='Ext-field-Toggle-cfg-activeLabel'>        /**
+</span>         * @cfg {String} activeLabel
+         * The label to add to the toggle field when it is toggled on. Only available in
+         * the Blackberry theme.
+         * @accessor
+         */
+        activeLabel: null,
+
+<span id='Ext-field-Toggle-cfg-inactiveLabel'>        /**
+</span>         * @cfg {String} inactiveLabel
+         * The label to add to the toggle field when it is toggled off. Only available in
+         * the Blackberry theme.
+         * @accessor
+         */
+        inactiveLabel: null,
+
+<span id='Ext-field-Toggle-cfg-value'>        /**
+</span>         * @cfg value
+         * @inheritdoc Ext.slider.Slider#cfg-value
+         * @accessor
+         */
+        value: false
+    },
+
+<span id='Ext-field-Toggle-cfg-bodyAlign'>    /**
+</span>     * @cfg bodyAlign
+     * @inheritdoc
+     */
+    bodyAlign: &#39;start&#39;,
+
+<span id='Ext-field-Toggle-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;togglefield&#39;,
+
+<span id='Ext-field-Toggle-event-change'>    /**
+</span>     * @event change
+     * Fires when an option selection has changed.
+     *
+     *     Ext.Viewport.add({
+     *         xtype: &#39;togglefield&#39;,
+     *         label: &#39;Event Example&#39;,
+     *         listeners: {
+     *             change: function(field, newValue, oldValue) {
+     *                 console.log(&#39;Value of this toggle has changed:&#39;, (newValue) ? &#39;ON&#39; : &#39;OFF&#39;);
+     *             }
+     *         }
+     *     });
+     *
+     * @param {Ext.field.Toggle} this
+     * @param {Number} newValue the new value of this thumb
+     * @param {Number} oldValue the old value of this thumb
+     */
+
+<span id='Ext-field-Toggle-event-dragstart'>    /**
+</span>    * @event dragstart
+    * @hide
+    */
+
+<span id='Ext-field-Toggle-event-drag'>    /**
+</span>    * @event drag
+    * @hide
+    */
+
+<span id='Ext-field-Toggle-event-dragend'>    /**
+</span>    * @event dragend
+    * @hide
+    */
+
+<span id='Ext-field-Toggle-method-updateActiveLabel'>    /**
+</span>     * @private
+     */
+    updateActiveLabel: function(newActiveLabel, oldActiveLabel) {
+        this.getSlider().element.dom.setAttribute(&#39;data-activelabel&#39;, newActiveLabel);
+    },
+<span id='Ext-field-Toggle-method-updateInactiveLabel'>    /**
+</span>     * @private
+     */
+    updateInactiveLabel: function(newInactiveLabel, oldInactiveLabel) {
+        this.getSlider().element.dom.setAttribute(&#39;data-inactivelabel&#39;, newInactiveLabel);
+    },
+
+<span id='Ext-field-Toggle-method-applyValue'>    applyValue: function(value, oldValue) {
+</span>        value = this.callParent([value, oldValue]);
+        if (typeof value !== &#39;boolean&#39;) {
+            value = value !== 0;
+        }
+        return value;
+    },
+
+<span id='Ext-field-Toggle-method-updateValue'>    updateValue: function(value, oldValue) {
+</span>        var me = this,
+            active = me.getActiveLabel(),
+            inactive = me.getInactiveLabel();
+
+        if (active || inactive) {
+            me.setLabel(value ? active : inactive);
+        }
+
+        me.callParent([value, oldValue]);
+    },
+
+<span id='Ext-field-Toggle-method-setSliderValue'>    setSliderValue: function(value) {
+</span>        this.getSlider().setValue(value ? 1 : 0);
+        return !!value;
+
+    },
+
+<span id='Ext-field-Toggle-method-toggle'>    /**
+</span>     * Toggles the value of this toggle field.
+     * @return {Object} this
+     */
+    toggle: function() {
+        // We call setValue directly so the change event can be fired
+        this.setValue(!this.getValue());
+        return this;
+    }
+});
+</pre>
+</body>
+</html>

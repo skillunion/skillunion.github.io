@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-sprite-BoxPlot'>/**
+</span> * BoxPlot series sprite that manages {@link Ext.chart.sprite.BoxPlot} instances.
+ */
+Ext.define(&#39;Ext.chart.series.sprite.BoxPlot&#39;, {
+    alias: &#39;sprite.boxplotSeries&#39;,
+    extend: &#39;Ext.chart.series.sprite.Cartesian&#39;,
+
+    inheritableStatics: {
+<span id='Ext-chart-series-sprite-BoxPlot-static-property-def'>        def: {
+</span>            processors: {
+<span id='Ext-chart-series-sprite-BoxPlot-cfg-dataLow'>                /**
+</span>                 * @cfg {Number[]} [dataLow=null] Array of coordinated minimum values.
+                 */
+                dataLow: &#39;data&#39;,
+
+<span id='Ext-chart-series-sprite-BoxPlot-cfg-dataQ1'>                /**
+</span>                 * @cfg {Number[]} [dataQ1=null] Array of coordinated 1-st quartile values.
+                 */
+                dataQ1: &#39;data&#39;,
+
+<span id='Ext-chart-series-sprite-BoxPlot-cfg-dataQ3'>                /**
+</span>                 * @cfg {Number[]} [dataQ3=null] Array of coordinated 3-rd quartile values.
+                 */
+                dataQ3: &#39;data&#39;,
+
+<span id='Ext-chart-series-sprite-BoxPlot-cfg-dataHigh'>                /**
+</span>                 * @cfg {Number[]} [dataHigh=null] Array of coordinated maximum values.
+                 */
+                dataHigh: &#39;data&#39;,
+
+<span id='Ext-chart-series-sprite-BoxPlot-cfg-minBoxWidth'>                /**
+</span>                 * @cfg {Number} [minBoxWidth=2] The minimum box width.
+                 */
+                minBoxWidth: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-BoxPlot-cfg-maxBoxWidth'>                /**
+</span>                 * @cfg {Number} [maxBoxWidth=20] The maximum box width.
+                 */
+                maxBoxWidth: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-BoxPlot-cfg-minGapWidth'>                /**
+</span>                 * @cfg {Number} [minGapWidth=5] The minimum gap between boxes.
+                 */
+                minGapWidth: &#39;number&#39;
+            },
+            aliases: {
+<span id='Ext-chart-series-sprite-BoxPlot-cfg-dataMedian'>                /**
+</span>                 * The `dataMedian` attribute can be used to set the value of
+                 * the `dataY` attribute. E.g.:
+                 *
+                 *     sprite.setAttributes({
+                 *         dataMedian: [...]
+                 *     });
+                 *
+                 * To fetch the value of the attribute one has to use
+                 *
+                 *     sprite.attr.dataY // array of coordinated median values
+                 *
+                 * and not
+                 *
+                 *     sprite.attr.dataMedian // WRONG!
+                 *
+                 * `dataY` attribute is defined by the `Ext.chart.series.sprite.Series`.
+                 *
+                 * @cfg {Number[]} [dataMedian=null] Array of coordinated median values.
+                 */
+                dataMedian: &#39;dataY&#39;
+            },
+            defaults: {
+                minBoxWidth: 2,
+                maxBoxWidth: 40,
+                minGapWidth: 5
+            }
+        }
+    },
+
+<span id='Ext-chart-series-sprite-BoxPlot-method-renderClipped'>    renderClipped: function (surface, ctx, dataClipRect) {
+</span>        if (this.cleanRedraw) {
+            return;
+        }
+        var me = this,
+            attr = me.attr,
+            series = me.getSeries(),
+            renderer = attr.renderer,
+            rendererData = {store: me.getStore()},
+            itemCfg = {},
+
+            dataX = attr.dataX,
+            dataLow = attr.dataLow,
+            dataQ1 = attr.dataQ1,
+            dataMedian = attr.dataY,
+            dataQ3 = attr.dataQ3,
+            dataHigh = attr.dataHigh,
+
+            min = Math.min(dataClipRect[0], dataClipRect[2]),
+            max = Math.max(dataClipRect[0], dataClipRect[2]),
+            start = Math.max(0, Math.floor(min)),
+            end = Math.min(dataX.length - 1, Math.ceil(max)),
+
+            // surfaceMatrix = me.surfaceMatrix,
+
+            matrix = attr.matrix,
+            xx = matrix.elements[0], // horizontal scaling can be &lt; 0, if RTL
+            yy = matrix.elements[3],
+            dx = matrix.elements[4],
+            dy = matrix.elements[5],
+
+            // `xx` essentially represents the distance between data points in surface coordinates.
+            maxBoxWidth = Math.abs(xx) - attr.minGapWidth,
+            minBoxWidth = Math.min(maxBoxWidth, attr.maxBoxWidth),
+            boxWidth = Math.round( Math.max(attr.minBoxWidth, minBoxWidth) ),
+
+            x, low, q1, median, q3, high,
+            rendererParams, changes,
+            i;
+
+        if (renderer) {
+            rendererParams = [me, itemCfg, rendererData];
+        }
+
+        for (i = start; i &lt;= end; i++) {
+
+            x = dataX[i] * xx + dx;
+            low = dataLow[i] * yy + dy;
+            q1 = dataQ1[i] * yy + dy;
+            median = dataMedian[i] * yy + dy;
+            q3 = dataQ3[i] * yy + dy;
+            high = dataHigh[i] * yy + dy;
+
+            // --- Draw Box ---
+
+            // Reuse &#39;itemCfg&#39; object and &#39;rendererParams&#39; arrays for better performance.
+
+            itemCfg.x = x;
+            itemCfg.low = low;
+            itemCfg.q1 = q1;
+            itemCfg.median = median;
+            itemCfg.q3 = q3;
+            itemCfg.high = high;
+
+            itemCfg.boxWidth = boxWidth;
+
+            if (renderer) {
+                rendererParams[3] = i;
+                changes = Ext.callback(renderer, null, rendererParams, 0, series);
+                Ext.apply(itemCfg, changes);
+            }
+
+            me.putMarker(&#39;items&#39;, itemCfg, i, !renderer);
+        }
+    }
+
+});
+</pre>
+</body>
+</html>

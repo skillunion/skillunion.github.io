@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-GenericItem'>/**
+</span> * This mixin is applied to {@link Ext.dataview.DataItem dataitem} and to
+ * {@link Ext.dataview.SimpleListItem simplelistitem}.
+ * @private
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.dataview.GenericItem&#39;, {
+<span id='Ext-dataview-GenericItem-property-mixinId'>    mixinId: &#39;dataviewitem&#39;,
+</span>
+<span id='Ext-dataview-GenericItem-property-isDataViewItem'>    isDataViewItem: true,
+</span>
+    config: {
+<span id='Ext-dataview-GenericItem-cfg-innerCls'>        innerCls: null,
+</span><span id='Ext-dataview-GenericItem-cfg-contentCls'>        contentCls: null,
+</span>
+<span id='Ext-dataview-GenericItem-cfg-recordIndex'>        /**
+</span>         * @cfg {Number} recordIndex
+         * The 0-based index of the record for this item in the {@link Ext.data.Store store}.
+         * When using {@link Ext.data.virtual.Store virtual stores} it can happen that this
+         * value is known when the {@link Ext.Component#cfg!record record} is not yet
+         * known.
+         * @since 6.5.0
+         */
+        recordIndex: null
+    },
+
+<span id='Ext-dataview-GenericItem-method-updateRecordIndex'>    updateRecordIndex: function (value) {
+</span>        this.el.dom.setAttribute(&#39;data-recordindex&#39;, value);
+    },
+
+<span id='Ext-dataview-GenericItem-method-getDataview'>    getDataview: function () {
+</span>        return this.parent; // backwards compat
+    },
+
+<span id='Ext-dataview-GenericItem-method-updateInnerCls'>    updateInnerCls: function (cls, old) {
+</span>        this.innerElement.replaceCls(old, cls);
+    },
+
+<span id='Ext-dataview-GenericItem-method-updateContentCls'>    updateContentCls: function (cls, old) {
+</span>        this.getInnerHtmlElement().replaceCls(old, cls);
+    },
+
+<span id='Ext-dataview-GenericItem-property-privates'>    privates: {
+</span>        $dirty: false,
+
+        dirtyCls: Ext.baseCSSPrefix + &#39;dirty&#39;,
+
+        augmentToolHandler: function (tool, args) {
+            // args = [ dataitem, tool, ev ]   ==&gt;   [ dataitem, info ]
+            var me = this;
+
+            args[1] = {
+                event: args.pop(),
+                item: me,
+                list: me.parent,
+                record: me.getRecord(),
+                tool: args[1]
+            };
+        },
+
+        handleEmptyText: function(html) {
+            var parent;
+            
+            if (!html) {
+                parent = this.parent;
+
+                if (parent &amp;&amp; parent.getEmptyItemText) {
+                    html = parent.getEmptyItemText();
+                }
+            }
+        
+            return html;
+        },
+
+        syncDirty: function(record) {
+            var me = this,
+                dirty = record.dirty;
+
+            if (dirty !== me.$dirty) {
+                me.toggleCls(me.dirtyCls, dirty);
+
+                me.$dirty = dirty;
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

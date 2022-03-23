@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-field-Search'>/**
+</span> * 
+ */
+Ext.define(&#39;SU.field.Search&#39;, {
+    override: &#39;Ext.field.Search&#39;,
+    alternateClassName: [&#39;Ext.form.field.Search&#39;, &#39;Ext.form.SearchField&#39;],
+
+    config: {
+<span id='Ext-field-Search-cfg-reuse'>        /**
+</span>         * @cfg {Boolean} [reuse=true]
+         * Разрешает повторный вброс события #search
+         * при неизмененном тексте 
+         */
+        reuse: true
+    },
+    
+<span id='Ext-field-Search-method-initialize'>    initialize: function(){
+</span>        var me = this,
+            search = me.getTriggers().search;
+    
+        me.callParent();
+        
+        search.setHandler(function(){
+            me.mybeFireSearch.apply(me, arguments);
+        });
+        
+        me.on({
+            specialkey: function(f, e){
+                if (e.getKey() === e.ENTER) {
+                    e.stopEvent();
+                    this.mybeFireSearch();
+                }
+            },
+            change: function(f, v){
+                if(v.length === 0){
+                    this.mybeFireSearch();
+                }
+            }
+        });
+    },
+
+<span id='Ext-field-Search-event-search'>    /**
+</span>     * @event search
+     * Возникает по требованию пользоваля при нажатии
+     * 
+     * - кнопки `search`, 
+     * - клавиши `ENTER` 
+     * 
+     * или при очистке поля ввода.
+     * 
+     * Событие возникает только после изменения введенного значения.
+     * 
+     * @param {Ext.form.Search} this
+     * @param {String} [searchText]
+     */
+    
+<span id='Ext-field-Search-method-mybeFireSearch'>    /**
+</span>     * Обработка 
+     * 
+     * - триггерной кнопки поиска
+     * - клавиши `ENTER
+     * - очистки поля ввода
+     * 
+     * Если необходимо - отправка события #search
+     */
+    mybeFireSearch: function(){
+        var me = this,
+            value = me.getValue();
+
+        if (!!value &amp;&amp; value.length &gt; 0){ 
+            if (me.getReuse() || me.searchText !== value) {
+                me.searchText = value;
+                me.fireEvent(&#39;search&#39;, me, value);
+            }
+        } else {
+            if (me.getReuse() || !!me.searchText){
+                me.searchText = undefined;
+                me.fireEvent(&#39;search&#39;, me, null);
+            }
+        }
+    }
+    
+});
+</pre>
+</body>
+</html>

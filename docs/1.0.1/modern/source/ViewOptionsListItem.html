@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">Ext.define(&#39;Ext.grid.plugin.ViewOptionsListItem&#39;, {
+    extend: &#39;Ext.dataview.SimpleListItem&#39;,
+    xtype: &#39;viewoptionslistitem&#39;,
+
+    toolDefaults: {
+        // Keep the same dimension even if tools are hidden
+        hideMode: &#39;visibility&#39;
+    },
+
+    tools: {
+        handle: {
+            zone: &#39;start&#39;,
+            cls: Ext.baseCSSPrefix + &#39;no-ripple&#39;,
+            iconCls: Ext.baseCSSPrefix + &#39;column-options-sortablehandle&#39;
+        },
+        icon: {
+            zone: &#39;start&#39;,
+            // Determined dynamically if it&#39;s a group header
+            iconCls: &#39;&#39;
+        },
+        group: {
+            zone: &#39;end&#39;,
+            iconCls: Ext.baseCSSPrefix + &#39;column-options-groupindicator&#39;,
+            // Allow these to climb up to the plugin. This should eventually
+            // be disabled when we have a better way of allowing scope
+            // resolution to be able to bubble up to plugins
+            stopEvent: false
+        },
+        hide: {
+            zone: &#39;end&#39;,
+            iconCls: Ext.baseCSSPrefix + &#39;column-options-visibleindicator&#39;,
+            // Allow these to climb up to the plugin. This should eventually
+            // be disabled when we have a better way of allowing scope
+            // resolution to be able to bubble up to plugins
+            stopEvent: false
+        }
+    },
+    cls: Ext.baseCSSPrefix + &#39;column-options-item&#39;,
+
+    updateRecord: function(record, oldRecord) {
+        if (!record) {
+            return;
+        }
+
+        var me = this,
+            tool;
+
+        me.callParent([record, oldRecord]);
+
+        me.toggleCls(me.hiddenColumnCls, record.get(&#39;hidden&#39;));
+        me.toggleCls(me.groupedColumnCls, record.get(&#39;grouped&#39;));
+
+        tool = me.lookupTool(&#39;icon&#39;);
+        tool.setIconCls(record.get(&#39;header&#39;) ? me.headerCls : me.leafCls);
+
+        me.lookupTool(&#39;group&#39;).setHidden(!record.get(&#39;groupable&#39;));
+        me.lookupTool(&#39;hide&#39;).setHidden(!record.get(&#39;hideable&#39;));
+    },
+
+    privates: {
+        groupedColumnCls: Ext.baseCSSPrefix + &#39;column-options-grouped&#39;,
+        headerCls: Ext.baseCSSPrefix + &#39;column-options-folder&#39;,
+        hiddenColumnCls: Ext.baseCSSPrefix + &#39;column-options-hidden&#39;,
+        leafCls: Ext.baseCSSPrefix + &#39;column-options-leaf&#39;
+    }
+});</pre>
+</body>
+</html>

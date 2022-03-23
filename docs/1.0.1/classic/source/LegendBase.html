@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-legend-LegendBase'>/**
+</span> * The legend base class adapater for classic toolkit.
+ */
+Ext.define(&#39;Ext.chart.legend.LegendBase&#39;, {
+    extend: &#39;Ext.view.View&#39;,
+
+    config: {
+<span id='Ext-chart-legend-LegendBase-cfg-tpl'>        tpl: [
+</span>            &#39;&lt;div class=&quot;&#39;, Ext.baseCSSPrefix, &#39;legend-inner&quot;&gt;&#39;, // for IE8 vertical centering
+                &#39;&lt;div class=&quot;&#39;, Ext.baseCSSPrefix, &#39;legend-container&quot;&gt;&#39;,
+                    &#39;&lt;tpl for=&quot;.&quot;&gt;&#39;,
+                        &#39;&lt;div class=&quot;&#39;, Ext.baseCSSPrefix, &#39;legend-item&quot;&gt;&#39;,
+                            &#39;&lt;span &#39;,
+                                &#39;class=&quot;&#39;, Ext.baseCSSPrefix, &#39;legend-item-marker {[ values.disabled ? Ext.baseCSSPrefix + \&#39;legend-item-inactive\&#39; : \&#39;\&#39; ]}&quot; &#39;,
+                                &#39;style=&quot;background:{mark};&quot;&gt;&#39;,
+                            &#39;&lt;/span&gt;{name}&#39;,
+                        &#39;&lt;/div&gt;&#39;,
+                    &#39;&lt;/tpl&gt;&#39;,
+                &#39;&lt;/div&gt;&#39;,
+            &#39;&lt;/div&gt;&#39;
+        ],
+<span id='Ext-chart-legend-LegendBase-cfg-itemSelector'><span id='Ext-chart-legend-LegendBase-cfg-nodeContainerSelector'>        nodeContainerSelector: &#39;div.&#39; + Ext.baseCSSPrefix + &#39;legend-inner&#39;, // element that contains rows (see AbstractView)
+</span></span>        itemSelector: &#39;div.&#39; + Ext.baseCSSPrefix + &#39;legend-item&#39;,           // row element (see AbstractView)
+<span id='Ext-chart-legend-LegendBase-cfg-docked'>        /**
+</span>         * @cfg {String} docked
+         * The dock position of this component in its container. Can be `left`, `top`, `right` or `bottom`.
+         */
+        docked: &#39;bottom&#39;
+
+<span id='Ext-chart-legend-LegendBase-cfg-dock'>        /**
+</span>         * @cfg dock
+         * @hide
+         */
+    },
+
+<span id='Ext-chart-legend-LegendBase-method-setDocked'>    setDocked: function (docked) {
+</span>        // If we call the method &#39;updateDocked&#39; instead of &#39;setDocked&#39;, the following error is thrown:
+        // &quot;Ext.Component#setDocked&quot; is deprecated. Please use &quot;setDock&quot; instead.
+        var me = this,
+            panel = me.ownerCt;
+
+        me.docked = me.dock = docked;
+
+        switch (docked) {
+            case &#39;top&#39;:
+            case &#39;bottom&#39;:
+                me.addCls(me.horizontalCls);
+                me.removeCls(me.verticalCls);
+                break;
+            case &#39;left&#39;:
+            case &#39;right&#39;:
+                me.addCls(me.verticalCls);
+                me.removeCls(me.horizontalCls);
+                break;
+        }
+
+        if (panel) {
+            panel.setDock(docked);
+        }
+    },
+
+<span id='Ext-chart-legend-LegendBase-method-setStore'>    setStore: function (store) {
+</span>        this.bindStore(store);
+    },
+
+<span id='Ext-chart-legend-LegendBase-method-clearViewEl'>    clearViewEl: function () {
+</span>        this.callParent(arguments);
+        // The legend-container div is not removed automatically.
+        Ext.removeNode(this.getNodeContainer());
+    },
+
+<span id='Ext-chart-legend-LegendBase-method-onItemClick'>    onItemClick: function (record, item, index, e) {
+</span>        this.callParent(arguments);
+        this.toggleItem(index);
+    }
+});
+</pre>
+</body>
+</html>

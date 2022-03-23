@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-Disclosable'>/**
+</span> * This mixin is applied to {@link Ext.dataview.DataItem dataitem} and to
+ * {@link Ext.dataview.SimpleListItem simplelistitem}.
+ * @private
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.dataview.Disclosable&#39;, {
+<span id='Ext-dataview-Disclosable-property-mixinId'>    mixinId: &#39;disclosable&#39;,
+</span>
+<span id='Ext-dataview-Disclosable-property-isListItem'>    isListItem: true,
+</span>
+<span id='Ext-dataview-Disclosable-property-toolDefaults'>    toolDefaults: {
+</span>        ui: &#39;listitem&#39;
+    },
+
+<span id='Ext-dataview-Disclosable-property-toolAnchorName'>    toolAnchorName: &#39;innerElement&#39;,
+</span>
+<span id='Ext-dataview-Disclosable-method-getDisclosure'>    getDisclosure: function () {
+</span>        return this.lookupTool(&#39;disclosure&#39;);
+    },
+
+<span id='Ext-dataview-Disclosable-property-privates'>    privates: {
+</span>        invokeDisclosure: function (tool, handler, e) {
+            var parent = this.parent;
+
+            if (tool.type === &#39;disclosure&#39; &amp;&amp; !handler) {
+
+                if (parent &amp;&amp; parent.onItemDisclosureTap) {
+                    parent.onItemDisclosureTap(this, e);
+                    return true;
+                }
+            }
+        },
+
+        syncDisclosure: function (record) {
+            var me = this,
+                disclosure = me.getDisclosure(),
+                parent = me.parent;
+
+            if (disclosure) {
+                disclosure.setHidden(parent.shouldHideDisclosure(record));
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

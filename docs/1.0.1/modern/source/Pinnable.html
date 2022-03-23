@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-Pinnable'>/**
+</span> * @private
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.dataview.Pinnable&#39;, {
+<span id='Ext-dataview-Pinnable-property-mixinId'>    mixinId: &#39;dataviewpinnable&#39;,
+</span>
+<span id='Ext-dataview-Pinnable-property-isDataViewPinnable'>    isDataViewPinnable: true,
+</span>
+    config: {
+<span id='Ext-dataview-Pinnable-cfg-pinned'>        /**
+</span>         * @private
+         */
+        pinned: null
+    },
+
+<span id='Ext-dataview-Pinnable-property-pinnedCls'>    pinnedCls: Ext.baseCSSPrefix + &#39;pinned&#39;,
+</span>
+<span id='Ext-dataview-Pinnable-method-updatePinned'>    updatePinned: function (value) {
+</span>        var me = this,
+            el = me.el,
+            pinnedCls = me.pinnedCls,
+            pinnedClsMap = me._pinnedClsMap,
+            classes = el.getClassMap(/*clone=*/false);
+
+        delete classes[pinnedClsMap.top];
+        delete classes[pinnedClsMap.bottom];
+
+        if (value) {
+            classes[pinnedCls] = true;
+
+            pinnedCls = pinnedClsMap[value];
+            if (pinnedCls) {
+                classes[pinnedCls] = true;
+            }
+        } else {
+            delete classes[pinnedCls];
+        }
+
+        el.setClassMap(classes, /*keep=*/true);
+    },
+
+<span id='Ext-dataview-Pinnable-property-_pinnedClsMap'>    _pinnedClsMap: {
+</span>        top: Ext.baseCSSPrefix + &#39;pinned-top&#39;,
+        bottom: Ext.baseCSSPrefix + &#39;pinned-bottom&#39;
+    }
+});
+</pre>
+</body>
+</html>

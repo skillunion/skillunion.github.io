@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-CellEditor'>/**
+</span> * This class specializes `Ext.Editor` for the purpose of editing grid cells inline. This
+ * class is not instantiated by user code but rather by `Ext.grid.plugin.CellEditing`.
+ * @private
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.grid.CellEditor&#39;, {
+    extend: &#39;Ext.Editor&#39;,
+    xtype: &#39;celleditor&#39;,
+<span id='Ext-grid-CellEditor-property-isCellEditor'>    isCellEditor: true,
+</span>
+<span id='Ext-grid-CellEditor-cfg-floated'>    floated: false,
+</span>
+<span id='Ext-grid-CellEditor-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;celleditor&#39;,
+</span>
+    config: {
+<span id='Ext-grid-CellEditor-cfg-autoPin'>        /**
+</span>         * @cfg {Boolean} autoPin
+         * Determines if the row that the cell editor is attached to will pin to the top
+         * and bottom when scrolling.
+         * If `false` editing will be canceled when cell editor is scrolled off the list.
+         */
+        autoPin: true
+    },
+
+<span id='Ext-grid-CellEditor-cfg-swallowKeys'>    swallowKeys: false,
+</span>
+<span id='Ext-grid-CellEditor-cfg-layout'>    layout: &#39;fit&#39;,
+</span>
+<span id='Ext-grid-CellEditor-cfg-shadow'>    shadow: false,
+</span>
+<span id='Ext-grid-CellEditor-cfg-allowBlur'>    allowBlur: true,
+</span>
+<span id='Ext-grid-CellEditor-cfg-alignment'>    alignment: &#39;tl-tl&#39;,
+</span>
+<span id='Ext-grid-CellEditor-cfg-zIndex'>    zIndex: 10,
+</span>
+<span id='Ext-grid-CellEditor-property-useBoundValue'>    // Do not use the cell&#39;s rendered value
+</span>    useBoundValue: false,
+
+<span id='Ext-grid-CellEditor-property-inheritUi'>    inheritUi: true,
+</span>
+<span id='Ext-grid-CellEditor-cfg-field'>    field: {
+</span>        inheritUi: true
+    },
+
+<span id='Ext-grid-CellEditor-method-startEdit'>    /**
+</span>     * Starts editing at the passed {@link Ext.grid.Location location} using the passed value.
+     * @param {Ext.grid.Location} location Where to start editing
+     * @param {*} [value] The value to place in the editor.
+     * @param {Boolean} [doFocus] `true` to focus the editor.
+     * @return {Ext.grid.Location} The location where actionable mode was successfully started.
+     */
+    startEdit: function(location, value, doFocus) {
+        var me = this,
+            cell, el, row, grid, result;
+
+        if (location) {
+            cell = location.cell;
+            el = cell.el;
+            value = value != null ? value : location.record.get(cell.dataIndex);
+
+            // VERY important for focus management.
+            // We must have an upward ownership link so that onFocusLeave
+            // bubbles correctly.
+            // This link must never be severed - it just is updated on each edit.
+            me.ownerCmp = cell;
+
+            // CellEditors are positioned and fitted within the cell using their CSS rules.
+            me.render(el);
+
+            me.callParent([el, value, doFocus]);
+
+            // Superclass events may veto edit start.
+            // If we are editing, set up our context.
+            if (me.editing) {
+                me.$activeRow = row = location.row;
+                me.$activeGrid = grid = row.getGrid();
+                me.editingPlugin.editing = true;
+                me.editingPlugin.location = me.$activeLocation = result = new Ext.grid.Location(grid, me.getField().getFocusEl());
+                me.editingPlugin.activeEditor = me;
+                grid.stickItem(row, { autoPin: me.getAutoPin() });
+            }
+        }
+
+        return result;
+    },
+
+<span id='Ext-grid-CellEditor-method-onFocusLeave'>    onFocusLeave: function(e) {
+</span>        // FocusLeave result of destruction. Must not do anything.
+        if (!this.editingPlugin.getGrid().destroying) {
+            if (this.isCancelling) {
+                this.cancelEdit();
+            } else {
+                this.completeEdit(false);
+            }
+        }
+
+        this.isCancelling = false;
+    },
+
+<span id='Ext-grid-CellEditor-method-onFocusEnter'>    onFocusEnter: function(e) {
+</span>        // Force automatic focus reversion to go to our currently active cell.
+        if (this.$activeLocation) {
+            e.relatedTarget = e.fromElement = this.$activeLocation.getFocusEl(&#39;dom&#39;);
+        }
+        this.callParent([e]);
+    },
+
+<span id='Ext-grid-CellEditor-method-getLocation'>    /**
+</span>     * @returns {Ext.grid.Location} The location where editing is active *if* editing is
+     * active, else `null`.
+     */
+    getLocation: function() {
+        return this.$activeLocation;
+    },
+
+<span id='Ext-grid-CellEditor-method-onSpecialKey'>    onSpecialKey: function(field, event) {
+</span>        var me = this;
+
+        // Allow the NavigationModel handles the actual navigation.
+        // When the CellEditing#activateCell finds this still active
+        // it will complete the edit if the cancelling flag is not set
+        if (event.getKey() === event.ESC) {
+            me.isCancelling = true;
+        } else {
+            me.callParent([field, event]);
+        }
+    },
+
+<span id='Ext-grid-CellEditor-method-onEditComplete'>    onEditComplete: function(remainVisible, cancelling) {
+</span>        var me = this,
+            location = me.$activeLocation,
+            value = me.getValue(),
+            record, dataIndex, row, grid;
+
+        me.callParent([remainVisible, cancelling]);
+
+        if (location) {
+            grid = location.row.getGrid();
+
+            // If we are not coming from a cancelEdit, and the field&#39;s changed
+            // then update the record.
+            if (!cancelling &amp;&amp; value !== me.startValue) {
+                record = location.record;
+                dataIndex = location.cell.dataIndex;
+
+                if (record) {
+                    record.set(dataIndex, value);
+
+                    // The row may change due to auto sorting, so bring it into view ans refresh the location
+                    grid.ensureVisible(location.record);
+                    location.refresh();
+                }
+            }
+
+            if (!remainVisible) {
+                row = location.row;
+                grid.stickItem(row, null);
+
+                me.$stickyVisibility = me.$activeLocation = me.$activeRow = me.$activeGrid = null;
+                me.editingPlugin.editing = false;
+                me.editingPlugin.location = me.editingPlugin.activeEditor = null;
+            }
+        }
+    },
+
+<span id='Ext-grid-CellEditor-method-realign'>    // CellEditors are positioned and fitted within the cell using their CSS rules.
+</span>    realign: Ext.emptyFn,
+
+<span id='Ext-grid-CellEditor-method-toggleBoundEl'>    toggleBoundEl: function(visible) {
+</span>        var location = this.$activeLocation,
+            cell, bodyEl;
+
+        if (location &amp;&amp; this.hideEl) {
+            cell = location.cell;
+
+            // If the location is still rendered...
+            if (cell) {
+                bodyEl = cell.bodyElement;
+                bodyEl.setVisibility(visible);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

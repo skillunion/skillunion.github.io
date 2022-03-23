@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-menu-SortAsc'>/**
+</span> * The menu item shown in a grid column&#39;s menu that when clicked
+ * triggers ascending sorting on that column.
+ */
+Ext.define(&#39;Ext.grid.menu.SortAsc&#39;, {
+    extend: &#39;Ext.menu.RadioItem&#39;,
+
+    xtype: &#39;gridsortascmenuitem&#39;,
+
+<span id='Ext-grid-menu-SortAsc-cfg-iconCls'>    iconCls: Ext.baseCSSPrefix + &#39;headermenu-sort-asc&#39;,
+</span>
+<span id='Ext-grid-menu-SortAsc-cfg-text'>    /**
+</span>     * @cfg {String} text
+     * The menu item text for the Sort Ascending menu item.
+     * @locale
+     */
+    text: &#39;Sort Ascending&#39;,
+
+<span id='Ext-grid-menu-SortAsc-cfg-value'>    value: &#39;ASC&#39;,
+</span>
+<span id='Ext-grid-menu-SortAsc-cfg-allowUncheck'>    allowUncheck: true,
+</span>
+<span id='Ext-grid-menu-SortAsc-cfg-group'>    group: &#39;grid-sorters&#39;
+</span>});
+</pre>
+</body>
+</html>

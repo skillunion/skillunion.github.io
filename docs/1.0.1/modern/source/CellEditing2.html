@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-grid-plugin-CellEditing'>/**
+</span> * Заплатка ошибки &quot;Uncaught TypeError: Cannot read property &#39;getDataIndex&#39; of null&quot;
+ * [EXTJS Forum](https://www.sencha.com/forum/showthread.php?469749-6-5-2-Modern-Ext-grid-plugin-CellEditing-getEditor-has-exception-logged)
+ */
+Ext.define(&#39;SU.grid.plugin.CellEditing&#39;, {
+    override: &#39;Ext.grid.plugin.CellEditing&#39;,
+
+<span id='SU-grid-plugin-CellEditing-method-getEditor'>    getEditor: function (location) {
+</span>        if (!location.column) {
+            return;
+        }
+
+        return this.callParent([location]);
+    }
+});</pre>
+</body>
+</html>

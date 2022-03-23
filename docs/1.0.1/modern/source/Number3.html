@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-validator-Number'>/**
+</span> * Validates that the value is a valid number.
+ *
+ * A valid number may include a leading + or -, comma separators, and a single decimal point.
+ */
+Ext.define(&#39;Ext.data.validator.Number&#39;, {
+    extend: &#39;Ext.data.validator.Validator&#39;,
+    alias: &#39;data.validator.number&#39;,
+
+<span id='Ext-data-validator-Number-property-type'>    type: &#39;number&#39;,
+</span>
+    config: {
+<span id='Ext-data-validator-Number-cfg-decimalSeparator'>        /**
+</span>         * @cfg {String} decimalSeparator
+         * The decimal separator. Defaults to {@link Ext.util.Format#decimalSeparator}.
+         */
+        decimalSeparator: undefined,
+
+<span id='Ext-data-validator-Number-cfg-message'>        /**
+</span>         * @cfg {String} message
+         * The error message to return when the value is not a valid number.
+         * @locale
+         */
+        message: &#39;Is not a valid number&#39;,
+
+<span id='Ext-data-validator-Number-cfg-thousandSeparator'>        /**
+</span>         * @cfg {String} thousandSeparator
+         * The thousand separator. Defaults to {@link Ext.util.Format#thousandSeparator}.
+         */
+        thousandSeparator: undefined
+    },
+
+<span id='Ext-data-validator-Number-method-constructor'>    constructor: function(config) {
+</span>        this.callParent([config]);
+        this.rebuildMatcher();
+    },
+
+<span id='Ext-data-validator-Number-method-applyDecimalSeparator'>    applyDecimalSeparator: function(v) {
+</span>        return v === undefined ? Ext.util.Format.decimalSeparator : v;
+    },
+
+<span id='Ext-data-validator-Number-method-updateDecimalSeparator'>    updateDecimalSeparator: function() {
+</span>        this.rebuildMatcher();
+    },
+
+<span id='Ext-data-validator-Number-method-applyThousandSeparator'>    applyThousandSeparator: function(v) {
+</span>        return v === undefined ? Ext.util.Format.thousandSeparator : v;
+    },
+
+<span id='Ext-data-validator-Number-method-updateThousandSeparator'>    updateThousandSeparator: function() {
+</span>        this.rebuildMatcher();
+    },
+
+<span id='Ext-data-validator-Number-method-parse'>    parse: function (v) {
+</span>        var sep = this.getDecimalSeparator(),
+            N = Ext.Number;
+
+        if (typeof v === &#39;string&#39;) {
+            if (!this.matcher.test(v)) {
+                return null;
+            }
+            v = this.parseValue(v);
+        }
+
+        return sep ? N.parseFloat(v) : N.parseInt(v);
+    },
+
+<span id='Ext-data-validator-Number-method-validate'>    validate: function(value) {
+</span>        return this.parse(value) === null ? this.getMessage() : true;
+    },
+
+<span id='Ext-data-validator-Number-property-privates'>    privates: {
+</span>        getMatcherText: function(preventSign) {
+            var t = this.getThousandSeparator(),
+                d = this.getDecimalSeparator(),
+                s = &#39;(?:&#39;;
+
+            if (t) {
+                t = Ext.String.escapeRegex(t);
+                s += &#39;(?:\\d{1,3}(&#39; + t + &#39;\\d{3})*)|&#39;;
+            }
+            s += &#39;\\d*)&#39;;
+
+            if (d) {
+                d = Ext.String.escapeRegex(d);
+                s += &#39;(?:&#39; + d + &#39;\\d*)?&#39;;
+            }
+
+            if (!preventSign) {
+                s = this.getSignPart() + s;
+            }
+
+            return s;
+        },
+
+        getSignPart: function() {
+            return &#39;(\\+|\\-)?&#39;;
+        },
+
+        parseValue: function(v) {
+            var thousandMatcher = this.thousandMatcher,
+                decimal;
+
+            if (thousandMatcher) {
+                v = v.replace(thousandMatcher, &#39;&#39;);
+            }
+            decimal = this.getDecimalSeparator();
+            if (decimal &amp;&amp; decimal !== &#39;.&#39;) {
+                v = v.replace(decimal, &#39;.&#39;);
+            }
+            return v;
+        },
+
+        rebuildMatcher: function() {
+            var me = this,
+                sep;
+
+            if (!me.isConfiguring) {
+                sep = me.getThousandSeparator();
+                me.matcher = new RegExp(&#39;^&#39; + me.getMatcherText() + &#39;$&#39;);
+                if (sep) {
+                    me.thousandMatcher = sep ? new RegExp(Ext.String.escapeRegex(sep), &#39;g&#39;) : null;
+                }
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

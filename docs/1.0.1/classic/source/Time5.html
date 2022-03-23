@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-axis-Time'>/**
+</span> * @class Ext.chart.axis.Time
+ * @extends Ext.chart.axis.Numeric
+ *
+ * A type of axis whose units are measured in time values. Use this axis
+ * for listing dates that you will want to group or dynamically change.
+ * If you just want to display dates as categories then use the
+ * Category class for axis instead.
+ *
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;cartesian&#39;, 
+ *        renderTo: document.body,
+ *        width: 600,
+ *        height: 400,
+ *        store: {
+ *            fields: [&#39;time&#39;, &#39;open&#39;, &#39;high&#39;, &#39;low&#39;, &#39;close&#39;],
+ *            data: [{
+ *                &#39;time&#39;: new Date(&#39;Jan 1 2010&#39;).getTime(),
+ *                &#39;open&#39;: 600,
+ *                &#39;high&#39;: 614,
+ *                &#39;low&#39;: 578,
+ *                &#39;close&#39;: 590
+ *            }, {
+ *                &#39;time&#39;: new Date(&#39;Jan 2 2010&#39;).getTime(),
+ *                &#39;open&#39;: 590,
+ *                &#39;high&#39;: 609,
+ *                &#39;low&#39;: 580,
+ *                &#39;close&#39;: 580
+ *            }, {
+ *                &#39;time&#39;: new Date(&#39;Jan 3 2010&#39;).getTime(),
+ *                &#39;open&#39;: 580,
+ *                &#39;high&#39;: 602,
+ *                &#39;low&#39;: 578,
+ *                &#39;close&#39;: 602
+ *            }, {
+ *                &#39;time&#39;: new Date(&#39;Jan 4 2010&#39;).getTime(),
+ *                &#39;open&#39;: 602,
+ *                &#39;high&#39;: 614,
+ *                &#39;low&#39;: 586,
+ *                &#39;close&#39;: 586
+ *            }]
+ *        },
+ *        axes: [{
+ *            type: &#39;numeric&#39;,
+ *            position: &#39;left&#39;,
+ *            fields: [&#39;open&#39;, &#39;high&#39;, &#39;low&#39;, &#39;close&#39;],
+ *            title: {
+ *                text: &#39;Sample Values&#39;,
+ *                fontSize: 15
+ *            },
+ *            grid: true,
+ *            minimum: 560,
+ *            maximum: 640
+ *        }, {
+ *            type: &#39;time&#39;,
+ *            position: &#39;bottom&#39;,
+ *            fields: [&#39;time&#39;],
+ *            fromDate: new Date(&#39;Dec 31 2009&#39;),
+ *            toDate: new Date(&#39;Jan 5 2010&#39;),
+ *            title: {
+ *                text: &#39;Sample Values&#39;,
+ *                fontSize: 15
+ *            },
+ *            style: {
+ *                axisLine: false
+ *            }
+ *        }],
+ *        series: {
+ *            type: &#39;candlestick&#39;,
+ *            xField: &#39;time&#39;,
+ *            openField: &#39;open&#39;,
+ *            highField: &#39;high&#39;,
+ *            lowField: &#39;low&#39;,
+ *            closeField: &#39;close&#39;,
+ *            style: {
+ *                ohlcType: &#39;ohlc&#39;,
+ *                dropStyle: {
+ *                    fill: &#39;rgb(255, 128, 128)&#39;,
+ *                    stroke: &#39;rgb(255, 128, 128)&#39;,
+ *                    lineWidth: 3
+ *                },
+ *                raiseStyle: {
+ *                    fill: &#39;rgb(48, 189, 167)&#39;,
+ *                    stroke: &#39;rgb(48, 189, 167)&#39;,
+ *                    lineWidth: 3
+ *                }
+ *            }
+ *        }
+ *     });
+ */
+Ext.define(&#39;Ext.chart.axis.Time&#39;, {
+    extend: &#39;Ext.chart.axis.Numeric&#39;,
+    alias: &#39;axis.time&#39;,
+<span id='Ext-chart-axis-Time-property-type'>    type: &#39;time&#39;,
+</span>    requires: [
+        &#39;Ext.chart.axis.layout.Continuous&#39;,
+        &#39;Ext.chart.axis.segmenter.Time&#39;
+    ],
+    config: {
+<span id='Ext-chart-axis-Time-cfg-dateFormat'>        /**
+</span>         * @cfg {String} dateFormat
+         * Indicates the format the date will be rendered in.
+         * For example: &#39;M d&#39; will render the dates as &#39;Jan 30&#39;.
+         * This config works by setting the {@link #renderer} config
+         * to a function that uses {@link Ext.Date#format} to format the dates
+         * using the given `dateFormat`.
+         * If the {@link #renderer} config was set by the user, changes to this config
+         * won&#39;t replace the user set renderer (until the user removes the renderer by
+         * setting the `renderer` config to `null`). In this case the way the `dateFormat`
+         * is used (if at all) is up to the user.
+         */
+        dateFormat: null,
+
+<span id='Ext-chart-axis-Time-cfg-fromDate'>        /**
+</span>         * @cfg {Date} fromDate The starting date for the time axis.
+         */
+        fromDate: null,
+
+<span id='Ext-chart-axis-Time-cfg-toDate'>        /**
+</span>         * @cfg {Date} toDate The ending date for the time axis.
+         */
+        toDate: null,
+
+<span id='Ext-chart-axis-Time-cfg-layout'>        layout: &#39;continuous&#39;,
+</span>
+<span id='Ext-chart-axis-Time-cfg-segmenter'>        segmenter: &#39;time&#39;,
+</span>
+<span id='Ext-chart-axis-Time-cfg-aggregator'>        aggregator: &#39;time&#39;
+</span>    },
+
+<span id='Ext-chart-axis-Time-method-updateDateFormat'>    updateDateFormat: function (format) {
+</span>        var renderer = this.getRenderer();
+
+        if (!renderer || renderer.isDefault) {
+            renderer = function (axis, date) {
+                return Ext.Date.format(new Date(date), format);
+            };
+            renderer.isDefault = true;
+            this.setRenderer(renderer);
+            this.performLayout();
+        }
+    },
+
+<span id='Ext-chart-axis-Time-method-updateRenderer'>    updateRenderer: function (renderer) {
+</span>        var dateFormat = this.getDateFormat();
+
+        if (renderer) {
+            this.performLayout();
+        } else if (dateFormat) {
+            // If the user removes custom `renderer` and `dateFormat` is set,
+            // set the `renderer` to the default one based on `dateFormat`.
+            this.updateDateFormat(dateFormat);
+        }
+    },
+
+<span id='Ext-chart-axis-Time-method-updateFromDate'>    updateFromDate: function (date) {
+</span>        this.setMinimum(+date);
+    },
+
+<span id='Ext-chart-axis-Time-method-updateToDate'>    updateToDate: function (date) {
+</span>        this.setMaximum(+date);
+    },
+
+<span id='Ext-chart-axis-Time-method-getCoordFor'>    getCoordFor: function (value) {
+</span>        if (Ext.isString(value)) {
+            value = new Date(value);
+        }
+        return +value;
+    }
+});
+</pre>
+</body>
+</html>

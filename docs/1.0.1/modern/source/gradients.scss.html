@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Global_CSS'>/**
+</span> * @class Global_CSS
+ */
+
+@import &quot;compass/css3/images&quot;;
+
+$default-gradient: matte !default;
+$support-for-original-webkit-gradients: false;
+
+<span id='Global_CSS-css_mixin-background-gradient'>/**
+</span> * Adds a background gradient into a specified selector.
+ *
+ *     @include background-gradient(#444, &#39;glossy&#39;);
+ *
+ * You can also use color-stops if you want full control of the gradient:
+ *
+ *     @include background-gradient(#444, color-stops(#333, #222, #111));
+ *
+ * @param {Color} $bg-color
+ * The base color of the gradient.
+ *
+ * @param {String/List} [$type=$default-gradient]
+ * The style of the gradient, one of five pre-defined options: matte, bevel, glossy, recessed, or linear:
+ *
+ *     @include background-gradient(red, &#39;glossy&#39;);
+ *
+ * It can also accept a list of color-stop values:;
+ *
+ *     @include background-gradient(black, color-stops(#333, #111, #000));
+ *
+ * Values &#39;flat&#39; and &#39;none&#39; will result in no gradient, just flat background-color
+ *
+ * @param {String} $direction
+ * @param {Number} [$contrast=1]
+ * The direction of the gradient.
+ */
+@mixin background-gradient(
+    $bg-color,
+    $type: $default-gradient,
+    $direction: top,
+    $contrast: 1
+) {
+    $flat: $type == null or $type == none or $type == flat;
+
+    @if $flat or ($bg-color == transparent) {
+        background-color: $bg-color;
+
+        @if $bg-color != null {
+            // invoking this mixin with null, none, or flat as the $type parameter means
+            // &quot;no gradient&quot; so make sure we don&#39;t inherit one via the cascade
+            background-image: none;
+        }
+    }
+
+    @if not ($flat or ($bg-color == transparent)) {
+        @if type-of($type) == &quot;list&quot; {
+            // Color stops provided - no $bg-color required
+            @include background-image(linear-gradient($direction, $type));
+        } @else if $bg-color != transparent {
+            // Named gradients
+            @if $bg-color == null {
+                @warn &#39;@background-gradient: $bg-color is required for named gradient &quot;#{$type}&quot;&#39;;
+            } @else if $type == bevel {
+                @include background-image(bevel-gradient($bg-color, $direction, $contrast));
+            } @else if $type == glossy {
+                @include background-image(glossy-gradient($bg-color, $direction, $contrast));
+            } @else if $type == recessed {
+                @include background-image(recessed-gradient($bg-color, $direction, $contrast));
+            } @else if $type == linear {
+                @include background-image(linear-gradient($direction, color_stops(lighten($bg-color, 5%), darken($bg-color, 10%))));
+            } @else if $type == matte {
+                @include background-image(matte-gradient($bg-color, $direction, $contrast));
+            } @else {
+                @warn &#39;@background-gradient: invalid gradient name &quot;#{$type}&quot;&#39;;
+            }
+        }
+    }
+}
+
+// These are functions so they can be combined together with background-image()// ie. @include background-image(background_noise(), glossy-gradient());
+
+@function bevel-gradient($bg-color: $base-color, $direction: top, $contrast: 1) {
+    @return linear-gradient($direction, color_stops(
+        lighten($bg-color, 15%),
+        lighten($bg-color, 8%) 30%,
+        $bg-color 65%,
+        darken($bg-color, 6%)
+    ));
+}
+
+@function glossy-gradient($bg-color: $base-color, $direction: top, $contrast: 1) {
+    @return linear-gradient($direction, color_stops(lighten($bg-color, 15% * $contrast), lighten($bg-color, 5% * $contrast) 50%, $bg-color 51%, darken($bg-color, 5% * $contrast)));
+}
+
+@function recessed-gradient($bg-color: $base-color, $direction: top, $contrast: 1) {
+    @return linear-gradient($direction, color_stops(darken($bg-color, 10% * $contrast), darken($bg-color, 5% * $contrast) 10%, $bg-color 65%, lighten($bg-color, .5% * $contrast)));
+}
+
+@function matte-gradient (
+    $bg-color: $base-color,
+    $direction: top,
+    $contrast: 1
+) {
+    @return linear-gradient(
+        $direction,
+        color_stops(
+            lighten($bg-color, 15% * $contrast),
+            lighten($bg-color, 5% * $contrast) 3%,
+            darken($bg-color, 5% * $contrast)
+        )
+    );
+}
+</pre>
+</body>
+</html>

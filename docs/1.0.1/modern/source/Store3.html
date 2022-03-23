@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-virtual-Store'>/**
+</span> * This type of store is a replacement for BufferedStore at least for Modern. The primary
+ * use of this store is to create and manage &quot;active ranges&quot; of records.
+ *
+ * For example:
+ *
+ *      var range = store.createActiveRange({
+ *          begin: 100,
+ *          end: 200,
+ *          prefetch: true,  // allow prefetching beyond range
+ *          callback: &#39;onRangeUpdate&#39;,
+ *          scope: this
+ *      });
+ *
+ *      // Navigate to a different range. This will causes pages to load and
+ *      // the onRangeUpdate method will be called as the load(s) progress.
+ *      // This can change the length or number of records spanned on each
+ *      // call.
+ *      //
+ *      range.goto(300, 400);
+ *
+ *      onRangeUpdate: function (range, begin, end) {
+ *          // Called when records appear in the range...
+ *          // We can check if all things are loaded:
+ *
+ *          // Or we can use range.records (sparsely populated)
+ *      }
+ *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.data.virtual.Store&#39;, {
+    extend: &#39;Ext.data.ProxyStore&#39;,
+    alias: &#39;store.virtual&#39;,
+
+    requires: [
+        &#39;Ext.util.SorterCollection&#39;,
+        &#39;Ext.util.FilterCollection&#39;,
+
+        &#39;Ext.data.virtual.PageMap&#39;,
+        &#39;Ext.data.virtual.Range&#39;
+    ],
+
+    uses: [
+        &#39;Ext.data.virtual.Group&#39;
+    ],
+
+<span id='Ext-data-virtual-Store-property-isVirtualStore'>    isVirtualStore: true,
+</span>
+    config: {
+<span id='Ext-data-virtual-Store-cfg-data'>        data: null,
+</span><span id='Ext-data-virtual-Store-cfg-totalCount'>        totalCount: null,
+</span><span id='Ext-data-virtual-Store-cfg-leadingBufferZone'>        /**
+</span>         * @cfg {Number} leadingBufferZone
+         * The number of records to fetch beyond the active range in the direction of
+         * movement. If the range is advancing forward, the additional records are beyond
+         * `end`. If advancing backwards, they are before `begin`.
+         */
+        leadingBufferZone: 200,
+
+<span id='Ext-data-virtual-Store-cfg-trailingBufferZone'>        /**
+</span>         * @cfg {Number} trailingBufferZone
+         * The number of records to fetch beyond the active trailing the direction of
+         * movement. If the range is advancing forward, the additional records are before
+         * `begin`. If advancing backwards, they are beyond `end`.
+         */
+        trailingBufferZone: 50
+    },
+
+<span id='Ext-data-virtual-Store-cfg-remoteSort'>    /**
+</span>     * @cfg remoteSort
+     * @inheritdoc
+     */
+    remoteSort: true,
+    
+<span id='Ext-data-virtual-Store-cfg-remoteFilter'>    /**
+</span>     * @cfg remoteFilter
+     * @inheritdoc
+     */
+    remoteFilter: true,
+    
+<span id='Ext-data-virtual-Store-cfg-sortOnLoad'>    /**
+</span>     * @cfg sortOnLoad
+     * @inheritdoc
+     */
+    sortOnLoad: false,
+    
+<span id='Ext-data-virtual-Store-cfg-trackRemoved'>    /**
+</span>     * @cfg trackRemoved
+     * @inheritdoc
+     */
+    trackRemoved: false,
+
+<span id='Ext-data-virtual-Store-method-constructor'>    constructor: function (config) {
+</span>        var me = this;
+
+        me.sortByPage = me.sortByPage.bind(me);
+
+        me.activeRanges = [];
+
+        me.pageMap = new Ext.data.virtual.PageMap({
+            store: me
+        });
+
+        me.callParent([ config ]);
+    },
+
+<span id='Ext-data-virtual-Store-method-doDestroy'>    doDestroy: function () {
+</span>        this.pageMap.destroy();
+        this.callParent();
+    },
+
+<span id='Ext-data-virtual-Store-method-applyGrouper'>    applyGrouper: function (grouper) {
+</span>        this.group(grouper);
+        return this.grouper;
+    },
+
+    //-----------------------------------------------------------------------
+
+<span id='Ext-data-virtual-Store-method-contains'>    /**
+</span>     * @method contains
+     * @inheritdoc
+     */
+    contains: function (record) {
+        return this.indexOf(record) &gt; -1;
+    },
+
+<span id='Ext-data-virtual-Store-method-createActiveRange'>    /**
+</span>     * Create a `Range` instance to access records by their index.
+     *
+     * @param {Object/Ext.data.virtual.Range} [config]
+     * @return {Ext.data.virtual.Range}
+     * @since 6.5.0
+     */
+    createActiveRange: function (config) {
+        var range = Ext.apply({
+            leadingBufferZone: this.getLeadingBufferZone(),
+            trailingBufferZone: this.getTrailingBufferZone(),
+            store: this
+        }, config);
+
+        return new Ext.data.virtual.Range(range);
+    },
+
+<span id='Ext-data-virtual-Store-method-getAt'>    /**
+</span>     * @method getAt
+     * @inheritdoc
+     */
+    getAt: function (index) {
+        var page = this.pageMap.getPageOf(index, /*autoCreate=*/false),
+            ret;
+
+        if (page &amp;&amp; page.records) { // if (page is loaded)
+            ret = page.records[index - page.begin];
+        }
+
+        return ret || null;
+    },
+
+<span id='Ext-data-virtual-Store-method-getById'>    /**
+</span>     * Get the Record with the specified id.
+     *
+     * This method is not affected by filtering, lookup will be performed from all records
+     * inside the store, filtered or not.
+     *
+     * @param {Mixed} id The id of the Record to find.
+     * @return {Ext.data.Model} The Record with the passed id. Returns null if not found.
+     */
+    getById: function (id) {
+        return this.pageMap.byId[id] || null;
+    },
+
+<span id='Ext-data-virtual-Store-method-getCount'>    getCount: function () {
+</span>        return this.totalCount || 0;
+    },
+
+<span id='Ext-data-virtual-Store-method-getGrouper'>    getGrouper: function () {
+</span>        return this.grouper;
+    },
+
+<span id='Ext-data-virtual-Store-method-getGroups'>    getGroups: function () {
+</span>        var me = this,
+            groups = me.groupCollection;
+
+        if (!groups) {
+            me.groupCollection = groups = new Ext.util.Collection();
+        }
+        return groups;
+    },
+
+<span id='Ext-data-virtual-Store-method-getSummaryRecord'>    getSummaryRecord: function() {
+</span>        return this.summaryRecord || null;
+    },
+
+<span id='Ext-data-virtual-Store-method-isGrouped'>    isGrouped: function () {
+</span>        return !!this.grouper;
+    },
+
+<span id='Ext-data-virtual-Store-method-group'>    group: function (grouper, direction) {
+</span>        var me = this;
+
+        grouper = grouper || null;
+
+        if (grouper) {
+            if (typeof grouper === &#39;string&#39;) {
+                grouper = {
+                    property: grouper,
+                    direction: direction || &#39;ASC&#39;
+                };
+            }
+
+            if (!grouper.isGrouper) {
+                grouper = new Ext.util.Grouper(grouper);
+            }
+            grouper.setRoot(&#39;data&#39;);
+            me.getGroups().getSorters().splice(0, 1, {
+                property: &#39;id&#39;,
+                direction: grouper.getDirection()
+            });
+        }
+
+        me.grouper = grouper;
+
+        if (!me.isConfiguring) {
+            me.reload();
+            me.fireEvent(&#39;groupchange&#39;, me, grouper);
+        }
+    },
+
+<span id='Ext-data-virtual-Store-method-getByInternalId'>    getByInternalId: function(internalId) {
+</span>        return this.pageMap.getByInternalId(internalId);
+    },
+
+<span id='Ext-data-virtual-Store-method-indexOf'>    /**
+</span>     * Get the index of the record within the virtual store. Because virtual stores only
+     * load a partial set of records, not all records in the logically matching set will
+     * have been loaded and will therefore return -1.
+     *
+     * @param {Ext.data.Model} record The record to find.
+     * @return {Number} The index of the `record` or -1 if not found.
+     */
+    indexOf: function (record) {
+        return this.pageMap.indexOf(record);
+    },
+
+<span id='Ext-data-virtual-Store-method-indexOfId'>    /**
+</span>     * Get the index within the store of the record with the passed id. Because virtual
+     * stores only load a partial set of records, not all records in the logically
+     * matching set will have been loaded and will therefore return -1.
+     *
+     * @param {String} id The id of the record to find.
+     * @return {Number} The index of the record or -1 if not found.
+     */
+    indexOfId: function (id) {
+        var rec = this.getById(id);
+        return rec ? this.indexOf(rec) : -1;
+    },
+
+<span id='Ext-data-virtual-Store-method-load'>    load: function(options) {
+</span>        if (typeof options === &#39;function&#39;) {
+            options = {
+                callback: options
+            };
+        }
+
+        var me = this,
+            page = (options &amp;&amp; options.page) || 1,
+            pageSize = me.getPageSize(),
+            operation = me.createOperation(&#39;read&#39;, Ext.apply({
+                start: (page - 1) * pageSize,
+                limit: pageSize,
+                page: page,
+
+                filters: me.getFilters().items,
+                sorters: me.getSorters().items,
+                grouper: me.getGrouper()
+            }, options));
+
+        operation.execute();
+        return operation;
+    },
+
+<span id='Ext-data-virtual-Store-method-reload'>    reload: function(options) {
+</span>        if (typeof options === &#39;function&#39;) {
+            options = {
+                callback: options
+            };
+        }
+
+        var me = this;
+
+        if (me.fireEvent(&#39;beforereload&#39;) === false) {
+            return null;
+        }
+
+        options = Ext.apply({
+            internalScope: me,
+            internalCallback: me.handleReload,
+            page: 1
+        }, options);
+
+        me.pageMap.clear();
+        me.getGroups().clear();
+
+        return me.load(options);
+    },
+
+<span id='Ext-data-virtual-Store-method-removeAll'>    //TODO load?
+</span>    //TODO reload?
+
+    removeAll: function () {
+        var activeRanges = this.activeRanges,
+            i;
+
+        this.pageMap.clear();
+
+        for (i = activeRanges.length; i-- &gt; 0; ) {
+            activeRanges[i].reset();
+        }
+    },
+
+<span id='Ext-data-virtual-Store-method-applyProxy'>    //---------------------------------------------------------------------
+</span>
+    applyProxy: function (proxy) {
+        proxy = this.callParent([proxy]);
+
+        // This store asks for pages.
+        // If used with a MemoryProxy, it must work
+        if (proxy &amp;&amp; proxy.setEnablePaging) {
+            proxy.setEnablePaging(true);
+        }
+
+        return proxy;
+    },
+
+<span id='Ext-data-virtual-Store-method-createFiltersCollection'>    // createDataCollection: function () {
+</span>    //     var result = new Ext.data.virtual.Data({
+    //             store: this
+    //         });
+    //
+    //     return result;
+    // },
+
+    createFiltersCollection: function () {
+        return new Ext.util.FilterCollection();
+    },
+
+<span id='Ext-data-virtual-Store-method-createSortersCollection'>    createSortersCollection: function () {
+</span>        return new Ext.util.SorterCollection();
+    },
+
+<span id='Ext-data-virtual-Store-method-onFilterEndUpdate'>    onFilterEndUpdate: function () {
+</span>        var me = this,
+            filters = me.getFilters(false);
+
+        // This is not affected by suppressEvent.
+        if (!me.isConfiguring) {
+            me.reload();
+            me.fireEvent(&#39;filterchange&#39;, me, filters.getRange());
+        }
+    },
+
+<span id='Ext-data-virtual-Store-method-onSorterEndUpdate'>    onSorterEndUpdate: function () {
+</span>        var me = this,
+            sorters = me.getSorters().getRange(),
+            fire = !me.isConfiguring;
+
+        if (fire) {
+            me.fireEvent(&#39;beforesort&#39;, me, sorters);
+        }
+        if (fire) {
+            me.reload();
+            me.fireEvent(&#39;sort&#39;, me, sorters);
+        }
+    },
+
+<span id='Ext-data-virtual-Store-method-updatePageSize'>    updatePageSize: function (pageSize) {
+</span>        var totalCount = this.totalCount;
+        if (totalCount !== null) {
+            this.pageMap.setPageCount(Math.ceil(totalCount / pageSize));
+        }
+    },
+
+<span id='Ext-data-virtual-Store-method-updateTotalCount'>    updateTotalCount: function (totalCount, oldTotalCount) {
+</span>        var me = this,
+            pageMap = me.pageMap;
+
+        me.totalCount = totalCount;
+
+        pageMap.setPageCount(Math.ceil(totalCount / me.getPageSize()));
+
+        me.fireEvent(&#39;totalcountchange&#39;, me, totalCount, oldTotalCount);
+    },
+
+    //--------------------------------------------------------
+    // Unsupported API&#39;s
+
+<span id='Ext-data-virtual-Store-method-add'>    //&lt;debug&gt;
+</span>    add: function () {
+        Ext.raise(&#39;Virtual stores do not support the add() method&#39;);
+    },
+
+<span id='Ext-data-virtual-Store-method-insert'>    insert: function () {
+</span>        Ext.raise(&#39;Virtual stores do not support the insert() method&#39;);
+    },
+
+<span id='Ext-data-virtual-Store-method-filter'>    filter: function () {
+</span>        if (!this.getRemoteFilter()) {
+            Ext.raise(&#39;Virtual stores do not support local filtering&#39;);
+        }
+
+        // Remote filtering forces a load. load clears the store&#39;s contents.
+        this.callParent(arguments);
+    },
+
+<span id='Ext-data-virtual-Store-method-filterBy'>    filterBy: function () {
+</span>        Ext.raise(&#39;Virtual stores do not support local filtering&#39;);
+    },
+
+<span id='Ext-data-virtual-Store-method-loadData'>    loadData: function () {
+</span>        Ext.raise(&#39;Virtual stores do not support the loadData() method&#39;);
+    },
+
+<span id='Ext-data-virtual-Store-method-applyData'>    applyData: function () {
+</span>        Ext.raise(&#39;Virtual stores do not support direct data loading&#39;);
+    },
+
+<span id='Ext-data-virtual-Store-method-updateRemoteFilter'>    updateRemoteFilter: function (remoteFilter, oldRemoteFilter) {
+</span>        if (remoteFilter === false) {
+            Ext.raise(&#39;Virtual stores are always remotely filtered.&#39;);
+        }
+
+        this.callParent([remoteFilter, oldRemoteFilter]);
+    },
+
+<span id='Ext-data-virtual-Store-method-updateRemoteSort'>    updateRemoteSort: function (remoteSort, oldRemoteSort) {
+</span>        if (remoteSort === false) {
+            Ext.raise(&#39;Virtual stores are always remotely sorted.&#39;);
+        }
+
+        this.callParent([remoteSort, oldRemoteSort]);
+    },
+
+<span id='Ext-data-virtual-Store-method-updateTrackRemoved'>    updateTrackRemoved: function (value) {
+</span>        if (value !== false) {
+            Ext.raise(&#39;Virtual stores do not support trackRemoved.&#39;);
+        }
+
+        this.callParent(arguments);
+    },
+<span id='Ext-data-virtual-Store-property-privates'>    //&lt;/debug&gt;
+</span>
+    privates: {
+        attachSummaryData: function(resultSet) {
+            var me = this,
+                summary = resultSet.getSummaryData(),
+                grouper, len, i, data, rec;
+
+            if (summary) {
+                me.summaryRecord = summary;
+            }
+
+            summary = resultSet.getGroupData();
+            if (summary) {
+                grouper = me.getGrouper();
+                if (grouper) {
+                    me.groupSummaryData = data = {};
+                    for (i = 0, len = summary.length; i &lt; len; ++i) {
+                        rec = summary[i];
+                        data[grouper.getGroupString(rec)] = rec;
+                    }
+                }
+            }
+        },
+
+        handleReload: function(op) {
+            var me = this,
+                activeRanges = me.activeRanges,
+                len = activeRanges.length,
+                pageMap = me.pageMap,
+                i, range;
+
+            if (op.wasSuccessful()) {
+                me.readTotalCount(op.getResultSet());
+                me.fireEvent(&#39;reload&#39;, me, op);
+
+                for (i = 0; i &lt; len; ++i) {
+                    range = activeRanges[i];
+                    if (pageMap.canSatisfy(range)) {
+                        range.reload();
+                    }
+                }
+            }
+        },
+
+        loadVirtualPage: function (page, callback, scope) {
+            var me = this,
+                pageMapGeneration = me.pageMap.generation;
+
+            return me.load({
+                page: page.number + 1, // store loads are 1 based
+                internalCallback: function (op) {
+                    var resultSet = op.getResultSet();
+
+                    if (pageMapGeneration === me.pageMap.generation) {
+                        if (op.wasSuccessful()) {
+                            me.readTotalCount(resultSet);
+
+                            me.attachSummaryData(resultSet);
+                        }
+
+                        callback.call(scope || page, op);
+                        me.groupSummaryData = null;
+                    }
+                }
+            });
+        },
+
+        lockGroups: function(grouper, page) {
+            var groups = this.getGroups(),
+                groupInfo = page.groupInfo = {},
+                records = page.records,
+                len = records.length,
+                groupSummaryData = this.groupSummaryData,
+                pageMap = this.pageMap,
+                n = page.number,
+                group, i, groupKey, summaryRec,
+                rec, firstRecords, first;
+
+            for (i = 0; i &lt; len; ++i) {
+                rec = records[i];
+                groupKey = grouper.getGroupString(rec);
+                if (!groupInfo[groupKey]) {
+                    groupInfo[groupKey] = rec;
+
+                    group = groups.get(groupKey);
+                    if (!group) {
+                        group = new Ext.data.virtual.Group(groupKey);
+                        groups.add(group);
+                    }
+
+                    // We want to track the first known record in the group.
+                    // If we have a record that is before the first one we know
+                    // about, add it to the front. Otherwise, we don&#39;t care about
+                    // the order at this point, so just shift it on to the end.
+                    firstRecords = group.firstRecords;
+                    first = firstRecords[0];
+                    if (first &amp;&amp; n &lt; pageMap.getPageIndex(first)) {
+                        firstRecords.unshift(rec);
+                    } else {
+                        firstRecords.push(rec);
+                    }
+
+                    summaryRec = groupSummaryData &amp;&amp; groupSummaryData[groupKey];
+                    if (summaryRec) {
+                        group.summaryRecord = summaryRec;
+                    }
+                }
+            }
+        },
+
+        onPageDataAcquired: function(page) {
+            var grouper = this.getGrouper();
+
+            if (grouper) {
+                this.lockGroups(grouper, page);
+            }
+        },
+
+        onPageDestroy: function(page) {
+            var ranges = this.activeRanges,
+                len = ranges.length,
+                i;
+
+            for (i = 0; i &lt; len; ++i) {
+                ranges[i].onPageDestroy(page);
+            }
+        },
+
+        onPageEvicted: function(page) {
+            var grouper = this.getGrouper();
+
+            if (grouper) {
+                this.releaseGroups(grouper, page);
+            }
+        },
+
+        readTotalCount: function(resultSet) {
+            var total = resultSet.getRemoteTotal();
+            if (!isNaN(total)) {
+                this.setTotalCount(total);
+            }
+        },
+
+        releaseGroups: function(grouper, page) {
+            var groups = this.getGroups(),
+                groupInfo = page.groupInfo,
+                first, firstRecords, key, group;
+
+            for (key in groupInfo) {
+                first = groupInfo[key];
+                group = groups.get(key);
+                firstRecords = group.firstRecords;
+
+                // If there is only 1 first record left, this must be it, which
+                // means the group no longer has records
+                if (firstRecords.length === 1) {
+                    groups.remove(group);
+                } else if (firstRecords[0] === first) {
+                    firstRecords.shift();
+                    firstRecords.sort(this.sortByPage);
+                } else {
+                    Ext.Array.remove(firstRecords, first);
+                }
+            }
+        },
+
+        sortByPage: function(rec1, rec2) {
+            // Bound to this instance in the constructor
+            var map = this.pageMap;
+            return map.getPageIndex(rec1) - map.getPageIndex(rec2);
+        }
+    }
+});</pre>
+</body>
+</html>

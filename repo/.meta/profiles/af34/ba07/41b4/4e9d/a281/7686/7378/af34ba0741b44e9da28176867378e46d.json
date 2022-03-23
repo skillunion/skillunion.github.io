@@ -1,0 +1,23 @@
+{
+  "data": {
+    "created": "2020-12-18T07:30:24Z",
+    "email": "anonymous",
+    "expires": "2025-12-19T00:00:00Z",
+    "name": "anonymous",
+    "uuid": "af34ba07-41b4-4e9d-a281-76867378e46d"
+  },
+  "publicKey": {
+    "algorithm": "RSA",
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmiQ5JfqLJSC1oMT2zK0HBdwIp2roof+wK0QddIWtMHOvyvma2IxLeCf9BRLjhbWNcOotpprhyDOgwVH3msBDVx2Hcmh8mlCDdDvt8vU0HIa+fBBUkIOt2/T0HKNXdI15vaDlPALFXS9V6E1jNLwl53eBapCsSkJC8Bo5xNk2WCqni9xWJWWsseBUXA5SkVkeOXhRLpFc64B8PEoqNf696TOALd6XDgSualj8Cif+C29jGzrTS/Gboehoxr8zr562ErHluBIemDWtT68bzmik7f9jiR6WId6+sHg0RRJh8pgqVWwMrjhlFjZKB48NX7nyoIJHMIQuQ2Q/B2lnAbTfjQIDAQAB"
+  },
+  "signatures": [
+    {
+      "name": "anonymous",
+      "uuid": "af34ba07-41b4-4e9d-a281-76867378e46d",
+      "created": "2020-12-18T07:30:26Z",
+      "algorithm": "SHA1withRSA",
+      "nonce": "q9g6Qbka7+8\u003d",
+      "signature": "eTbEXuJeaa380OnvCVT2cJTrjKn2GlTcCCtPXuQ+A4kH36sGRssxzmKjjHDju9IHS6NbBZUu2iFf13knnyrmaDhIloZoVpW+K9Ji8bDIPwocIJ+7AgIegb7mPkkni6ia1c6DNCDdpye58FZ8MPT5OabC3pWAYohjbEcV6yvPrk1iuK2sgUzMe36FSxWher0u+WQn2PsrgvTiyyCRsMF7kqIAQbxSH5hl7yBVFOjV6ujxCTERwYS6rvqgL3xiEaGg3FB4nHB9sOHXQ4eCjBNmS8iAkfG2AkeEnyePjAssTRwL+8XPRoDkRQrcz7ktDZIhZfO1vxHCUN25hliT6iggeA\u003d\u003d"
+    }
+  ]
+}

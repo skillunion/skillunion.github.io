@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-mixin-Hookable'>/**
+</span> * @private
+ */
+Ext.define(&#39;Ext.mixin.Hookable&#39;, {
+    extend: &#39;Ext.Mixin&#39;,
+
+<span id='Ext-mixin-Hookable-property-mixinConfig'>    mixinConfig: {
+</span>        id: &#39;hookable&#39;
+    },
+
+<span id='Ext-mixin-Hookable-method-bindHook'>    bindHook: function(instance, boundMethod, bindingMethod, preventDefault, extraArgs) {
+</span>        instance.afterMethod(boundMethod, bindingMethod || boundMethod, this, preventDefault, extraArgs);
+        return this;
+    },
+
+<span id='Ext-mixin-Hookable-method-unbindHook'>    unbindHook: function(instance, boundMethod, bindingMethod) {
+</span>        instance.removeMethodListener(boundMethod, bindingMethod || boundMethod, this);
+        return this;
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-cell-Base'>/**
+</span> * This is the base class for {@link Ext.grid.Grid grid} cells.
+ *
+ * {@link Ext.grid.Row Rows} create cells based on the {@link Ext.grid.column.Column#cell}
+ * config. Application code would rarely create cells directly.
+ */
+Ext.define(&#39;Ext.grid.cell.Base&#39;, {
+    extend: &#39;Ext.Widget&#39;,
+    xtype: &#39;gridcellbase&#39;,
+
+<span id='Ext-grid-cell-Base-property-isGridCell'>    isGridCell: true,
+</span>
+    mixins: [
+        &#39;Ext.mixin.Toolable&#39;
+    ],
+
+    cachedConfig: {
+<span id='Ext-grid-cell-Base-cfg-align'>        /**
+</span>         * @cfg {&quot;left&quot;/&quot;center&quot;/&quot;right&quot;} align
+         * The value for the `text-align` of the cell content.
+         */
+        align: null,
+
+<span id='Ext-grid-cell-Base-cfg-cls'>        /**
+</span>         * @cfg {String} cls
+         * An arbitrary CSS class to add to the cell&#39;s outermost element.
+         */
+        cls: null,
+
+<span id='Ext-grid-cell-Base-cfg-bodyCls'>        /**
+</span>         * @cfg {String} bodyCls
+         * An arbitrary CSS class to add to the cell&#39;s inner element (the element that
+         * typically contains the cell&#39;s text).
+         */
+        bodyCls: null,
+
+<span id='Ext-grid-cell-Base-cfg-bodyStyle'>        /**
+</span>         * @cfg {String/Object} bodyStyle
+         * Additional CSS styles that will be rendered into the cell&#39;s inner element (the
+         * element that typically contains the cell&#39;s text).
+         *
+         * You can pass either a string syntax:
+         *
+         *     bodyStyle: &#39;background:red&#39;
+         *
+         * Or by using an object:
+         *
+         *     bodyStyle: {
+         *         background: &#39;red&#39;
+         *     }
+         *
+         * When using the object syntax, you can define CSS Properties by using a string:
+         *
+         *     bodyStyle: {
+         *         &#39;border-left&#39;: &#39;1px solid red&#39;
+         *     }
+         *
+         * Although the object syntax is much easier to read, we suggest you to use the
+         * string syntax for better performance.
+         */
+        bodyStyle: null,
+
+<span id='Ext-grid-cell-Base-cfg-cellCls'>        /**
+</span>         * @cfg {String} cellCls
+         *
+         * @protected
+         */
+        cellCls: null,
+
+<span id='Ext-grid-cell-Base-cfg-selectable'>        /**
+</span>         * @cfg {Boolean} [selectable=true]
+         * Set to `false` to disable selection of the record when tapping on this cell.
+         */
+        selectable: null
+    },
+
+    config: {
+<span id='Ext-grid-cell-Base-cfg-column'>        /**
+</span>         * @cfg {Ext.grid.column.Column} column
+         * The grid column that created this cell.
+         * @readonly
+         */
+        column: null,
+
+<span id='Ext-grid-cell-Base-cfg-hidden'>        /**
+</span>         * @cfg {Boolean} hidden
+         * The hidden state of this cell (propagated from the column&#39;s hidden state).
+         * @private
+         */
+        hidden: false,
+
+<span id='Ext-grid-cell-Base-cfg-record'>        /**
+</span>         * @cfg {Ext.data.Model} record
+         * The currently associated record.
+         * @readonly
+         */
+        record: null,
+
+<span id='Ext-grid-cell-Base-cfg-value'>        /**
+</span>         * @cfg {Mixed} value
+         * The value of the {@link Ext.grid.column.Column#dataIndex dataIndex} field of
+         * the associated record. Application code should not need to set this value.
+         */
+        value: null
+    },
+
+<span id='Ext-grid-cell-Base-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;gridcell&#39;,
+</span><span id='Ext-grid-cell-Base-property-dirtyCls'>    dirtyCls: Ext.baseCSSPrefix + &#39;dirty&#39;,
+</span>
+<span id='Ext-grid-cell-Base-property-alignCls'>    alignCls: {
+</span>        left: Ext.baseCSSPrefix + &#39;align-left&#39;,
+        center: Ext.baseCSSPrefix + &#39;align-center&#39;,
+        right: Ext.baseCSSPrefix + &#39;align-right&#39;
+    },
+
+<span id='Ext-grid-cell-Base-property-inheritUi'>    inheritUi: true,
+</span>
+<span id='Ext-grid-cell-Base-property-cellSelector'>    cellSelector: &#39;.&#39; + Ext.baseCSSPrefix + &#39;gridcell&#39;,
+</span>
+<span id='Ext-grid-cell-Base-property-defaultBindProperty'>    defaultBindProperty: &#39;value&#39;,
+</span>
+<span id='Ext-grid-cell-Base-cfg-toolDefaults'>    toolDefaults: {
+</span>        zone: &#39;head&#39;,
+        ui: &#39;gridcell&#39;
+    },
+
+<span id='Ext-grid-cell-Base-method-getTemplate'>    getTemplate: function() {
+</span>        var template = {
+            reference: &#39;bodyElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;body-el&#39;,
+            uiCls: &#39;body-el&#39;
+        };
+
+        // hook for subclasses to add elements inside the inner element
+        // e.g. checkcell, expandercell
+        if (!(template.children = this.innerTemplate)) {
+            // Otherwise ensure that cells have content and achieve a proper height
+            template.html = &#39;\xA0&#39;;
+        }
+
+        return [template];
+    },
+
+<span id='Ext-grid-cell-Base-method-doDestroy'>    doDestroy: function() {
+</span>        this.setColumn(null);
+        this.setRecord(null);
+        this.mixins.toolable.doDestroy.call(this);
+
+        this.callParent();
+    },
+
+<span id='Ext-grid-cell-Base-method-getComputedWidth'>    getComputedWidth: function() {
+</span>        return this.getHidden() ? 0 : this.getWidth();
+    },
+
+<span id='Ext-grid-cell-Base-method-updateAlign'>    updateAlign: function (align, oldAlign) {
+</span>        var me = this,
+            alignCls = me.alignCls;
+
+        if (oldAlign) {
+            me.removeCls(alignCls[oldAlign]);
+        }
+
+        if (align) {
+            //&lt;debug&gt;
+            if (!alignCls[align]) {
+                Ext.raise(&quot;Invalid value for align: &#39;&quot; + align + &quot;&#39;&quot;);
+            }
+            //&lt;/debug&gt;
+            me.addCls(alignCls[align]);
+        }
+
+        me.syncToolableAlign();
+    },
+
+<span id='Ext-grid-cell-Base-method-updateBodyCls'>    updateBodyCls: function(cellCls, oldCellCls) {
+</span>        if (cellCls || oldCellCls) {
+            this.bodyElement.replaceCls(oldCellCls, cellCls);
+        }
+    },
+
+<span id='Ext-grid-cell-Base-method-updateBodyStyle'>    updateBodyStyle: function(style){
+</span>        this.bodyElement.applyStyles(style);
+    },
+
+<span id='Ext-grid-cell-Base-method-updateCellCls'>    updateCellCls: function(cls, oldCls) {
+</span>        this.element.replaceCls(oldCls, cls);
+    },
+
+<span id='Ext-grid-cell-Base-method-updateCls'>    updateCls: function(cls, oldCls) {
+</span>        this.element.replaceCls(oldCls, cls);
+    },
+
+<span id='Ext-grid-cell-Base-method-updateColumn'>    updateColumn: function (column) {
+</span>        var dataIndex = null,
+            row = this.row;
+
+        if (column) {
+            dataIndex = ((row &amp;&amp; row.isSummaryRow) &amp;&amp; column.getSummaryDataIndex()) ||
+                    column.getDataIndex();
+        }
+
+        this.dataIndex = dataIndex;
+    },
+
+<span id='Ext-grid-cell-Base-method-updateRecord'>    updateRecord: function () {
+</span>        if (!this.destroyed &amp;&amp; !this.destroying) {
+            this.refresh();
+        }
+    },
+
+<span id='Ext-grid-cell-Base-method-updateSelectable'>    updateSelectable: function (value) {
+</span>        this.toggleCls(Ext.baseCSSPrefix + &#39;item-no-select&#39;, value === false);
+    },
+
+<span id='Ext-grid-cell-Base-method-refresh'>    refresh: function (ctx) {
+</span>        var me = this,
+            was = me.refreshContext,
+            context, modified, value;
+
+        if (!me.isBound(&#39;value&#39;)) {
+            ctx = ctx || was;
+            modified = ctx &amp;&amp; ctx.modified;
+
+            if (!modified || me.bound(modified)) {
+                me.refreshContext = context = me.beginRefresh(ctx);
+
+                value = me.refreshValue(context);
+
+                if (value !== me.getValue()) {
+                    me.setValue(value);
+                }
+                else if (me.writeValue) {
+                    me.writeValue();
+                }
+
+                me.refreshContext = was;
+            }
+        }
+    },
+
+<span id='Ext-grid-cell-Base-method-refreshValue'>    refreshValue: function (context) {
+</span>        var me = this,
+            record = context.record,
+            dataIndex = context.dataIndex,
+            value, dirty, modified;
+
+        if (context.summary) {
+            value = me.summarize(context);
+        }
+        else if (record &amp;&amp; dataIndex) {
+            value = record.get(dataIndex);
+            modified = record.modified;
+            dirty = !!(modified &amp;&amp; modified.hasOwnProperty(dataIndex));
+
+            if (dirty !== me.$dirty) {
+                me.toggleCls(me.dirtyCls, dirty);
+
+                me.$dirty = dirty;
+            }
+        }
+
+        return value;
+    },
+
+<span id='Ext-grid-cell-Base-property-privates'>    privates: {
+</span>        //&lt;debug&gt;
+        refreshCounter: 0,
+        //&lt;/debug&gt;
+
+        $dirty: false,
+
+<span id='Ext-grid-cell-Base-property-refreshContext'>        /**
+</span>         * @property {Object} refreshContext
+         * This object holds a cache of information used across the cells of a row during
+         * a `refresh` pass (when the record changes).
+         * @since 6.5.0
+         * @private
+         */
+        refreshContext: null,
+
+        storeMethodRe: /^(?:average|max|min|sum)$/,
+
+        augmentToolHandler: function (tool, args) {
+            // args = [ cell, tool, ev ]   ==&gt;   [ grid, info ]
+            var info = args[1] = {
+                event: args.pop(),
+                record: this.getRecord(),
+                column: this.getColumn(),
+                cell: args[0],
+                tool: args[1]
+            };
+
+            args[0] = info.grid = info.column.getGrid();
+        },
+
+        beginRefresh: function (context) {
+            var me = this,
+                column = me.getColumn(),
+                row = me.row;
+
+            // Ask our parent row or column to kick things off...
+            context = context || (row ? row.beginRefresh() : {
+                    record: me.getRecord()
+                });
+
+            //&lt;debug&gt;
+            ++me.refreshCounter; // for testing
+            context.from = context.from || &#39;cell&#39;;
+            //&lt;/debug&gt;
+
+            context.cell = me;
+            context.column = column;
+            context.dataIndex = me.dataIndex;
+            context.scope = column.getScope();
+
+            return context;
+        },
+
+<span id='Ext-grid-cell-Base-method-bound'>        /**
+</span>         * Returns `true` if this cell&#39;s value is bound to any of the given `fields`. This
+         * is typically due to the `dataIndex`.
+         * @param {Object} fields An object keyed by field names with truthy values.
+         * @return {Boolean}
+         * @since 6.5.1
+         * @private
+         */
+        bound: function (fields) {
+            return !!fields[this.dataIndex];
+        },
+
+        summarize: function (context) {
+            var me = this,
+                column = context.column,
+                summaryType = column.getSummaryType(),
+                dataIndex = context.dataIndex,
+                group = context.group,
+                store = context.store,
+                records = context.records,
+                value;
+
+            if (summaryType) {
+                //&lt;debug&gt;
+                if (!column.$warnSummaryType) {
+                    column.$warnSummaryType = true;
+                    Ext.log.warn(&#39;[column] summaryType is deprecated; use summaryRenderer (&#39; +
+                        column.getId() + &#39;)&#39;);
+                }
+                //&lt;/debug&gt;
+
+                if (Ext.isFunction(summaryType)) {
+                    value = summaryType.call(store, store.data.items.slice(), dataIndex);
+                }
+                else if (summaryType === &#39;count&#39;) {
+                    value = store.getCount();
+                }
+                else if (me.storeMethodRe.test(summaryType)) {
+                    value = store[summaryType](dataIndex);
+                }
+                else {
+                    value = Ext.callback(summaryType, null,
+                        [ store.data.items.slice(), dataIndex, store ], 0, me);
+                }
+            }
+            else if (!(summaryType = column.getSummary())) {
+                if (dataIndex) {
+                    value = context.record.get(dataIndex);
+                }
+            }
+            // summaryType is an Ext.data.summary.* fellow
+            //&lt;debug&gt;
+            else if (!dataIndex) {
+                Ext.raise(&#39;Cannot use summary config w/o summaryDataIndex or dataIndex (&#39; +
+                        context.grid.getId() + &#39;)&#39;);
+            }
+            //&lt;/debug&gt;
+            else {
+                //&lt;debug&gt;
+                if (group) {
+                    if (group.isVirtualGroup) {
+                        Ext.raise(&#39;Cannot calculate a group summary on a virtual store (&#39; +
+                            context.grid.getId() + &#39;)&#39;);
+                    }
+                }
+                else if (store.getRemoteSort()) {
+                    Ext.raise(&#39;Cannot calculate a summary on a remoteSort store (&#39; +
+                        context.grid.getId() + &#39;)&#39;);
+                }
+                //&lt;/debug&gt;
+
+                value = summaryType.calculate(records, dataIndex, &#39;data&#39;, 0, records.length);
+            }
+
+            return value;
+        }
+<span id='Ext-grid-cell-Base-property-deprecated'>    }, // privates
+</span>
+    deprecated: {
+        &#39;6.5&#39;: {
+            configs: {
+                innerStyle: &#39;bodyStyle&#39;,
+                innerCls: &#39;bodyCls&#39;
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

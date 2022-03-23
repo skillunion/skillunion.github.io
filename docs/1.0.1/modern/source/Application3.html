@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-app-Application'>/**
+</span> * @class Ext.app.Application
+ */
+
+Ext.define(&#39;Ext.overrides.app.Application&#39;, {
+    override: &#39;Ext.app.Application&#39;,
+    requires: [&#39;Ext.viewport.Viewport&#39;],
+    uses: [&#39;Ext.tip.Manager&#39;],
+
+    config: {
+<span id='Ext-app-Application-cfg-viewport'>        /**
+</span>         * @cfg {Object} viewport
+         * Any configuration to be passed on to the {@link Ext.Viewport}.
+         *
+         * @since 6.5.0
+         */
+        viewport: null
+    },
+
+    // @cmd-auto-dependency {defaultType: &quot;Ext.tip.Manager&quot;}
+<span id='Ext-app-Application-cfg-quickTips'>    /**
+</span>     * @cfg {Boolean/Object} quickTips
+     * `true` to enable quick tips to be read from the DOM and displayed
+     * by the `Ext.tip.Manager`. Pass the object form as a configuration
+     * for `Ext.tip.Manager`.
+     *
+     * @since 6.2.0
+     */
+    quickTips: false,
+
+<span id='Ext-app-Application-method-destroy'>    destroy: function () {
+</span>        this.setQuickTips(false);
+
+        this.callParent();
+    },
+
+<span id='Ext-app-Application-method-initMainView'>    initMainView: function() {
+</span>        var me = this,
+            viewport = me.viewport = Ext.Viewport,
+            mainView;
+
+        me.callParent();
+
+        mainView = me.getMainView();
+
+        // Ensure the viewport is ready by the time launch is called
+        viewport.onAppLaunch();
+
+        if (mainView) {
+            viewport.add(mainView);
+        }
+    },
+
+<span id='Ext-app-Application-method-applyQuickTips'>    applyQuickTips: function(quickTips) {
+</span>        quickTips = quickTips || null;
+
+        if (quickTips) {
+            if (quickTips === true) {
+                quickTips = {};
+            }
+            quickTips = new Ext.tip[&#39;Manager&#39;](quickTips);
+        }
+
+        return quickTips;
+    },
+
+<span id='Ext-app-Application-method-updateQuickTips'>    updateQuickTips: function(quickTips, oldQuickTips) {
+</span>        if (oldQuickTips) {
+            oldQuickTips.destroy();
+        }
+    }
+});
+</pre>
+</body>
+</html>

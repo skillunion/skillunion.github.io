@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-trigger-Component'>/**
+</span> * A form field trigger that contains a Component
+ */
+Ext.define(&#39;Ext.field.trigger.Component&#39;, {
+    extend: &#39;Ext.field.trigger.Base&#39;,
+    alias: &#39;trigger.component&#39;,
+<span id='Ext-field-trigger-Component-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;componenttrigger&#39;,
+</span>
+    config: {
+<span id='Ext-field-trigger-Component-cfg-component'>        /**
+</span>         * @cfg {Ext.Component}
+         */
+        component: null
+    },
+
+<span id='Ext-field-trigger-Component-method-doDestroy'>    doDestroy: function () {
+</span>        this.setComponent(null);
+        this.callParent();
+    },
+
+<span id='Ext-field-trigger-Component-method-applyComponent'>    applyComponent: function (config, existing) {
+</span>        return Ext.updateWidget(existing, config, this, &#39;createComponent&#39;);
+    },
+
+<span id='Ext-field-trigger-Component-method-createComponent'>    createComponent: function (config) {
+</span>        return Ext.apply({
+            $initParent: this,
+            ownerCmp: this
+        }, config);
+    },
+
+<span id='Ext-field-trigger-Component-method-updateComponent'>    updateComponent: function (component) {
+</span>        if (component) {
+            delete component.$initParent;
+            component.ownerCmp = this;
+
+            this.el.appendChild(component.el);
+        }
+    },
+
+<span id='Ext-field-trigger-Component-method-updateDisabled'>    updateDisabled: function(disabled, oldDisabled) {
+</span>        this.callParent([disabled, oldDisabled]);
+
+        this.getComponent().setDisabled(disabled);
+    },
+
+<span id='Ext-field-trigger-Component-method-getRefItems'>    getRefItems: function(deep) {
+</span>        var refItems = [],
+            component = this.getComponent();
+
+        if (component) {
+            refItems.push(component);
+
+            if (deep &amp;&amp; component.getRefItems) {
+                refItems.push.apply(refItems, component.getRefItems(deep));
+            }
+        }
+
+        return refItems;
+    }
+});
+</pre>
+</body>
+</html>

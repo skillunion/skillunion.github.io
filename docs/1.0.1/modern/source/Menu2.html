@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-menu-Menu'>/**
+</span> * A menu object. This is the container to which you may add {@link Ext.menu.Item menu items}.
+ *
+ * Menus may contain either {@link Ext.menu.Item menu items}, or general
+ * {@link Ext.Component Components}. Menus may also contain docked items because it
+ * extends {@link Ext.Panel}.
+ *
+ * By default, Menus are absolutely positioned, floated Components. By configuring a
+ * Menu with `{@link #cfg-floated}: false`, a Menu may be used as a child of a 
+ * {@link Ext.Container Container}.
+ *
+ *     @example
+ *     var mainPanel = Ext.create(&#39;Ext.Panel&#39;, {
+ *         fullscreen: true,
+ *
+ *         items: {
+ *             xtype: &#39;menu&#39;,
+ *             floated: false,
+ *             docked: &#39;left&#39;,
+ *             items: [{
+ *                 text: &#39;regular item 1&#39;
+ *             },{
+ *                 text: &#39;regular item 2&#39;
+ *             },{
+ *                 text: &#39;regular item 3&#39;
+ *             }]
+ *         }
+ *     });
+ *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.menu.Menu&#39;, {
+    extend: &#39;Ext.Panel&#39;,
+    xtype: &#39;menu&#39;,
+
+    requires: [
+        &#39;Ext.menu.Item&#39;,
+        &#39;Ext.menu.Manager&#39;,
+        &#39;Ext.layout.VBox&#39;
+    ],
+
+<span id='Ext-menu-Menu-property-isMenu'>    /**
+</span>     * @property {Boolean} isMenu
+     * `true` in this class to identify an object as an instantiated Menu, or subclass thereof.
+     */
+    isMenu: true,
+
+    config: {
+<span id='Ext-menu-Menu-cfg-align'>        /**
+</span>         * @cfg {String} align
+         */
+        align: &#39;tl-bl?&#39;, // TODO: Override in RTL
+
+<span id='Ext-menu-Menu-cfg-indented'>        /**
+</span>         * @cfg {Boolean} indented
+         * By default menu items reserve space at their start for an icon.  Set indented
+         * to `false` to remove this space.  This behavior can be overridden at the level
+         * of an individual menu item using the item&#39;s {@link Ext.menu.Item#indented} config.
+         * Items that are not {@link Ext.menu.Item Menu Items} can provide an `indented`
+         * property in their initial config object to control their indentation behavior.
+         *
+         * When set to `false` no vertical `separator` will be shown.
+         */
+        indented: true,
+
+<span id='Ext-menu-Menu-cfg-separator'>        /**
+</span>         * @cfg {Boolean} [separator=false]
+         * True to show a vertical icon separator line between the icons and the menu text.
+         */
+        separator: null,
+
+<span id='Ext-menu-Menu-cfg-autoHide'>        /**
+</span>         * @cfg {Boolean} [autoHide=true]
+         * `false` to prevent the menu from auto-hiding when focus moves elsewhere
+         */
+        autoHide: null,
+
+<span id='Ext-menu-Menu-cfg-groups'>        /**
+</span>         * @cfg {Object} groups
+         * This object is a dictionary of {@link Ext.menu.RadioItem#cfg!group radio group}
+         * keys and {@link Ext.menu.RadioItem#cfg!value values}. This map is maintained by
+         * the individual radio items in this menu but can also be useful for data binding.
+         *
+         * For example:
+         *
+         *      @example
+         *      Ext.Viewport.add({
+         *          xtype: &#39;container&#39;,
+         *          items: [{
+         *              xtype: &#39;button&#39;,
+         *              bind: &#39;Call {menuGroups.option}&#39;,
+         *               
+         *              viewModel: {
+         *                  data: {
+         *                      menuGroups: {
+         *                          option: &#39;home&#39;
+         *                      }
+         *                  }
+         *              },
+         *               
+         *              menu: {
+         *                  bind: {
+         *                      groups: &#39;{menuGroups}&#39;
+         *                  },
+         *                  items: [{
+         *                      text: &#39;Home&#39;,
+         *                      group: &#39;option&#39;,
+         *                      value: &#39;home&#39;
+         *                  }, {
+         *                      text: &#39;Work&#39;,
+         *                      group: &#39;option&#39;,
+         *                      value: &#39;work&#39;
+         *                  }, {
+         *                      text: &#39;Mobile&#39;,
+         *                      group: &#39;option&#39;,
+         *                      value: &#39;mobile&#39;
+         *                  }]
+         *              }
+         *          }]
+         *      });
+         *
+         * The presence of the `group` property in the configuration of the above
+         * {@link Ext.menu.Menu menu} causes the menu to create a
+         * {@link Ext.menu.RadioItem RadioItem} instances.
+         */
+        groups: null
+    },
+
+<span id='Ext-menu-Menu-cfg-allowOtherMenus'>    /**
+</span>     * @cfg {Boolean} allowOtherMenus
+     * True to allow multiple menus to be displayed at the same time.
+     */
+    allowOtherMenus: false,
+
+<span id='Ext-menu-Menu-cfg-ignoreParentClicks'>    /**
+</span>     * @cfg {Boolean} ignoreParentClicks
+     * True to ignore clicks on any item in this menu that is a parent item (displays a submenu)
+     * so that the submenu is not dismissed when clicking the parent item.
+     */
+    ignoreParentClicks: false,
+
+<span id='Ext-menu-Menu-cfg-mouseLeaveDelay'>    /**
+</span>     * @cfg {Number} mouseLeaveDelay
+     * The delay in ms as to how long the framework should wait before firing a mouseleave event.
+     * This allows submenus not to be collapsed while hovering other menu items.
+     */
+    mouseLeaveDelay: 50,
+    
+<span id='Ext-menu-Menu-cfg-defaultType'>    defaultType: &#39;menuitem&#39;,
+</span>
+<span id='Ext-menu-Menu-cfg-autoSize'>    autoSize: null,
+</span>
+<span id='Ext-menu-Menu-cfg-keyMap'>    keyMap: {
+</span>        scope: &#39;this&#39;,
+
+        // Space key clicks
+        SPACE: &#39;onSpaceKey&#39;,
+
+        // ESC hides
+        ESC: &#39;onEscKey&#39;
+    },
+
+<span id='Ext-menu-Menu-cfg-layout'>    layout: {
+</span>        type: &#39;vbox&#39;,
+        align: &#39;stretch&#39;
+    },
+
+<span id='Ext-menu-Menu-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;menu&#39;,
+</span><span id='Ext-menu-Menu-property-indentedCls'>    indentedCls: Ext.baseCSSPrefix + &#39;indented&#39;,
+</span><span id='Ext-menu-Menu-property-hasSeparatorCls'>    hasSeparatorCls: Ext.baseCSSPrefix + &#39;has-separator&#39;,
+</span><span id='Ext-menu-Menu-property-nonMenuItemCls'>    nonMenuItemCls: Ext.baseCSSPrefix + &#39;non-menuitem&#39;,
+</span>
+<span id='Ext-menu-Menu-cfg-allowFocusingDisabledChildren'>    // We need to focus disabled menu items when navigating as per WAI-ARIA:
+</span>    // http://www.w3.org/TR/wai-aria-practices/#menu
+    allowFocusingDisabledChildren: true,
+
+<span id='Ext-menu-Menu-cfg-border'>    border: true,
+</span>
+<span id='Ext-menu-Menu-cfg-defaultFocus'>    // When a Menu is used as a carrier to float some focusable Component such as a
+</span>    // DatePicker or ColorPicker. This will be used to delegate focus to its focusable
+    // child. In normal usage, a Menu is a FocusableContainer, and this will not be
+    // consulted.
+    defaultFocus: &#39;:focusable&#39;,
+
+<span id='Ext-menu-Menu-cfg-floated'>    floated: true,
+</span>
+<span id='Ext-menu-Menu-property-focusable'>    // May be asked to focus, will delegate down to its first focusable child
+</span>    focusable: true,
+
+<span id='Ext-menu-Menu-cfg-focusableContainer'>    focusableContainer: true,
+</span>
+<span id='Ext-menu-Menu-cfg-nameHolder'>    nameHolder: true,
+</span><span id='Ext-menu-Menu-cfg-weighted'>    weighted: true,
+</span>
+<span id='Ext-menu-Menu-event-groupchange'>    /**
+</span>     * @event groupchange
+     * Fires when a child {@link Ext.menu.RadioItem radio item} in a menu
+     * {@link Ext.menu.RadioItem#cfg!group group} changes {@link Ext.menu.RadioItem#cfg!checked}
+     * state, and the group&#39;s value therefore changes.
+     *
+     * The value changes to the {@link Ext.menu.RadioItem#cfg!value} of the sole checked
+     * member of the group, or `null` if all members have become
+     * {@link Ext.menu.RadioItem#cfg!allowUncheck unchecked}.
+     *
+     * @param {Ext.menu.Menu} menu The menu firing this event.
+     * @param {String} groupName The name of the group of items.
+     * @param {Object} newValue The new value of the group.
+     * @param {Object} oldValue The old value of the group.
+     * @since 6.5.1
+     */
+
+    initialize: function() {
+        var me = this,
+            listeners = {
+                click: me.onClick,
+                mouseover: me.onMouseOver,
+                scope: me
+            };
+
+        me.callParent();
+
+        if (Ext.supports.Touch) {
+            listeners.pointerdown = me.onMouseOver;
+        }
+        me.element.on(listeners);
+
+        // Child item mouseovers are handled on a delay so that
+        // rapid movement down a menu does not activate/deactivate during mouse motion.
+        // Also, allow for rapid reentry when user moves mouse quickly.
+        me.itemOverTask = new Ext.util.DelayedTask(me.handleItemOver, me);
+
+        me.mouseMonitor = me.el.monitorMouseLeave(me.mouseLeaveDelay, me.onMouseLeave, me);
+    },
+
+<span id='Ext-menu-Menu-method-doDestroy'>    doDestroy: function() {
+</span>        var me = this;
+
+        // Cancel any impending mouseover consequences
+        me.itemOverTask.cancel();
+
+        // Menu can be destroyed while shown;
+        // we should notify the Manager
+        Ext.menu.Manager.onHide(me);
+        
+        me.parentMenu = me.ownerCmp = null;
+
+        if (me.rendered) {
+            me.el.un(me.mouseMonitor);
+        }
+        
+        me.callParent();
+    },
+
+<span id='Ext-menu-Menu-method-showBy'>    showBy: function(component, alignment, options) {
+</span>        this.callParent([component, alignment || this.getAlign(), options]);
+    },
+
+<span id='Ext-menu-Menu-method-onFocusEnter'>    onFocusEnter: function(e) {
+</span>        var me = this,
+            hierarchyState;
+
+        me.callParent([e]);
+
+        me.mixins.focusablecontainer.onFocusEnter.call(me, e);
+        if (me.getFloated()) {
+            hierarchyState = me.getInherited();
+
+            // The topmost focusEnter event upon entry into a floating menu stack
+            // is recorded in the hierarchy state.
+            //
+            // Focusing upwards from descendant menus in a stack will NOT trigger onFocusEnter
+            // on the parent menu because focus is already in its component tree.
+            // For focusing downwards we check for presence of the topmostFocusEvent
+            // already being present in the hierarchy.
+            //
+            // If we need to explicitly access a focus reversion point, we can use that.
+            // This is only ever needed if tabbing forwards from the menu. We explicitly
+            // push focus to the topmost focusEnter component, and then allow natural
+            // tabbing to proceed from there.
+            //
+            // In all other focus reversion scenarios we use the immediate focusEnter event
+            if (!hierarchyState.topmostFocusEvent) {
+                hierarchyState.topmostFocusEvent = e;
+            }
+        }
+    },
+
+<span id='Ext-menu-Menu-method-onFocusLeave'>    onFocusLeave: function(e) {
+</span>        this.callParent([e]);
+        
+        if (this.getAutoHide() !== false) {
+            this.hide();
+        }
+    },
+
+<span id='Ext-menu-Menu-method-onItemAdd'>    onItemAdd: function(item, index) {
+</span>        this.callParent([item, index]);
+
+        this.syncItemIndentedCls(item);
+
+        if (!item.isMenuItem &amp;&amp; !item.isMenuSeparator) {
+            item.addCls(this.nonMenuItemCls);
+        }
+    },
+
+<span id='Ext-menu-Menu-method-onItemRemove'>    onItemRemove: function(item, index, destroying) {
+</span>        this.callParent([item, index, destroying]);
+
+        item.removeCls(this.indentedCls, this.nonMenuItemCls);
+    },
+
+<span id='Ext-menu-Menu-method-beforeShow'>    beforeShow: function() {
+</span>        var me = this,
+            parent;
+
+        // If this is the topmost in a stack of menus, hide &quot;other&quot; menus
+        // if we are configured not to tolerate other menus being visible.
+        if (me.getFloated()) {
+            parent = me.hasFloatMenuParent();
+
+            if (!parent &amp;&amp; !me.allowOtherMenus) {
+                Ext.menu.Manager.hideAll();
+            }
+        }
+
+        me.callParent(arguments);
+    },
+
+<span id='Ext-menu-Menu-method-afterShow'>    afterShow: function() {
+</span>        var me = this,
+            ariaDom = me.ariaEl.dom;
+
+        me.callParent(arguments);
+        Ext.menu.Manager.onShow(me);
+
+        if (me.getFloated() &amp;&amp; ariaDom) {
+            ariaDom.setAttribute(&#39;aria-expanded&#39;, true);
+        }
+        
+        // Restore configured maxHeight
+        if (me.getFloated()) {
+            me.maxHeight = me.savedMaxHeight;
+        }
+        if (me.autoFocus) {
+            me.focus();
+        }
+    },
+
+<span id='Ext-menu-Menu-method-afterHide'>    afterHide: function() {
+</span>        var me = this,
+            ariaDom = me.ariaEl.dom;
+
+        me.callParent();
+        me.lastHide = Ext.Date.now();
+        Ext.menu.Manager.onHide(me);
+
+        if (me.getFloated() &amp;&amp; ariaDom) {
+            ariaDom.setAttribute(&#39;aria-expanded&#39;, false);
+        }
+
+        // Top level focusEnter is only valid when focused
+        delete me.getInherited().topmostFocusEvent;
+    },
+
+<span id='Ext-menu-Menu-method-factoryItem'>    factoryItem: function(cfg) {
+</span>        var result;
+
+        if (typeof cfg === &#39;string&#39; &amp;&amp; cfg[0] !== &#39;@&#39;) {
+            if (cfg === &#39;-&#39;) {
+                cfg = { xtype: &#39;menuseparator&#39; };
+            } else {
+                cfg = {};
+            }
+        }
+
+        result = this.callParent([cfg]);
+
+        if (result.isMenuItem) {
+            result.parentMenu = this;
+        }
+
+        return result;
+    },
+
+<span id='Ext-menu-Menu-method-updateIndented'>    updateIndented: function(indented) {
+</span>        var me = this;
+
+        if (!me.isConfiguring) {
+            me.bodyElement.toggleCls(me.hasSeparatorCls, !!(indented &amp;&amp; me.getSeparator()));
+            me.items.each(me.syncItemIndentedCls, me);
+        }
+    },
+
+<span id='Ext-menu-Menu-method-updateSeparator'>    updateSeparator: function(separator) {
+</span>        this.bodyElement.toggleCls(this.hasSeparatorCls, !!(separator &amp;&amp; this.getIndented()));
+    },
+
+<span id='Ext-menu-Menu-property-privates'>    privates: {
+</span>        applyItemDefaults: function (item) {
+            item = this.callParent([item]);
+
+            if (!item.isComponent &amp;&amp; !item.xtype &amp;&amp; !item.xclass) {
+                // If configured with group or name, then it&#39;s a RadioItem
+                if (item.group || item.name) {
+                    item.xtype = &#39;menuradioitem&#39;;
+                }
+                // The presence of a checked config defaults the type to a CheckItem
+                else if (&#39;checked&#39; in item) {
+                    item.xtype = &#39;menucheckitem&#39;;
+                }
+            }
+
+            return item;
+        },
+
+        applyGroups: function (groups, oldGroups) {
+            var me = this,
+                currentGroups = Ext.apply({}, oldGroups),
+                isConfiguring = me.isConfiguring,
+                groupName, members, len, i, item, value, oldValue;
+
+            if (groups) {
+                for (groupName in groups) {
+                    oldValue = currentGroups[groupName];
+                    currentGroups[groupName] = value = groups[groupName];
+
+                    if (!isConfiguring) {
+                        members = me.lookupName(groupName);
+                        for (i = 0, len = members.length; i &lt; len; i++) {
+                            item = members[i];
+
+                            // Set checked state depending on whether the value is the group&#39;s value
+                            item.setChecked(item.getValue() === value);
+                        }
+                        me.fireEvent(&#39;groupchange&#39;, me, groupName, value, oldValue);
+                    }
+                }
+
+                // Creates a bindable updater on first call after configuration is done.
+                // We only want one if this menu *has* RadioItem groups.
+                if (!isConfiguring) {
+                    me.addBindableUpdater(&#39;groups&#39;);
+                }
+            }
+
+            return currentGroups;
+        },
+
+        processFocusableContainerKeyEvent: function(e) {
+            var keyCode = e.keyCode,
+                item;
+
+            // FocusableContainer ignores events from input fields.
+            // In Menus we have a special case. The ESC key, or arrow from &lt;input type=&quot;checkbox&quot;&gt; must be handled.
+            if (keyCode === e.ESC || (Ext.fly(e.target).is(&#39;input[type=checkbox]&#39;) &amp;&amp; (keyCode === e.LEFT || keyCode === e.RIGHT || keyCode === e.UP || keyCode === e.DOWN))) {
+                e.preventDefault();
+                // TODO: we should never modify the &quot;target&quot; property of an event
+                item = this.getItemFromEvent(e);
+                e.target = item &amp;&amp; item.focusEl.dom;
+            }
+            // TAB from textual input fields is converted into UP or DOWN.
+            else if (keyCode === e.TAB &amp;&amp; Ext.fly(e.target).is(&#39;input[type=text],textarea&#39;)) {
+                e.preventDefault();
+                // TODO: we should never modify the &quot;target&quot; property of an event
+                item = this.getItemFromEvent(e);
+                e.target = item &amp;&amp; item.focusEl.dom;
+                if (e.shiftKey) {
+                    e.shiftKey = false;
+                    e.keyCode = e.UP;
+                } else {
+                    e.keyCode = e.DOWN;
+                }
+            } else {
+                return this.callParent([e]);
+            }
+
+            return e;
+        },
+
+        onEscKey: function(e) {
+            if (this.getFloated()) {
+                this.hide();
+            }
+        },
+
+        onSpaceKey: function(e) {
+            var clickedItem = this.getItemFromEvent(e);
+
+            if (clickedItem &amp;&amp; clickedItem.isMenuItem) {
+                clickedItem.onSpace(e);
+            }
+        },
+
+        onFocusableContainerLeftKey: function(e) {
+            // The default action is to scroll the nearest horizontally scrollable container
+            e.preventDefault();
+
+            // Focus reversion will focus the activating MenuItem
+            if (this.parentMenu) {
+                this.hide();
+            }
+        },
+
+        onFocusableContainerRightKey: function(e) {
+            var clickedItem = this.getItemFromEvent(e);
+
+            // The default action is to scroll the nearest horizontally scrollable container
+            e.preventDefault();
+
+            if (clickedItem) {
+                clickedItem.expandMenu(e);
+            }
+        },
+
+        onClick: function(e) {
+            var me = this,
+                type = e.type,
+                clickedItem,
+                clickResult,
+                isKeyEvent = type === &#39;keydown&#39;,
+                isTouchEvent = e.pointerType === &#39;touch&#39;;
+
+            if (me.getDisabled()) {
+                return e.stopEvent();
+            }
+
+            clickedItem = me.getItemFromEvent(e);
+            if (clickedItem &amp;&amp; clickedItem.isMenuItem) {
+                if (!clickedItem.getMenu() || !me.ignoreParentClicks) {
+                    clickResult = clickedItem.onClick(e);
+                }
+                else {
+                    e.stopEvent();
+                }
+
+                // Click handler on the item could have destroyed the menu
+                if (me.destroyed) {
+                    return;
+                }
+
+                // SPACE and ENTER invokes the menu
+                if (clickedItem.getMenu() &amp;&amp; clickResult !== false &amp;&amp; (isKeyEvent || isTouchEvent)) {
+                    clickedItem.expandMenu(e);
+                }
+            }
+            // Click event may be fired without an item, so we need a second check
+            if (!clickedItem || clickedItem.getDisabled()) {
+                clickedItem = undefined;
+            }
+
+            me.fireEvent(&#39;click&#39;, me, clickedItem, e);
+        },
+
+        onMouseLeave: function(e) {
+            var me = this;
+
+            if (me.itemOverTask) {
+                me.itemOverTask.cancel();
+            }
+
+            if (me.getDisabled()) {
+                return;
+            }
+
+            me.fireEvent(&#39;mouseleave&#39;, me, e);
+        },
+
+<span id='Ext-menu-Menu-method-onMouseOver'>        /**
+</span>         * Handle either pointer moving over the menu&#39;s element, or, on 
+         * touch capable devices, a touch start on the menu&#39;s element.
+         */
+        onMouseOver: function(e) {
+            var me = this,
+                activeItem = me.getActiveItem(),
+                activeItemMenu = activeItem &amp;&amp; activeItem.getMenu &amp;&amp; activeItem.getMenu(),
+                activeItemExpanded = activeItemMenu &amp;&amp; activeItemMenu.isVisible(),
+                isTouch = e.pointerType === &#39;touch&#39;,
+                mouseEnter, overItem, el;
+
+            if (!me.getDisabled()) {
+                
+                // If triggered by a touchstart, mouseenter is declared
+                // if focus does not already reside within the menu.
+                if (isTouch) {
+                    mouseEnter = !me.el.contains(document.activeElement);
+                } else {
+                    mouseEnter = !me.el.contains(e.getRelatedTarget());
+                }
+                overItem = me.getItemFromEvent(e);
+
+                // Focus the item in time specified by mouseLeaveDelay.
+                // If we mouseout, or move to another item this invocation will be canceled.
+                if (overItem) {
+                    // pointerdown is routed to mouseover, handle pointerdown without delay
+                    if (isTouch) {
+                        me.handleItemOver(e, overItem);
+                    } else {
+                        // ignore events on elements outside the bodyElement of menu items
+                        // this ensures we don&#39;t apply mouseover styling when hovering the
+                        // &quot;separator&quot; of a menu item, and we don&#39;t fire the menu item&#39;s
+                        // handler when the separator is clicked.
+                        el = overItem.isMenuItem ? overItem.bodyElement : overItem.el;
+                        if (!el.contains(e.getRelatedTarget())) {
+                            me.itemOverTask.delay(activeItemExpanded ? me.mouseLeaveDelay : 0, null, null, [e, overItem]);
+                        }
+                    }
+                }
+                if (mouseEnter) {
+                    me.fireEvent(&#39;mouseenter&#39;, me, e);
+                }
+                me.fireEvent(&#39;mouseover&#39;, me, overItem, e);
+            }
+        },
+
+<span id='Ext-menu-Menu-method-handleItemOver'>        /**
+</span>         * Handle the delayed consequences of pointer over a child menu.
+         * Also called on touch start.
+         */
+        handleItemOver: function(e, item) {
+            var isMouseover = e.pointerType === &#39;mouse&#39;;
+
+            // We&#39;ll get here on touchstart on touch devices.
+            // Only focus non-MenuItems on real mouseover events.
+            if (!item.containsFocus &amp;&amp; (isMouseover || item.isMenuItem)) {
+                item.focus();
+            }
+            // Only expand the menu on real mouseover events.
+            if (item.expandMenu &amp;&amp; isMouseover) {
+                item.expandMenu(e);
+            }
+        },
+
+<span id='Ext-menu-Menu-method-getItemFromEvent'>        /**
+</span>         * Gets the immediate child component which the passed event took place within
+         */
+        getItemFromEvent: function(e) {
+            var bodyDom = this.bodyElement.dom,
+                toEl = e.getTarget(),
+                component;
+
+            // See which immediate child element the event is in and find the
+            // component which that element encapsulates.
+            while (toEl &amp;&amp; toEl.parentNode !== bodyDom) {
+                toEl = toEl.parentNode;
+            }
+
+            component = toEl &amp;&amp; Ext.getCmp(toEl.id);
+
+            if (component &amp;&amp; component.isMenuItem &amp;&amp; !e.within(component.bodyElement)) {
+                // ignore events on elements outside the bodyElement of menu items
+                // this ensures we don&#39;t apply mouseover styling when hovering the
+                // &quot;separator&quot; of a menu item, and we don&#39;t fire the menu item&#39;s
+                // handler when the separator is clicked.
+                component = null;
+            }
+
+            return component;
+        },
+
+        hasFloatMenuParent: function() {
+            return this.parentMenu || this.up(&#39;menu[_floated=true]&#39;);
+        },
+
+        syncItemIndentedCls: function(item) {
+            // menu items have an &quot;indented&quot; config
+            // non menu items can have an &quot;indented&quot; property
+            // The item&#39;s &quot;indented&quot; takes precedence over the menu&#39;s &quot;indented&quot;
+            var indented = item.isMenuItem ? item.getIndented() : item.indented;
+
+            item.toggleCls(this.indentedCls,
+                !!(indented || (this.getIndented() &amp;&amp; (indented !== false))));
+        }
+    },
+
+    statics: {
+<span id='Ext-menu-Menu-static-method-create'>        /**
+</span>         * Returns a {@link Ext.menu.Menu} object
+         * @param {Object/Object[]} menu An array of menu item configs,
+         * or a Menu config that will be used to generate and return a new Menu.
+         * @param {Object} [config] A configuration to use when creating the menu.
+         * @return {Ext.menu.Menu}
+         */
+        create: function(menu, config) {
+            if (Ext.isArray(menu)) { // array of menu items
+                menu = Ext.apply({xtype: &#39;menu&#39;, items: menu}, config);
+            } else {
+                menu = Ext.apply({xtype: &#39;menu&#39;}, menu, config);
+            }
+            return Ext.create(menu);
+        }
+    },
+
+<span id='Ext-menu-Menu-property-deprecated'>    deprecated: {
+</span>        &#39;6.5&#39;: {
+            configs: {
+                plain: {
+                    message: &#39;To achieve classic toolkit &quot;plain&quot; effect, use &quot;indented&quot;.&#39;
+                },
+                showSeparator: {
+                    message: &#39;To achieve classic toolkit &quot;showSeparator&quot; effect, use &quot;separator&quot;.&#39;
+                }
+            }
+        }
+    }
+    
+});
+</pre>
+</body>
+</html>

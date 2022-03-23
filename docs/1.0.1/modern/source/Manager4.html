@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-menu-Manager'>/**
+</span> * Provides a common registry groups of {@link Ext.menu.CheckItem}s.
+ *
+ * @singleton
+ */
+Ext.define(&#39;Ext.menu.Manager&#39;, {
+    singleton: true,
+
+    alternateClassName: &#39;Ext.menu.MenuMgr&#39;,
+
+    uses: [&#39;Ext.menu.Menu&#39;],
+
+<span id='Ext-menu-Manager-method-hideAll'>    /**
+</span>     * Hides all floating menus that are currently visible
+     * @return {Boolean} success True if any active menus were hidden.
+     */
+    hideAll: function() {
+        var allMenus = this.visible,
+            len = allMenus.length,
+            result = false,
+            i;
+
+        if (len) {
+            // Clone here, we may modify this collection while the loop is active
+            allMenus = allMenus.slice();
+            for (i = 0; i &lt; len; i++) {
+                allMenus[i].hide();
+                result = true;
+            }
+        }
+        return result;
+    },
+
+<span id='Ext-menu-Manager-property-privates'>    privates: {
+</span>        groups: {},
+
+        visible: [],
+
+<span id='Ext-menu-Manager-method-constructor'>        /**
+</span>         * @private
+         */
+        constructor: function() {
+            var me = this;
+
+            // Lazily create the mousedown listener on first menu show
+            me.onShow = function () {
+                // This is a separate method to allow calling eagerly in unit tests
+                me.registerGlobalListeners();
+
+                return me.onShow.apply(me, arguments); // do the real thing
+            };
+        },
+
+        onGlobalScroll: function (scroller) {
+            var allMenus = this.visible,
+                len = allMenus.length,
+                i, menu;
+
+            // Scrolling document should not hide menus.
+            // The will move along with the document.
+            if (len &amp;&amp; scroller !== Ext.scroll.Scroller.viewport) {
+                // Clone here, we may modify this collection while the loop is active
+                allMenus = allMenus.slice();
+                for (i = 0; i &lt; len; ++i) {
+                    menu = allMenus[i];
+                    // If the scroller logically &quot;owns&quot; (the menu, or any parents),
+                    // then it will impact alignment so we need to hide the menu.
+                    if (scroller.contains(menu)) {
+                        menu.hide();
+                    }
+                 }
+             }
+        },
+
+        checkActiveMenus: function(e) {
+            var allMenus = this.visible,
+                len = allMenus.length,
+                i, menu,
+                mousedownCmp = Ext.Component.from(e);
+
+            if (len) {
+                // Clone here, we may modify this collection while the loop is active
+                allMenus = allMenus.slice();
+                for (i = 0; i &lt; len; ++i) {
+                    menu = allMenus[i];
+
+                    // Hide the menu if:
+                    //      The menu does not own the clicked upon element AND
+                    //      The menu is not the child menu of a clicked upon component AND
+                    //          that component is not a menu owner (which will manage the hiding).
+                    if (!(menu.owns(e) || (mousedownCmp &amp;&amp; mousedownCmp.isMenuOwner &amp;&amp; mousedownCmp.getMenu() === menu))) {
+                        menu.hide();
+                    }
+                 }
+             }
+        },
+
+<span id='Ext-menu-Manager-method-onShow'>        /**
+</span>         * {@link Ext.menu.Menu#afterShow} adds itself to the visible list here.
+         * @private
+         */
+        onShow: function(menu) {
+            if (menu.getFloated()) {
+                Ext.Array.include(this.visible, menu);
+            }
+        },
+
+<span id='Ext-menu-Manager-method-onHide'>        /**
+</span>         * {@link Ext.menu.Menu#onHide} removes itself from the visible list here.
+         * @private
+         */
+        onHide: function(menu) {
+            if (menu.getFloated()) {
+                Ext.Array.remove(this.visible, menu);
+            }
+        },
+
+        registerGlobalListeners: function() {
+            var me = this;
+
+            delete me.onShow; // remove the lazy-init hook
+
+            // Use the global mousedown event that gets fired even if propagation is stopped
+            Ext.on({
+                mousedown: me.checkActiveMenus,
+                scrollstart: me.onGlobalScroll,
+                scope: me
+            });
+            //&lt;debug&gt;
+            //These persistent listeners must be tolerated in unit tests
+            if (window.jasmine &amp;&amp; jasmine.addAllowedListener) {
+                jasmine.addAllowedListener(&#39;mousedown&#39;);
+                jasmine.addAllowedListener(&#39;scrollstart&#39;);
+            }
+            //&lt;/debug&gt;
+        }
+    }
+});
+</pre>
+</body>
+</html>

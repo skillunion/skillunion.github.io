@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-Fit'>/**
+</span> * This is a layout for container that contain a single item that automatically expands to
+ * fill the container. This class is intended to be extended or created via the layout:&#39;fit&#39;
+ * {@link Ext.container.Container#layout} config, and should generally not need to be created
+ * directly via the new keyword.
+ *
+ * Fit layout does not have any direct config options (other than inherited ones). To fit a
+ * panel to a container using Fit layout, simply set `layout: &#39;fit&#39;` on the container and
+ * add a single panel to it.
+ *
+ *     @example
+ *     var panel = Ext.create(&#39;Ext.Panel&#39;, {
+ *         title: &#39;Fit Layout&#39;,
+ *         width: 300,
+ *         height: 150,
+ *         layout:&#39;fit&#39;,
+ *         items: {
+ *             title: &#39;Inner Panel&#39;,
+ *             html: &#39;This is the inner panel content&#39;,
+ *             bodyPadding: 20,
+ *             border: false
+ *         }
+ *     });
+ *
+ *     Ext.Viewport.add(panel);
+ */
+Ext.define(&#39;Ext.layout.Fit&#39;, {
+    extend: &#39;Ext.layout.Auto&#39;,
+    alias: &#39;layout.fit&#39;,
+
+<span id='Ext-layout-Fit-property-isFit'>    isFit: true,
+</span>
+<span id='Ext-layout-Fit-property-cls'>    cls: Ext.baseCSSPrefix + &#39;layout-fit&#39;,
+</span>
+<span id='Ext-layout-Fit-property-itemCls'>    itemCls: Ext.baseCSSPrefix + &#39;layout-fit-item&#39;
+</span>});
+</pre>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-column-RowNumberer'>/**
+</span> * This {@link Ext.grid.column.Column column} displays the row number in its cells. This
+ * column is automatically created by the {@link Ext.grid.Grid#cfg!rowNumbers rowNumbers}
+ * config and is not normally created directly.
+ */
+Ext.define(&#39;Ext.grid.column.RowNumberer&#39;, {
+    extend: &#39;Ext.grid.column.Number&#39;,
+    xtype: &#39;rownumberer&#39;,
+
+    requires: [
+        &#39;Ext.util.TextMetrics&#39;
+    ],
+
+<span id='Ext-grid-column-RowNumberer-property-isRowNumberer'>    isRowNumberer: true,
+</span>
+<span id='Ext-grid-column-RowNumberer-cfg-cell'>    cell: {
+</span>        xtype: &#39;rownumberercell&#39;
+    },
+
+<span id='Ext-grid-column-RowNumberer-cfg-menu'>    /**
+</span>     * @cfg {Boolean} [menu=null]
+     * There is no column menu is disabled by default for check columns.
+     */
+    menu: null,
+
+<span id='Ext-grid-column-RowNumberer-cfg-align'>    align: &#39;right&#39;,
+</span><span id='Ext-grid-column-RowNumberer-cfg-hideable'>    hideable: false,
+</span><span id='Ext-grid-column-RowNumberer-cfg-ignore'>    ignore: true,
+</span><span id='Ext-grid-column-RowNumberer-cfg-ignoreExport'>    ignoreExport: true,
+</span><span id='Ext-grid-column-RowNumberer-cfg-sortable'>    sortable: false,
+</span><span id='Ext-grid-column-RowNumberer-cfg-text'>    text: &#39;&#39;,
+</span>
+<span id='Ext-grid-column-RowNumberer-cfg-width'>    width: &#39;auto&#39;,
+</span><span id='Ext-grid-column-RowNumberer-cfg-minWidth'>    minWidth: null,
+</span>
+<span id='Ext-grid-column-RowNumberer-method-onAdded'>    onAdded: function(parent, instanced) {
+</span>        var me = this,
+            grid;
+
+        me.callParent([parent, instanced]);
+        me.checkWidth();
+
+        grid = me.getGrid();
+
+        me.gridListeners = grid.on({
+            storechange: &#39;attachStoreListeners&#39;,
+            scope: me,
+            destroyable: true
+        });
+        me.attachStoreListeners(grid.getStore());
+    },
+
+<span id='Ext-grid-column-RowNumberer-method-onRemoved'>    onRemoved: function(destroying) {
+</span>        Ext.destroy(this.gridListeners, this.storeListeners);
+        this.callParent([destroying]);
+    },
+
+<span id='Ext-grid-column-RowNumberer-property-privates'>    privates: {
+</span>        attachStoreListeners: function(store) {
+            Ext.destroy(this.storeListeners);
+
+            if (store) {
+                this.storeListeners = store.on({
+                    datachanged: &#39;checkWidth&#39;,
+                    totalcountchange: &#39;checkWidth&#39;,
+                    scope: this,
+                    destroyable: true
+                });
+            }
+        },
+
+        getCharWidth: function() {
+            var me = this,
+                charWidth = me._charWidth,
+                text, cell, cellUi, gridUi, textWidth;
+
+            if (!charWidth) {
+                text = &#39;0000000000&#39;;
+                cell = me.getScratchCell();
+
+                // Set the scratch cell&#39;s UI based on the column&#39;s cell config
+                // and inherit UI from the grid like a real cell would.
+                // This ensures font metrics match those of the actual cells.
+                cellUi = me.getCell().ui;
+
+                if (cellUi) {
+                    cell.addUi(cellUi);
+                }
+
+                gridUi = me.getGrid().getUi();
+
+                if (gridUi) {
+                    cell.addUi(gridUi);
+                }
+
+                // Scratch cell must be in document to acquire style.
+                document.body.appendChild(cell.el.dom);
+                textWidth = Ext.util.TextMetrics.measure(cell.bodyElement, text).width;
+                document.body.removeChild(cell.el.dom);
+
+                me._charWidth = charWidth = textWidth / text.length;
+            }
+
+            return charWidth;
+        },
+
+        checkWidth: function() {
+            var me = this;
+
+            // If the app renders a grid on load, we must wait until fonts have loaded before
+            // we measure if we have the CSS Font Loading API
+            if (document.fonts) {
+                document.fonts.ready.then(function() {
+                    if (!me.destroyed) {
+                        me.doCheckWidth();
+                    }
+                });
+            } else {
+                me.doCheckWidth();
+            }
+        },
+
+        doCheckWidth: function() {
+            var me = this,
+                store = me.getGrid().getStore(),
+                charLen = 1,
+                charWidth = me.getCharWidth();
+
+            if (store &amp;&amp; store.getTotalCount()) {
+                // Ensure we measure the *formatted* length of the largest row number
+                charLen = me.getScratchCell().printValue(store.getTotalCount()).length;
+            }
+
+            me.textElement.setStyle(&#39;min-width&#39;, Math.ceil(charLen * charWidth) + &#39;px&#39;);
+        }
+    }
+});
+</pre>
+</body>
+</html>

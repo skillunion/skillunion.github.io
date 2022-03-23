@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-util-Spans'>/**
+</span> * This class manages a set of numeric spans (2-element arrays marking begin and end
+ * points). The method of this class coalesce and split spans as necessary to store
+ * the fewest possible pairs needed to represent the covered (one-dimensional) area.
+ *
+ * @private
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.util.Spans&#39;, {
+<span id='Ext-util-Spans-property-isSpans'>    isSpans: true,
+</span>
+<span id='Ext-util-Spans-method-constructor'>    constructor: function () {
+</span>        this.spans = this.spans || [];
+    },
+
+<span id='Ext-util-Spans-method-clear'>    /**
+</span>     * Clears all spans.
+     * @return {Ext.util.Spans} This Spans object.
+     */
+    clear: function() {
+        this.spans.length = 0;
+        return this;
+    },
+
+<span id='Ext-util-Spans-method-add'>    /**
+</span>     * Adds a new span to the current set of spans. This will coalesce adjacent spans
+     * as necessary to store the minimum number of spans possible.
+     *
+     * @param {Number/Number[]} begin Either the beginning of the span or a 2-element
+     * array of `[begin,end]`.
+     * @param {Number} [end] If `begin` is just the position, the second argument is
+     * the end of the span to add. This value is exclusive of the span, that is it
+     * marks the first position beyond the span. This ensures that `end - begin` is
+     * the length of the span.
+     * @return {Boolean} `true` if the new span changes this object, `false` if the
+     * span was already in the set.
+     */
+    add: function (begin, end) {
+        if (end === undefined) {
+            if (typeof begin === &#39;number&#39;) {
+                end = begin + 1;
+            }
+            else {
+                end = begin[1];
+                begin = begin[0];
+            }
+        }
+
+        var me = this,
+            spans = me.spans,
+            b, e, first, last, span;
+
+        first = me.bisect(begin);
+
+        if (first) {  // if (there is a previous span)
+            span = spans[first - 1];
+            b = span[0];
+            e = span[1];
+
+            if (begin &lt;= e) {
+                // This new span touches the previous one, but perhaps this new
+                // span is contained inside the previous span...
+                if (end &lt;= e) {
+                    return false;  // no change
+                }
+
+                // The new begin touches the previous span, but the new end goes
+                // beyond it, so we extend it by replacing it.
+                begin = b;
+                spans.splice(--first, 1);
+            }
+        }
+
+        // Now there is either no previous span, or if there was one, it does
+        // not touch the new one.
+        last = me.bisect(end);
+
+        if (last &gt; first) {
+            // If we are replacing any spans, make sure the new &quot;end&quot; is at
+            // least as large as the end of the last span we are replacing.
+            span = spans[last - 1];
+            end = Math.max(end, span[1]);
+        }
+
+        if (last &lt; spans.length) {
+            span = spans[last];
+            // The span beyond our new span may be touching the end of the
+            // new span, in which case we need to coalesce there as well.
+            // Since we are removing it, we need to expand &quot;end&quot; to include
+            // this additional span.
+            if (end === span[0]) {
+                end = span[1];
+                ++last;
+            }
+        }
+
+        spans.splice(first, last - first, [begin, end]);
+        return true;
+    },
+
+<span id='Ext-util-Spans-method-contains'>    /**
+</span>     * Returns `true` if the given span is fully in the current set of spans.
+     * @param {Number/Number[]} begin Either the beginning of the span or a 2-element
+     * array of `[begin,end]`.
+     * @param {Number} [end] If `begin` is just the position, the second argument is
+     * the end of the span to add. This value is exclusive of the span, that is it
+     * marks the first position beyond the span. This ensures that `end - begin` is
+     * the length of the span.
+     * @return {Boolean}
+     */
+    contains: function (begin, end) {
+        if (end === undefined) {
+            if (typeof begin === &#39;number&#39;) {
+                end = begin + 1;
+            }
+            else {
+                end = begin[1];
+                begin = begin[0];
+            }
+        }
+
+        var spans = this.spans,
+            index = this.bisect(begin),
+            ret = false,
+            e, span;
+
+        if (index &amp;&amp; begin &lt; (e = spans[index - 1][1])) {
+            ret = end &lt;= e;
+        }
+        else if (index &lt; spans.length) {
+            span = spans[index];
+            ret = span[0] &lt;= begin &amp;&amp; end &lt;= span[1];
+        }
+
+        return ret;
+    },
+
+<span id='Ext-util-Spans-method-each'>    /**
+</span>     * Calls the passed function for every integer in every span.
+     * @param {Function} fn The function to call. Returning `false` will abort the operation.
+     * @param {Mixed} scope The scope (`this` reference) in which the function will execute.
+     */
+    each: function(fn, scope) {
+        var spans = this.spans,
+            len = spans.length,
+            i, span, j;
+
+        for (i = 0; i &lt; len; i++) {
+            span = spans[i];
+            for (j = span[0]; j &lt; span[1]; j++) {
+                if (fn.call(scope || this, i) === false) {
+                    return;
+                }
+            }
+        }
+    },
+
+<span id='Ext-util-Spans-method-intersects'>    /**
+</span>     * Returns `true` if the specified span intersects with the current set of spans.
+     *
+     * @param {Number/Number[]} begin Either the beginning of the span or a 2-element
+     * array of `[begin,end]`.
+     * @param {Number} [end] If `begin` is just the position, the second argument is
+     * the end of the span to add. This value is exclusive of the span, that is it
+     * marks the first position beyond the span. This ensures that `end - begin` is
+     * the length of the span.
+     * @return {Boolean}
+     */
+    intersects: function (begin, end) {
+        if (end === undefined) {
+            if (typeof begin === &#39;number&#39;) {
+                end = begin + 1;
+            }
+            else {
+                end = begin[1];
+                begin = begin[0];
+            }
+        }
+
+        var spans = this.spans,
+            index = this.bisect(begin),
+            ret = false;
+
+        if (index &amp;&amp; begin &lt; spans[index - 1][1]) {
+            ret = true;
+        }
+        else if (index &lt; spans.length) {
+            ret = spans[index][0] &lt; end;
+        }
+
+        return ret;
+    },
+
+<span id='Ext-util-Spans-method-remove'>    /**
+</span>     * Removes a span from the current set of spans. This will coalesce adjacent spans
+     * as necessary to store the minimum number of spans possible.
+     *
+     * @param {Number/Number[]} begin Either the beginning of the span or a 2-element
+     * array of `[begin,end]`.
+     * @param {Number} [end] If `begin` is just the position, the second argument is
+     * the end of the span to add. This value is exclusive of the span, that is it
+     * marks the first position beyond the span. This ensures that `end - begin` is
+     * the length of the span.
+     * @return {Boolean} `true` if removing the span changes this object, `false` if the
+     * span was not in the set.
+     */
+    remove: function (begin, end) {
+        if (end === undefined) {
+            if (typeof begin === &#39;number&#39;) {
+                end = begin + 1;
+            }
+            else {
+                end = begin[1];
+                begin = begin[0];
+            }
+        }
+
+        var me = this,
+            spans = me.spans,
+            first = me.bisect(begin),
+            ret = false,
+            last, span, tmp;
+
+        if (first) {
+            span = spans[first - 1];
+            tmp = span[1];
+
+            if (begin &lt; tmp) {
+                span[1] = begin;
+
+                if (end &lt; tmp) {
+                    spans.splice(first, 0, [end, tmp]);
+                    return true;
+                }
+                ret = true;
+            }
+        }
+
+        last = me.bisect(end);
+        if (first &lt; last) {
+            ret = true;
+            span = spans[last - 1];
+
+            if (end &lt; span[1]) {
+                span[0] = end;
+                --last;
+            }
+
+            last -= first;
+            if (last) {
+                spans.splice(first, last);
+            }
+        }
+
+        return ret;
+    },
+
+<span id='Ext-util-Spans-method-stash'>    /**
+</span>     * Returns an object that holds the current state and can be passed back later
+     * to `unstash` to restore that state.
+     * @return {Object}
+     */
+    stash: function () {
+        return this.spans.slice();
+    },
+
+<span id='Ext-util-Spans-method-unstash'>    /**
+</span>     * Takes an object a state object returned by `stash` and makes that the current
+     * state.
+     * @return {Ext.util.Spans} This Spans object.
+     */
+    unstash: function (pickle) {
+        this.spans = pickle;
+        return this;
+    },
+
+<span id='Ext-util-Spans-method-getCount'>    /**
+</span>     * @return {Number} the number of integer locations covered by all the spans.
+     */
+    getCount: function() {
+        var spans = this.spans,
+            len = spans.length,
+            result = 0,
+            i, span;
+
+        for (i = 0; i &lt; len; i++) {
+            span = spans[i];
+            result += span[1] - span[0];
+        }
+        return result;
+    },
+
+<span id='Ext-util-Spans-property-privates'>    privates: {
+</span>        bisect: function (value) {
+            return Ext.Number.bisectTuples(this.spans, value, 0);
+        }
+    }
+});
+</pre>
+</body>
+</html>

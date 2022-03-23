@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-pullrefresh-Item'>/**
+</span> * This component is the base class for {@link Ext.dataview.pullrefresh.Bar pullrefreshbar}
+ * and {@link Ext.dataview.pullrefresh.Spinner pullrefreshspinner}.
+ * @since 6.5.0
+ * @private
+ */
+Ext.define(&#39;Ext.dataview.pullrefresh.Item&#39;, {
+    extend: &#39;Ext.Component&#39;,
+
+    config: {
+<span id='Ext-dataview-pullrefresh-Item-cfg-lastUpdated'>        /**
+</span>         * @private
+         */
+        lastUpdated: null,
+
+<span id='Ext-dataview-pullrefresh-Item-cfg-state'>        /**
+</span>         * @cfg {&#39;loading&#39;/&#39;loaded&#39;/&#39;pulling&#39;/&#39;holding&#39;} state
+         * @private
+         */
+        state: null,
+
+<span id='Ext-dataview-pullrefresh-Item-cfg-pull'>        /**
+</span>         * @cfg {Number} pull
+         * The value from 0 (not pulled) to 1 (fully pulled) and potentially more for
+         * over-pulling or over-scrolling.
+         * @private
+         */
+        pull: null
+    },
+
+<span id='Ext-dataview-pullrefresh-Item-property-privates'>    privates: {
+</span>        clsMap: {
+            loaded: Ext.baseCSSPrefix + &#39;pullrefresh-loaded&#39;,
+            loading: Ext.baseCSSPrefix + &#39;pullrefresh-loading&#39;,
+            pulling: Ext.baseCSSPrefix + &#39;pullrefresh-pulling&#39;,
+            holding: Ext.baseCSSPrefix + &#39;pullrefresh-holding&#39;
+        },
+
+        isLoading: function (state) {
+            state = state || this.getState();
+
+            return state === &#39;loading&#39; || state === &#39;loaded&#39;;
+        },
+
+        updateState: function (value) {
+            var el = this.el,
+                map = this.clsMap,
+                classes;
+
+            if (el) {
+                classes = el.getClassMap(/*clone=*/false);
+
+                delete classes[map.loaded];
+                delete classes[map.loading];
+                delete classes[map.pulling];
+                delete classes[map.holding];
+
+                classes[map[value]] = 1;
+
+                el.setClassMap(classes, /*keep=*/true);
+
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

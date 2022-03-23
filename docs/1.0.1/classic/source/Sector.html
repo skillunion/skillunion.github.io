@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-draw-sprite-Sector'>/**
+</span> * @class Ext.draw.sprite.Sector
+ * @extends Ext.draw.sprite.Path
+ * 
+ * A sprite representing a pie slice.
+ *
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;draw&#39;, 
+ *        renderTo: document.body,
+ *        width: 600,
+ *        height: 400,
+ *        sprites: [{
+ *            type: &#39;sector&#39;,
+ *            centerX: 100,
+ *            centerY: 100,
+ *            startAngle: -2.355,
+ *            endAngle: -.785,
+ *            endRho: 50,
+ *            fillStyle: &#39;#1F6D91&#39;
+ *        }]
+ *     });
+ */
+Ext.define(&#39;Ext.draw.sprite.Sector&#39;, {
+    extend: &#39;Ext.draw.sprite.Path&#39;,
+    alias: &#39;sprite.sector&#39;,
+<span id='Ext-draw-sprite-Sector-property-type'>    type: &#39;sector&#39;,
+</span>    inheritableStatics: {
+<span id='Ext-draw-sprite-Sector-static-property-def'>        def: {
+</span>            processors: {
+<span id='Ext-draw-sprite-Sector-cfg-centerX'>                /**
+</span>                 * @cfg {Number} [centerX=0] The center coordinate of the sprite on the x-axis.
+                 */
+                centerX: &#39;number&#39;,
+
+<span id='Ext-draw-sprite-Sector-cfg-centerY'>                /**
+</span>                 * @cfg {Number} [centerY=0] The center coordinate of the sprite on the y-axis.
+                 */
+                centerY: &#39;number&#39;,
+
+<span id='Ext-draw-sprite-Sector-cfg-startAngle'>                /**
+</span>                 * @cfg {Number} [startAngle=0] The starting angle of the sprite.
+                 */
+                startAngle: &#39;number&#39;,
+
+<span id='Ext-draw-sprite-Sector-cfg-endAngle'>                /**
+</span>                 * @cfg {Number} [endAngle=0] The ending angle of the sprite.
+                 */
+                endAngle: &#39;number&#39;,
+
+<span id='Ext-draw-sprite-Sector-cfg-startRho'>                /**
+</span>                 * @cfg {Number} [startRho=0] The starting point of the radius of the sprite.
+                 */
+                startRho: &#39;number&#39;,
+
+<span id='Ext-draw-sprite-Sector-cfg-endRho'>                /**
+</span>                 * @cfg {Number} [endRho=150] The ending point of the radius of the sprite.
+                 */
+                endRho: &#39;number&#39;,
+
+<span id='Ext-draw-sprite-Sector-cfg-margin'>                /**
+</span>                 * @cfg {Number} [margin=0] The margin of the sprite from the center of pie.
+                 */
+                margin: &#39;number&#39;
+            },
+            aliases: {
+                rho: &#39;endRho&#39;
+            },
+            triggers: {
+                centerX: &#39;path,bbox&#39;,
+                centerY: &#39;path,bbox&#39;,
+                startAngle: &#39;path,bbox&#39;,
+                endAngle: &#39;path,bbox&#39;,
+                startRho: &#39;path,bbox&#39;,
+                endRho: &#39;path,bbox&#39;,
+                margin: &#39;path,bbox&#39;
+            },
+            defaults: {
+                centerX: 0,
+                centerY: 0,
+                startAngle: 0,
+                endAngle: 0,
+                startRho: 0,
+                endRho: 150,
+                margin: 0,
+                path: &#39;M 0,0&#39;
+            }
+        }
+    },
+
+<span id='Ext-draw-sprite-Sector-method-getMidAngle'>    getMidAngle: function () {
+</span>        return this.midAngle || 0;
+    },
+
+<span id='Ext-draw-sprite-Sector-method-updatePath'>    updatePath: function (path, attr) {
+</span>        var startAngle = Math.min(attr.startAngle, attr.endAngle),
+            endAngle = Math.max(attr.startAngle, attr.endAngle),
+            midAngle = this.midAngle = (startAngle + endAngle) * 0.5,
+            fullPie = Ext.Number.isEqual(Math.abs(endAngle - startAngle), Ext.draw.Draw.pi2, 1e-10),
+            margin = attr.margin,
+            centerX = attr.centerX,
+            centerY = attr.centerY,
+            startRho = Math.min(attr.startRho, attr.endRho),
+            endRho = Math.max(attr.startRho, attr.endRho);
+
+        if (margin) {
+            centerX += margin * Math.cos(midAngle);
+            centerY += margin * Math.sin(midAngle);
+        }
+        if (!fullPie) {
+            path.moveTo(centerX + startRho * Math.cos(startAngle), centerY + startRho * Math.sin(startAngle));
+            path.lineTo(centerX + endRho * Math.cos(startAngle), centerY + endRho * Math.sin(startAngle));
+        }
+        path.arc(centerX, centerY, endRho, startAngle, endAngle, false);
+        path[fullPie ? &#39;moveTo&#39; : &#39;lineTo&#39;](centerX + startRho * Math.cos(endAngle), centerY + startRho * Math.sin(endAngle));
+        path.arc(centerX, centerY, startRho, endAngle, startAngle, true);
+    }
+});</pre>
+</body>
+</html>

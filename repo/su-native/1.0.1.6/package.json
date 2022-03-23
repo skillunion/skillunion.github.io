@@ -1,0 +1,57 @@
+{
+  "name": "su-native",
+  "namespace": "SU",
+  "format": "1",
+  "version": "1.0.1.6",
+  "compatVersion": "1.0.1",
+  "creator": "skillunion",
+  "summary": "Package for mobile applications",
+  "detailedDescription": "Sencha Cmd package for mobile applications",
+  "type": "code",
+  "requires": [
+    "su"
+  ],
+  "signatures": [
+    {
+      "name": "skillunion",
+      "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+      "created": "2022-03-23T10:37:03Z",
+      "algorithm": "SHA1withRSA",
+      "nonce": "4BS9JcNiiwY\u003d",
+      "signature": "M6yijvJv33u/EYKJz/ODE3Ck292zAo8y9a60E02qVp6zrIoHiyCTz9daqJsJIRLl9tXGf9GTihU9XH2kLWWZGI/xlcKVdCVYHJYefA75ZiusQB3QljmzT0KKYll2prc7JnpTBaDJhkht2WOnWNSKNhBIOd55sWCJYUn8Eux/j5ds0ib+6QMzG+KVPFGZ9hPxE5/IYIG1a9jMoS0DhlArkKUuB2xaWQAo081h561lhFmBWjdUbN+8GkIBI5RuTCgM5JOgrJ2b5UWquCOgO/NbRvuBl6xibi4L2mzZJulxrrMHjO2b1QXGCGFd44hFIUBeLPcTQBTdLZpFDdNMQX7nNw\u003d\u003d"
+    }
+  ],
+  "framework": "ext",
+  "toolkit": "modern",
+  "output": "${workspace.packages.dir}/build",
+  "sass": {
+    "namespace": "SU",
+    "etc": [
+      "${package.dir}/sass/etc/all.scss"
+    ],
+    "var": [
+      "${package.dir}/sass/var"
+    ],
+    "src": [
+      "${package.dir}/sass/src"
+    ]
+  },
+  "classpath": [
+    "${package.dir}/src"
+  ],
+  "overrides": [
+    "${package.dir}/overrides"
+  ],
+  "example": {
+    "path": [
+      "${package.dir}/examples"
+    ]
+  },
+  "properties": {
+    "skip.js": 0,
+    "skip.sass": 1,
+    "skip.slice": 1,
+    "skip.examples": 1,
+    "pkg.build.dir": "${workspace.build.dir}/pkgs"
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "format": "1",
+  "packages": [
+    {
+      "name": "su-locale",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.4",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU locale",
+      "detailedDescription": "Skill Union locale package",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T09:30:56Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "42LUnBBS8L4\u003d",
+          "signature": "W8E/RWFSVpIjB/OUsyzsp/ZygUB2SYJF2HobN/L9eghh1rDE5/m7QnWFqFBRm701yCCMRvmXtzXon6j5zRT/PNtmUEyloGIPyVC3Gwn7EPWVJZEDjkvTydwh69ZnUQlpaZmHIkr3fhofc55DUQTzJw0jhFpv7M1R9V1+A0G5dH6Xa1tesstpSBDv3VQFCYTW8x4NxuW0vPZtVTov19olO9E2yPPX0xsJbFsbQP9weFTyIKugwrHprY5iLb5kzYfD50wGrWv2cHkO0y3p/NpfFqihRtMNo2w6WvwhGYNPqhG8hlmt9RGokjPEvabeNO0ok3s76MLbaMdMoDsQ4yEEJg\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "locale-classic": {
+          "toolkit": "classic",
+          "name": "su-locale-classic"
+        },
+        "locale-modern": {
+          "toolkit": "modern",
+          "name": "su-locale-modern"
+        }
+      }
+    },
+    {
+      "name": "su-locale",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.5",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU locale",
+      "detailedDescription": "Skill Union locale package",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T09:44:31Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "pnBtSsKlVuE\u003d",
+          "signature": "uDPntkyTLUKHXBkUDooZkcYvwHQz0xyOcKItvqHdYB3FYIBgrxD3MMg4cvj0iCc+kkV8pyXQjtVTu4KKYw2IY/LF+wBKXKBh0mUD3BXvfWkQX5Shv+pO3QoXq7AzJM52EVEmrLI0lZz/AfdcEqxrSrhxXknNxdYzNkt85X4pufbu+fRStsEKr7qDTlogCu9EnaTJlCxmnhXf3nPhML7Nkm0xreSTR51G7wH3mj4zFuPN6qAZuaDkm4WnKkUp1kjkshc1unYrHjLqhLvGCGkimgDj0dl8Z3PtNRzUgxA+eHVKtDQzDZRDgKEPhjTbugMKvFEZ7OV30JBHGMJJzju4lg\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "locale-classic": {
+          "toolkit": "classic",
+          "name": "su-locale-classic"
+        },
+        "locale-modern": {
+          "toolkit": "modern",
+          "name": "su-locale-modern"
+        }
+      }
+    },
+    {
+      "name": "su-locale",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.6",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU locale",
+      "detailedDescription": "Skill Union locale package",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T10:36:58Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "WmkK3p795gA\u003d",
+          "signature": "eXnq11tWeToSaH5o8Urb/PMvpn8UDQEBu1k0Fa4VgYcDUMUsVOpVdXHzkSxz+8bUQVPON6pSCY/6iZ/9X5SMbuhQeARaAFAOE3chV2sXmkPkhKINNG4Oi0cT0w4vGEJ7TAgrwM0XgJ4Dwjs3boiIa7ICx/az+Vfj0D12m320ZALkzBRWZkeqifHAD/nBb/wCOvbW2DtZ7WH4e6D0FY27SPg3trOhLFcgnxaFUzmDQJ8eLju55Ed+D/PDEZtxTbrhgTBl93PeDe1YWu1LSnyya/g7h4AgutN3lj8IW7njCyYnQO4/j3eIx66sx5oQ930gtbLlJmQM7siaM3+qbId5+w\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "locale-classic": {
+          "toolkit": "classic",
+          "name": "su-locale-classic"
+        },
+        "locale-modern": {
+          "toolkit": "modern",
+          "name": "su-locale-modern"
+        }
+      }
+    },
+    {
+      "name": "su-locale",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.7",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU locale",
+      "detailedDescription": "Skill Union locale package",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T10:57:25Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "1VmKDEZRbig\u003d",
+          "signature": "klnZDwIN5X1YaOoWbfSO/3uyAX5KquTwJo9Yikl37ATRK70truIjbP5gBMpyHNLz/OvfWhyzVpuDFZt8hL1qCrTAEHOFRHUTtrwR9lviZr3vHDv6kLt/16kMfzKet8+uxVOq05yVArmjw4L6Kntdv7oQ8AjIaErpfKSJ9U/fG7lEXfg77LCf+iQ67fbiIq0dAF/xO7w5GwSXriQtTuuFltFFbKNCjWOumry5uMOPphRPvvFJrRe6wYkWUFEXcrid94ANTrYFeI6jjF5V6GmgIut78pfWbXGRcrznn/eRCJJxiHJX9+G5NZ5NsQoj1/nnAk6ARgtdOxtJMVNmOiXhnw\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "locale-classic": {
+          "toolkit": "classic",
+          "name": "su-locale-classic"
+        },
+        "locale-modern": {
+          "toolkit": "modern",
+          "name": "su-locale-modern"
+        }
+      }
+    },
+    {
+      "name": "su-locale",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.2.3",
+      "compatVersion": "1.0.2",
+      "creator": "skillunion",
+      "summary": "SU locale",
+      "detailedDescription": "Skill Union locale package",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-22T23:09:11Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "Cb5HlIGWqDg\u003d",
+          "signature": "VB51nX8scWC+JPY0yhdxBiYQG0R1NuqU74hFb9osoSwETWW1KhyeX/RDhn+CY4V7IKN1h25kcEvg7rK1OhP9HCOhG/lfZotSnmU+7S6vQ/9xL5QuntNpeXNmFUTZE9eotN0TDfSDe1pMzXiRbdYDMSNwb6tYmF5eJwsPaNpfk3dX/s9OWkuYiD1W0PSeMm+ixZfUN6w4MjrINjf2VXc0sD8aZks1csUcnI5WzwD9sutzPWkxZvbPHkZgCx/jmd7/F0HymNDuBsSSuLPdNC6CeZxL1YRwImIj4tp+Tu/qmH9DEB6NBC+lUBNXFvtPHB5C2DE4/BYaUU4GmtTAN8km4w\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "locale-classic": {
+          "toolkit": "classic",
+          "name": "su-locale-classic"
+        },
+        "locale-modern": {
+          "toolkit": "modern",
+          "name": "su-locale-modern"
+        }
+      }
+    }
+  ]
+}

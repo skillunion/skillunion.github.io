@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-Card'>/**
+</span> * Sometimes you want to show several screens worth of information but you&#39;ve only got a small screen to work with.
+ * TabPanels and Carousels both enable you to see one screen of many at a time, and underneath they both use a Card
+ * Layout.
+ *
+ * Card Layout takes the size of the Container it is applied to and sizes the currently active item to fill the
+ * Container completely. It then hides the rest of the items, allowing you to change which one is currently visible but
+ * only showing one at once.
+ *
+ * Here we create a Panel with a Card Layout and later set the second item active (the active item index is zero-based,
+ * so 1 corresponds to the second item). You might consider using a {@link Ext.tab.Panel tab panel} or a
+ * {@link Ext.carousel.Carousel carousel}.
+ *
+ *     var panel = Ext.create(&#39;Ext.Panel&#39;, {
+ *         layout: &#39;card&#39;,
+ *         items: [
+ *             {
+ *                 html: &quot;First Item&quot;
+ *             },
+ *             {
+ *                 html: &quot;Second Item&quot;
+ *             },
+ *             {
+ *                 html: &quot;Third Item&quot;
+ *             },
+ *             {
+ *                 html: &quot;Fourth Item&quot;
+ *             }
+ *         ]
+ *     });
+ *
+ *     panel.setActiveItem(1); // make &quot;Second Item&quot; card visible
+ *
+ * You may specify an animation type for how activating cards looks to the user.  Without
+ * an animation specified, the  cards will immediately appear as setActiveItem() is called.
+ * The animation config may be a string or an object:of the form:
+ *      animation: {
+ *          type: one of &#39;cover&#39;, &#39;cube&#39;, &#39;fade&#39;, &#39;flip&#39;, &#39;pop&#39;, &#39;reveal&#39;, &#39;scroll&#39;, or &#39;slide&#39;,
+ *          direction: (optional) one of &#39;up&#39;, &#39;down&#39;, &#39;left&#39;, or &#39;right&#39;
+ *      }
+ *
+ * Or the animation config may be a string, one of &#39;cover&#39;, &#39;cube&#39;, &#39;fade&#39;, &#39;flip&#39;, &#39;pop&#39;,
+ * &#39;reveal&#39;, &#39;scroll&#39;, or &#39;slide&#39;
+ *
+ * If an animation type is specified, the direction of the animation will be chosen based
+ * upon the animation&#39;s initial direction left/right (horizontal) or up/down (vertical).
+ * If the new card setActiveItem index is less than the current card&#39;s, then a right (or down)
+ * animation will be applied.  If the new card index is greater, then a left (or up) animation
+ * is applied.
+ *
+ * If you call setAnimation() with an animation config or instance, the animation direction will
+ * obey what you specify  - the direction will not be chosen automatically.
+ */
+Ext.define(&#39;Ext.layout.Card&#39;, {
+    extend: &#39;Ext.layout.Auto&#39;,
+
+    alias: &#39;layout.card&#39;,
+
+<span id='Ext-layout-Card-property-type'>    type: &#39;card&#39;,
+</span>
+<span id='Ext-layout-Card-property-isCard'>    isCard: true,
+</span>
+<span id='Ext-layout-Card-cfg-animation'>    /**
+</span>     * @cfg {String/Object} animation
+     * The animation to use when switching between cards. The possible animation
+     * types are:
+     * - `&#39;cover&#39;`
+     * - `&#39;cube&#39;`
+     * - `&#39;fade&#39;`
+     * - `&#39;flip&#39;`
+     * - `&#39;pop&#39;`
+     * - `&#39;reveal&#39;`
+     * - `&#39;scroll&#39;`
+     * - `&#39;slide&#39;`
+     *
+     * If a string, the value should be one of the above types. If an object, the type
+     * should be one of the above types.
+     *
+     * @cfg {Number} [animation.duration]
+     * The duration of the animation.
+     * 
+     * @cfg {String} [animation.direction]
+     *
+     * For animations that support a direction, the direction of the animation can be specified. The possible values are:
+     * - `&#39;horizontal&#39;`
+     * - `&#39;vertical&#39;`
+     * - `&#39;top&#39;`
+     * - `&#39;right&#39;`
+     * - `&#39;bottom&#39;`
+     * - `&#39;left&#39;`
+     *
+     * If a particular direction is specified (`top`/`right`/`bottom`/`left`), then the layout
+     * will always animate in that direction. If `horizontal`/`vertical` is used, the direction
+     * will be determined based on the position in the items collection. If the new item is before the
+     * current item, the direction will be &quot;back&quot; (`left`/`top`). If the new item is after the current item,
+     * the direction will be &quot;forward&quot; (`right`/`top`).
+     */
+
+<span id='Ext-layout-Card-event-activeitemchange'>    /**
+</span>     * @event activeitemchange
+     * @preventable
+     * Fires when an card is made active
+     * @param {Ext.layout.Card} this The layout instance
+     * @param {Mixed} newActiveItem The new active item
+     * @param {Mixed} oldActiveItem The old active item
+     */
+
+    config: {
+<span id='Ext-layout-Card-cfg-indicator'>        /**
+</span>         * @cfg {Ext.Indicator} indicator
+         * Creates an {@link Ext.Indicator} instance that can be used to visualize
+         * the number of items and which item is active.
+         */
+        indicator: {
+            lazy: true,
+            $value: {
+                xtype: &#39;indicator&#39;,
+                flex: 1
+            }
+        }
+    },
+
+<span id='Ext-layout-Card-cfg-deferRender'>    /**
+</span>     * @cfg {Boolean} [deferRender=true]
+     * By default, items not initially shown in the Card layout are rendered when first shown.  This provides
+     * a performance benefit, but if the hidden items contain components that are bound, the bindings do not
+     * immediately take effect.  If you have a form with bnound fields that spans several cards, the initially
+     * hidden items won&#39;t have their values bound and validation will not be done properly.  In those cases,
+     * you will want to set deferRender to false.
+     */
+    deferRender: true,
+
+<span id='Ext-layout-Card-property-cls'>    cls: Ext.baseCSSPrefix + &#39;layout-card&#39;,
+</span>
+<span id='Ext-layout-Card-property-itemCls'>    itemCls: Ext.baseCSSPrefix + &#39;layout-card-item&#39;,
+</span>
+    requires: [
+        &#39;Ext.Indicator&#39;,
+        &#39;Ext.layout.card.fx.*&#39;
+    ],
+
+<span id='Ext-layout-Card-method-applyAnimation'>    /**
+</span>     * @private
+     */
+    applyAnimation: function(animation) {
+        return animation ? new Ext.Factory.layoutCardFx(animation) : null;
+    },
+
+<span id='Ext-layout-Card-method-updateAnimation'>    /**
+</span>     * @private
+     */
+    updateAnimation: function(animation, oldAnimation) {
+        var me = this,
+            direction;
+
+        me.autoDirection = null;
+
+        if (animation &amp;&amp; animation.isAnimation) {
+            animation.setLayout(me);
+
+            direction = animation.getDirection();
+            if (!direction || me.autoDirectionMap[direction]) {
+                me.autoDirection = direction || &#39;horizontal&#39;;
+                // If we got horizontal or vertical, clear it out
+                animation.setDirection(null);
+            }
+        }
+
+        if (oldAnimation) {
+            oldAnimation.destroy();
+        }
+    },
+
+<span id='Ext-layout-Card-method-applyIndicator'>    applyIndicator: function (indicator, currentIndicator) {
+</span>        return Ext.updateWidget(currentIndicator, indicator, this, &#39;createIndicator&#39;);
+    },
+
+<span id='Ext-layout-Card-method-createIndicator'>    createIndicator: function (indicator) {
+</span>        return Ext.apply({
+            ownerCmp: this.getContainer()
+        }, indicator);
+    },
+
+<span id='Ext-layout-Card-method-updateIndicator'>    updateIndicator: function (indicator) {
+</span>        if (indicator) {
+            var container = this.getContainer(),
+                innerItems = container.getInnerItems(),
+                activeItem = container.getActiveItem();
+
+            indicator
+                .sync(innerItems.length, innerItems.indexOf(activeItem))
+                .on({
+                    indicatortap: &#39;onIndicatorTap&#39;,
+                    next: &#39;next&#39;,
+                    previous: &#39;previous&#39;,
+                    scope: this
+                });
+        }
+    },
+
+<span id='Ext-layout-Card-method-onContainerInitialized'>    onContainerInitialized: function() {
+</span>        var me = this,
+            container = me.getContainer(),
+            firstItem = container.getInnerAt(0),
+            activeItem = container.getActiveItem();
+
+        me.callParent();
+
+        if (activeItem) {
+            // Don&#39;t call showItem here, since the component will get rendered by the
+            // render cycle
+            activeItem.show();
+
+            if (firstItem &amp;&amp; firstItem !== activeItem) {
+                firstItem.hide();
+            }
+        }
+
+        container.on(&#39;activeitemchange&#39;, &#39;onContainerActiveItemChange&#39;, me);
+    },
+
+<span id='Ext-layout-Card-method-onContainerActiveItemChange'>    /**
+</span>     * @private
+     */
+    onContainerActiveItemChange: function(container, newItem, oldItem) {
+        var me = this,
+            innerItems = container.getInnerItems(),
+            newIndex = innerItems.indexOf(newItem),
+            oldIndex = innerItems.indexOf(oldItem),
+            animation = me.getAnimation(),
+            autoDirection = me.autoDirection,
+            horizontal = autoDirection &amp;&amp; autoDirection === &#39;horizontal&#39;,
+            direction;
+
+        if (autoDirection &amp;&amp; newIndex !== -1 &amp;&amp; oldIndex !== -1) {
+            if (newIndex &lt; oldIndex) {
+                direction = horizontal ? &#39;right&#39; : &#39;up&#39;;
+            } else {
+                direction = horizontal ? &#39;left&#39; : &#39;down&#39;;
+            }
+            animation.setDirection(direction);
+        }
+
+        me.fireEventedAction(&#39;activeitemchange&#39;, [me, newItem, oldItem],
+            &#39;doActiveItemChange&#39;, me);
+    },
+
+<span id='Ext-layout-Card-method-onItemInnerStateChange'>    onItemInnerStateChange: function(item, isInner, destroying) {
+</span>        this.callParent([item, isInner, destroying]);
+
+        var container = this.getContainer(),
+            activeItem = container.getActiveItem();
+
+        if (isInner) {
+            if (activeItem !== container.innerIndexOf(item) &amp;&amp; activeItem !== item &amp;&amp; item !== container.pendingActiveItem) {
+                item.hide();
+            }
+        } else {
+            if (!destroying &amp;&amp; !item.destroyed &amp;&amp; item.destroying !== true) {
+                item.show();
+            }
+        }
+    },
+
+<span id='Ext-layout-Card-method-doActiveItemChange'>    /**
+</span>     * @private
+     */
+    doActiveItemChange: function(me, newActiveItem, oldActiveItem) {
+        var indicator = me.getConfig(&#39;indicator&#39;, null, true),
+            container, innerItems;
+
+        if (oldActiveItem &amp;&amp; !oldActiveItem.destroyed) {
+            oldActiveItem.hide();
+        }
+
+        if (newActiveItem &amp;&amp; !newActiveItem.destroyed) {
+            me.showItem(newActiveItem);
+
+            if (indicator) {
+                container = this.getContainer();
+                innerItems = container.getInnerItems();
+
+                indicator.setActiveIndex(innerItems.indexOf(newActiveItem));
+            }
+        }
+    },
+
+<span id='Ext-layout-Card-method-onItemAdd'>    onItemAdd: function (item, index) {
+</span>        var indicator,
+            style;
+
+        this.callParent([item, index]);
+
+        if (item.isInnerItem()) {
+            indicator = this.getConfig(&#39;indicator&#39;, null, true);
+
+            if (indicator) {
+                indicator.add();
+            }
+
+            // Clear any styles as they come in, we should be
+            // 100% 100%
+            style = item.element.dom.style;
+            style.width = style.height = &#39;&#39;;
+        }
+    },
+
+<span id='Ext-layout-Card-method-onItemRemove'>    onItemRemove: function (item, index, destroying) {
+</span>        var indicator,
+            w, h;
+
+        this.callParent([item, index, destroying]);
+
+        if (item.isInnerItem()) {
+            indicator = this.getConfig(&#39;indicator&#39;, null, true);
+
+            if (indicator) {
+                indicator.remove();
+            }
+
+            // Restore inline sizes on the way out
+            w = item.getWidth();
+            h = item.getHeight();
+
+            item.setWidth(null).setWidth(w);
+            item.setHeight(null).setHeight(w);
+        }
+    },
+
+<span id='Ext-layout-Card-method-next'>    /**
+</span>     * Moves to the next item if not on the last item.
+     */
+    next: function () {
+        var container = this.getContainer(),
+            activeItem = container.getActiveItem(),
+            innerItems = container.getInnerItems(),
+            index = innerItems.indexOf(activeItem);
+
+        activeItem = innerItems[index + 1];
+
+        if (activeItem) {
+            container.setActiveItem(activeItem);
+        }
+    },
+
+<span id='Ext-layout-Card-method-previous'>    /**
+</span>     * Moves to the previous item if not on the first item.
+     */
+    previous: function () {
+        var container = this.getContainer(),
+            activeItem = container.getActiveItem(),
+            innerItems = container.getInnerItems(),
+            index = innerItems.indexOf(activeItem);
+
+        activeItem = innerItems[index - 1];
+
+        if (activeItem) {
+            container.setActiveItem(activeItem);
+        }
+    },
+
+<span id='Ext-layout-Card-method-onIndicatorTap'>    onIndicatorTap: function (indicator, index) {
+</span>        var container = this.getContainer();
+
+        container.setActiveItem(index);
+    },
+
+<span id='Ext-layout-Card-method-destroy'>    destroy: function() {
+</span>        Ext.destroy(this.getAnimation(), this.getIndicator());
+
+        this.callParent();
+    },
+
+<span id='Ext-layout-Card-property-privates'>    privates: {
+</span>        autoDirectionMap: {
+            horizontal: 1,
+            vertical: 1
+        },
+
+        renderInnerItem: function(item, asRoot) {
+            if (!this.deferRender || this.getContainer().getActiveItem() === item) {
+                this.callParent([item, asRoot]);
+            }
+        },
+
+        showItem: function(item) {
+            item.show();
+            item.setRendered(true, true);
+        }
+    }
+});
+</pre>
+</body>
+</html>

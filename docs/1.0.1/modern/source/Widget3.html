@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Widget'>/**
+</span> * @class Ext.Widget
+ */
+
+Ext.define(&#39;Ext.overrides.Widget&#39;, {
+    override: &#39;Ext.Widget&#39;,
+
+    mixins: [
+        &#39;Ext.mixin.Traversable&#39;
+    ],
+
+    requires: [
+        &#39;Ext.util.translatable.Abstract&#39;
+    ],
+
+    statics: {
+<span id='Ext-Widget-static-property-floatInset'>        /**
+</span>         * @property {Number} floatInset
+         * The inset from document edges within which floated components are constrained for readability so that
+         * they do not merge into the document edge.
+         * The default value is 8.
+         */
+        floatInset: 8,
+
+<span id='Ext-Widget-static-method-onModalMaskTap'>        onModalMaskTap: function (e) {
+</span>            var top = this.topModal;
+
+            if (top &amp;&amp; top.onModalMaskTap &amp;&amp; top.onModalMaskTap(e)) {
+                this.topModal = null;
+            }
+        },
+
+<span id='Ext-Widget-static-property-range'>        range: document.createRange()
+</span>    },
+
+    config: {
+<span id='Ext-Widget-cfg-flex'>        /**
+</span>         * @cfg {Number/String/Object} flex
+         * The flex of this item *if* this item item is inside a {@link Ext.layout.HBox} or {@link Ext.layout.VBox}
+         * layout.
+         *
+         * You can also update the flex of a component dynamically using the {@link Ext.layout.FlexBox#setItemFlex}
+         * method.
+         *
+         * When supplied as a string or number this option supports the same syntax
+         * as CSS [flex](https://developer.mozilla.org/en-US/docs/Web/CSS/flex).
+         * For example:
+         *
+         *     flex: &#39;1 2 auto&#39;
+         *
+         * sets `flex-grow` property to `0`, `flex-shrink` to `2` and `flex-basis` to
+         * `&#39;auto&#39;`.
+         *
+         * The default `flex-shrink` value for box layout items is set to `0` in the
+         * stylesheet, which is different from the browser&#39;s default `flex-shrink` value
+         * of `1`.  This accommodates the majority use case for applications since where
+         * non-flexed components are typically not expected to shrink smaller than their
+         * default size.
+         *
+         * For convenience when only a single number is supplied it is used as the value
+         * for both `flex-grow` and `flex-shrink`, for example `flex: 3` is the same as
+         * `flex: &#39;3 3&#39;`
+         *
+         * An object form is also accepted:
+         *
+         *     flex: {
+         *         grow: 1,
+         *         shrink: 2,
+         *         basis: &#39;auto&#39;
+         *     }
+         *
+         * When the object form is supplied `shrink` always defaults to `0` regardless
+         * of the value of `grow`.
+         *
+         * Although `&#39;auto&#39;` is the default value for flex-basis, flex-basis defaults to 0%
+         * when flex is supplied as a single numeric or string value (e.g. `flex: 1`). If
+         * this behavior is not desired either explicitly set flex-basis to `&#39;auto&#39;` or use
+         * the object form to set only grow and/or shrink:
+         *
+         *     flex: {
+         *         grow: 2
+         *     }
+         */
+        flex: {
+            evented: true,
+            $value: null
+        },
+
+<span id='Ext-Widget-cfg-id'>        /**
+</span>         * @cfg {String} id
+         * The **unique id of this component instance.**
+         *
+         * It should not be necessary to use this configuration except for singleton objects in your application. Components
+         * created with an id may be accessed globally using {@link Ext#getCmp Ext.getCmp}.
+         *
+         * Instead of using assigned ids, use the {@link #itemId} config, and {@link Ext.ComponentQuery ComponentQuery}
+         * which provides selector-based searching for Sencha Components analogous to DOM querying. The
+         * {@link Ext.Container} class contains {@link Ext.Container#down shortcut methods} to query
+         * its descendant Components by selector.
+         *
+         * Note that this id will also be used as the element id for the containing HTML element that is rendered to the
+         * page for this component. This allows you to write id-based CSS rules to style the specific instance of this
+         * component uniquely, and also to select sub-elements using this component&#39;s id as the parent.
+         *
+         * **Note**: to avoid complications imposed by a unique id also see `{@link #itemId}`.
+         *
+         * Defaults to an auto-assigned id.
+         */
+
+<span id='Ext-Widget-cfg-itemId'>        /**
+</span>         * @cfg {String} itemId
+         * An itemId can be used as an alternative way to get a reference to a component when no object reference is
+         * available. Instead of using an `{@link #id}` with {@link Ext#getCmp}, use `itemId` with
+         * {@link Ext.Container#getComponent} which will retrieve `itemId`&#39;s or {@link #id}&#39;s. Since `itemId`&#39;s are an
+         * index to the container&#39;s internal MixedCollection, the `itemId` is scoped locally to the container - avoiding
+         * potential conflicts with {@link Ext.ComponentManager} which requires a **unique** `{@link #id}`.
+         *
+         * Also see {@link #id}, {@link Ext.Container#query}, {@link Ext.Container#down} and {@link Ext.Container#child}.
+         *
+         * @accessor
+         */
+        itemId: undefined,
+
+<span id='Ext-Widget-cfg-floated'>        /**
+</span>         * @cfg {Boolean} [floated=false]
+         * A Component may be floated above all other components in the application. This means that the component is absolutely
+         * positioned, and will move to the front and occlude other sibling floated component if clicked.
+         *
+         * A Floated component may have floated descendants. It will bring these decendants to the front with it when brought 
+         * to the front of its sibling floated components.
+         *
+         * By default, descendant floated components are all positioned using the viewport coordinate system. To make a floating 
+         * component a positioning parent for descendants, and have the ancestors positioned relatively, configure the parent
+         * floated component with `{@link #cfg-relative}: true`.
+         *
+         * @since 6.2.0
+         */
+        floated: null,
+
+<span id='Ext-Widget-cfg-relative'>        /**
+</span>         * @cfg {Boolean} [relative=false]
+         * *Only valid when a component is `{@link #cfg-floated}`*
+         *
+         * Configure this as `true` if you require descendant floated components to be positioned  relative to this
+         * component&#39;s coordinate space, not the viewport&#39;s coordinate space.
+         * 
+         * *Note:* The coordinate space is this Component&#39;s encapsulating element&#39;s area. Not that of the inner
+         * element in which static child items are rendered by the layout.
+         *
+         * @since 6.2.0
+         */
+        relative: null,
+        
+<span id='Ext-Widget-cfg-x'>        /**
+</span>         * @cfg {Number} [x=0]
+         * *Only valid when a component is `{@link #cfg-floated}`*
+         *
+         * The x position at which to position this component. This is usually viewport-relative. But if there is a
+         * `{@link #relative}: true` ancestor, it will be relative to that.
+         */
+        x: null,
+        
+<span id='Ext-Widget-cfg-y'>        /**
+</span>         * @cfg {Number} [y=0]
+         * *Only valid when a component is `{@link #cfg-floated}`*
+         *
+         * The x position at which to position this component. This is usually viewport-relative. But if there is a
+         * `{@link #relative}: true` ancestor, it will be relative to that.
+         */
+        y: null,
+
+<span id='Ext-Widget-cfg-shadow'>        /**
+</span>         * @cfg {Boolean} [shadow]
+         * Configure as `true` for the component to have a drop shadow. &#39;false&#39; will suppress any default shadow.
+         * By default the theme will determine the presence of a shadow.
+         *
+         * @since 6.2.0
+         */
+        shadow: null,
+
+<span id='Ext-Widget-cfg-shim'>        /**
+</span>         * @cfg {Boolean} [shim=false]
+         * *Only valid when a component is `{@link #cfg-floated}`*
+         *
+         * Configure as `true` for the component to use an `&lt;iframe&gt;` as an underlay to ensure certain non-standard
+         * browser plugins are occluded by this component.
+         *
+         * @since 6.2.0
+         */
+        shim: null,
+
+<span id='Ext-Widget-cfg-alwaysOnTop'>        /**
+</span>         * @cfg {Boolean/Number} [alwaysOnTop=false] A flag indicating that this component should be above its floated siblings.
+         *
+         * This may be a positive number to prioritize the ordering of multiple visible always on top components.
+         *
+         * This may be set to a *negative* number to prioritize a component to the *bottom* of the z-index stack.
+         *
+         * @since 6.2.0
+         */
+        alwaysOnTop: null,
+
+<span id='Ext-Widget-cfg-toFrontOnShow'>        /**
+</span>         * @cfg {Boolean} [toFrontOnShow=true]
+         * True to automatically call {@link #toFront} when a {@link #cfg-floated} Component is shown.
+         */
+        toFrontOnShow: true,
+
+        // @cmd-auto-dependency { aliasPrefix : &quot;translatable.&quot; }
+<span id='Ext-Widget-cfg-translatable'>        /**
+</span>         * @cfg {Object} translatable
+         * @private
+         * @accessor
+         */
+        translatable: {
+            lazy: true,
+            $value: null
+        },
+
+<span id='Ext-Widget-cfg-constrainAlign'>        /**
+</span>         * @cfg {String/Ext.util.Region/Ext.dom.Element} [constrainAlign]
+         * A specification of the constraint to apply when {@link #showBy} or {@link #alignTo}
+         * is called to align a {@link #floated} or positioned component.
+         *
+         * Defaults to the parent container for *positioned* components (components
+         * which have their {@link #cfg!top}, {@link #cfg!right}, {@link #cfg!bottom} or {@link #cfg!left} set
+         * to move them out of their container&#39;s layout flow).
+         *
+         * Defaults to the viewport for {@link #floated} components.
+         *
+         * May be a {@link Ext.ComponentQuery ComponentQuery} selector to find an ancestor
+         * component to constrain within.
+         *
+         * May be `false` to specify that constraining is not applied.
+         *
+         * You may also specify an element, or a {@link Ext.util.Region Region}
+         */
+        constrainAlign: null,
+
+<span id='Ext-Widget-cfg-selfAlign'>        /**
+</span>         * @cfg {String} [selfAlign]
+         * Specifies the self alignment of this widget in a box layout
+         */
+        alignSelf: null
+    },
+
+<span id='Ext-Widget-property-inheritUi'>    /**
+</span>     * @property {Boolean/String}
+     * Set to `true` on widgets that should inherit {@link #ui} from their parent container.
+     * This property is typically set on the class body, but can be set on an instance as long
+     * as it is set prior to the instance being added to its container.  This property is
+     * inspected at the moment a widget is added to a container, and any UIs on the container
+     * are added to the widget at that time.  Inherited UIs are in addition to the widget&#39;s
+     * own {@link #ui}, and are updated when the container&#39;s UI changes.
+     */
+    inheritUi: false,
+
+<span id='Ext-Widget-property-floatingCls'>    /**
+</span>     * @property {String} [floatingCls=&quot;x-floated&quot;] The CSS class to add to this component when it is floated at the viewport level.
+     * @private
+     * @readonly
+     */
+    floatedCls: Ext.baseCSSPrefix + &#39;floated&#39;,
+
+<span id='Ext-Widget-property-floatedSelector'>    /**
+</span>     * @property {String} [floatedSelector=&quot;.x-floated&quot;] The CSS selector to match floated elements.
+     * @private
+     * @readonly
+     */
+    floatedSelector: &#39;.&#39; + Ext.baseCSSPrefix + &#39;floated&#39;,
+
+<span id='Ext-Widget-property-shadowCls'>    /**
+</span>     * @property {String} [shadowCls] The CSS class to add to this component when it has a shadow.
+     * @private
+     * @readonly
+     */
+    shadowCls: Ext.baseCSSPrefix + &#39;shadow&#39;,
+
+<span id='Ext-Widget-property-shadowCls'>    /**
+</span>     * @property {String} [shadowCls] The CSS class to add to this component should not have a shadow.
+     * @private
+     * @readonly
+     */
+    noShadowCls: Ext.baseCSSPrefix + &#39;no-shadow&#39;,
+    
+<span id='Ext-Widget-property-floatWrapCls'>    /**
+</span>     * @property {String} [floatWrapCls=&quot;x-float-wrap&quot;] The CSS class to add to this component&#39;s floatWrap when it&#39;s created.
+     * @private
+     * @readonly
+     */
+    floatWrapCls: Ext.baseCSSPrefix + &#39;float-wrap&#39;,
+    
+<span id='Ext-Widget-property-shimCls'>    /**
+</span>     * @property {String} [shimCls=&quot;x-shim&quot;] The CSS class to add to this component&#39;s shim element if enabled.
+     * @private
+     * @readonly
+     */
+    shimCls: Ext.baseCSSPrefix + &#39;shim&#39;,
+
+<span id='Ext-Widget-property-rootCls'>    rootCls: Ext.baseCSSPrefix + &#39;root&#39;,
+</span>
+<span id='Ext-Widget-event-beforetofront'>    /**
+</span>     * @event beforetofront
+     * Fires before a {@link #cfg-floated} component is brought to the front of the visual stack.
+     * @param {Ext.Component} this The component instance
+     */
+
+<span id='Ext-Widget-event-tofront'>    /**
+</span>     * @event tofront
+     * Fires when a {@link #cfg-floated} component has been brought to the front of the visual stack.
+     * @param {Ext.Component} this The component instance
+     */
+
+<span id='Ext-Widget-property-isInner'>    /**
+</span>     * @private
+     */
+    isInner: true,
+
+<span id='Ext-Widget-property-clearPropertiesOnDestroy'>    clearPropertiesOnDestroy: &#39;async&#39;,
+</span>
+<span id='Ext-Widget-method-beforeHide'>    beforeHide: Ext.emptyFn,
+</span>
+<span id='Ext-Widget-method-afterHide'>    afterHide: function() {
+</span>        var me = this,
+            parent = me.getParent();
+
+        if (parent &amp;&amp; parent.afterItemHide) {
+            parent.afterItemHide(me);
+        }
+
+        if (me.getFloated()) {
+            me.syncShim();
+        }
+    },
+
+<span id='Ext-Widget-method-beforeShow'>    beforeShow: Ext.emptyFn,
+</span>
+<span id='Ext-Widget-method-afterShow'>    afterShow: function() {
+</span>        var me = this,
+            parent = me.getParent();
+
+        if (parent &amp;&amp; parent.afterItemShow) {
+            parent.afterItemShow(me);
+        }
+    },
+
+<span id='Ext-Widget-method-applyItemId'>    applyItemId: function(itemId) {
+</span>        return itemId || this.getId();
+    },
+
+<span id='Ext-Widget-method-doDestroy'>    doDestroy: function() {
+</span>        var me = this,
+            parent = me.getParent(),
+            fw = me.floatWrap;
+
+        if (parent &amp;&amp; parent.remove) {
+            parent.remove(me, false);
+        }
+        
+        me.setShim(false);
+        Ext.destroy(me.getTranslatable());
+
+        if (fw) {
+            me.un(&#39;resize&#39;, &#39;syncFloatWrap&#39;, me);
+            fw.destroy();
+            me.floatWrap = null;
+        }
+
+        me.removeBindings();
+
+        me.callParent();
+    },
+
+<span id='Ext-Widget-method-isInnerItem'>    isInnerItem: function() {
+</span>        return this.isInner;
+    },
+
+<span id='Ext-Widget-method-isCentered'>    isCentered: function() {
+</span>        return false;
+    },
+
+<span id='Ext-Widget-method-isDocked'>    isDocked: function() {
+</span>        return Boolean(this.getDocked());
+    },
+
+<span id='Ext-Widget-method-isPositioned'>    isPositioned: function() {
+</span>        return false;
+    },
+
+<span id='Ext-Widget-method-getDocked'>    getDocked: function() {
+</span>        return this._docked;
+    },
+
+<span id='Ext-Widget-method-isHidden'>    /**
+</span>     * Returns `true` if this Component is currently hidden.
+     * @param {Boolean/Ext.Widget} [deep=false] `true` to check if this component
+     * is hidden because a parent container is hidden. Alternatively, a reference to the
+     * top-most parent at which to stop climbing.
+     * @return {Boolean} `true` if currently hidden.
+     */
+    isHidden: function(deep) {
+        var me = this,
+            hidden;
+
+        // While configuring, this is a local operation
+        // and we peek at the incoming configuration values.
+        // Floated components and non-floated components have
+        // different defaults in response to an initial hidden
+        // state of null. Normalize that here.
+        if (me.isConfiguring) {
+            hidden = me.getConfig(&#39;hidden&#39;, true);
+
+            // Floateds default to hidden: true
+            if (me.getConfig(&#39;floated&#39;, true)) {
+                return hidden !== false;
+            }
+            // Non floateds default to hidden: false
+            else {
+                return !!hidden;
+            }
+        } else {
+            return this.callParent([deep]);
+        }
+        return me.callParent([deep]);
+    },
+
+<span id='Ext-Widget-method-onAdded'>    /**
+</span>     * @private
+     */
+    onAdded: function(parent, instanced) {
+        var me = this,
+            currentParent = me.parent;
+
+        if (currentParent &amp;&amp; currentParent !== parent) {
+            currentParent.remove(me, false);
+        }
+
+        me.parent = parent;
+
+        me.onInheritedAdd(parent, instanced);
+
+        // this component is no longer detached from the body
+        me.isDetached = false;
+
+        // If we are floated, register with a floatParent
+        if (me.getFloated()) {
+            me.findFloatParent();
+        }
+
+        if (me.inheritUi) {
+            me.doInheritUi();
+        }
+    },
+
+<span id='Ext-Widget-method-onRemoved'>    onRemoved: function(destroying) {
+</span>        var me = this;
+
+        if (me.inheritUi &amp;&amp; !destroying) {
+            me.doUninheritUi();
+        }
+
+        me.onInheritedRemove(destroying);
+
+        me.parent = null;
+    },
+
+<span id='Ext-Widget-method-setIsInner'>    setIsInner: function(isInner) {
+</span>        var parent;
+
+        if (isInner !== this.isInner) {
+            this.isInner = isInner;
+
+            parent = this.initialized &amp;&amp; this.getParent();
+            if (parent) {
+                parent.onItemInnerStateChange(this, isInner);
+            }
+        }
+    },
+
+<span id='Ext-Widget-method-refreshInnerState'>    refreshInnerState: function() {
+</span>        this.setIsInner(!this.getFloated() &amp;&amp; !this.isCentered() &amp;&amp; !this.isPositioned() &amp;&amp; !this.isDocked());
+    },
+
+<span id='Ext-Widget-method-toFront'>    /**
+</span>     * Brings a {@link #cfg-floated} Component to the front of any other visible, floated
+     * Components while honoring all {@link #cfg!alwaysOnTop} settings. This may not become
+     * topmost if another visible floated component has a higher {@link #cfg!alwaysOnTop} value.
+     *
+     * If this Component becomes the topmost *modal* floated component, the the shared modal
+     * mask is moved to just below this Component.
+     * @param {Boolean} [fromMousedown] (private)
+     * @return {Ext.Component} this
+     */
+    toFront: function(fromMousedown) {
+        //&lt;debug&gt;
+        if (!this.getFloated()) {
+            Ext.raise(&#39;Cannot use toFront on a non-floated component&#39;);
+        }
+        //&lt;/debug&gt;
+        var me = this,
+            floatParent = me.getFloatParent();
+
+        if (!me.hasListeners.beforetofront || me.fireEvent(&#39;beforetofront&#39;, me) !== false) {
+            me.syncAlwaysOnTop(fromMousedown);
+
+            // All floatParents must move to the front of their own floatWraps
+            // If we hit the floatRoot, it&#39;s not associated with a floated component
+            // which could need moving, so there will be no component
+            if (floatParent &amp;&amp; floatParent.getFloated()) {
+                floatParent.toFront(fromMousedown);
+            }
+
+            if (me.hasListeners.tofront) {
+                me.fireEvent(&#39;tofront&#39;, me);
+            }
+        }
+
+        return me;
+    },
+
+<span id='Ext-Widget-method-applyTranslatable'>    applyTranslatable: function (config, translatable) {
+</span>        return Ext.Factory.translatable.update(translatable, config, this,
+            &#39;createTranslatable&#39;);
+    },
+
+<span id='Ext-Widget-method-createTranslatable'>    createTranslatable: function (config) {
+</span>        var me = this,
+            listeners = config.listeners;
+
+        config = Ext.apply({
+            type: &#39;cssposition&#39;,
+            ownerCmp: me,
+            element: me.renderElement
+        }, config);
+
+        // The resolveListenerScope will handle this case, but this saves many
+        // function calls during mousemove...
+        if (listeners &amp;&amp; listeners.scope === &#39;this&#39;) {
+            config.listeners = listeners = Ext.apply({}, listeners);
+            listeners.scope = me;
+        }
+
+        return config;
+    },
+
+<span id='Ext-Widget-method-ensureTranslatable'>    ensureTranslatable: function () {
+</span>        var me = this,
+            translatable = me.getTranslatable();
+
+        if (!translatable) {
+            me.setTranslatable(true);
+            translatable = me.getTranslatable();
+        }
+
+        return translatable;
+    },
+
+<span id='Ext-Widget-method-translate'>    translate: function() {
+</span>        var translatable = this.ensureTranslatable();
+
+        translatable.translate.apply(translatable, arguments);
+    },
+
+<span id='Ext-Widget-method-getAlignmentInfo'>    /**
+</span>     * Prepares information on aligning this to component using alignment.
+     * Also checks to see if this is already aligned to component according to alignment.
+     * @protected
+     */
+    getAlignmentInfo: function (component, alignment){
+        var me = this,
+            alignToBox = component.isRegion ? component : (component.isWidget ? component.renderElement : Ext.fly(component)).getBox(),
+            element = me.renderElement,
+            box = element.getBox(),
+            stats = {
+                alignToBox: alignToBox,
+                alignment: alignment,
+                top: alignToBox.top,
+                left: alignToBox.left,
+
+                // Might be an Ext.util.Point which does not have dimensions.
+                alignToWidth: alignToBox.width || 0,
+                alignToHeight: alignToBox.height || 0,
+
+                width: box.width,
+                height: box.height,
+
+                // getAnchor returns the element, so cast to boolean
+                // otherwise the comparison below rejects it.
+                anchor: !!(me.getAnchor &amp;&amp; me.getAnchor())
+            },
+            currentAlignmentInfo = me.getCurrentAlignmentInfo(),
+            isAligned = true;
+
+        if (!Ext.isEmpty(currentAlignmentInfo)) {
+            Ext.Object.each(stats, function(key, value) {
+                if (!Ext.isObject(value) &amp;&amp; currentAlignmentInfo[key] !== value) {
+                    isAligned = false;
+                    return false;
+                }
+                return true;
+            });
+        } else {
+            isAligned = false;
+        }
+
+        return {isAligned: isAligned, stats: stats};
+    },
+
+<span id='Ext-Widget-method-getCurrentAlignmentInfo'>    /**
+</span>     * Current Alignment information from the last alignTo call
+     * @private
+     */
+    getCurrentAlignmentInfo: function() {
+        return this.$currentAlignmentInfo;
+    },
+
+<span id='Ext-Widget-method-setCurrentAlignmentInfo'>    /**
+</span>     * Sets the current Alignment information, called by alignTo
+     * @private
+     */
+    setCurrentAlignmentInfo: function(alignmentInfo) {
+        this.$currentAlignmentInfo = Ext.isEmpty(alignmentInfo) ? null : Ext.merge({}, alignmentInfo.stats ? alignmentInfo.stats : alignmentInfo);
+    },
+
+<span id='Ext-Widget-method-alignTo'>    /**
+</span>     * @private
+     */
+    alignTo: function(component, alignment, options) {
+        var me = this,
+            alignmentInfo = me.getAlignmentInfo(component, alignment),
+            config = me.initialConfig,
+            positioned = !me.getFloated(),
+            setX = positioned ? me.setLeft : me.setX,
+            setY = positioned ? me.setTop : me.setY,
+            oldHeight, resultRegion;
+
+        if (alignmentInfo.isAligned) {
+            return;
+        }
+
+        if (&#39;unconstrainedWidth&#39; in me) {
+            me.setWidth(me.unconstrainedWidth);
+        }
+        if (&#39;unconstrainedHeight&#39; in me) {
+            me.setHeight(me.unconstrainedHeight);
+        }
+        resultRegion = me.getAlignRegion(component, alignment, options);
+
+        setX.call(me, resultRegion.x);
+        setY.call(me, resultRegion.y);
+        if (resultRegion.constrainWidth) {
+            me.unconstrainedWidth = config.width || me.self.prototype.width;
+
+            // We must deal with height changeing if we restrict width and we are aliging above
+            oldHeight = me.el.getHeight();
+            me.setWidth(alignmentInfo.stats.width = resultRegion.getWidth());
+
+            // We are being positioned above, bump upwards by how much the
+            // element has expanded as a result of width restriction.
+            if (resultRegion.align.position === 0) {
+                setY.call(me, resultRegion.y + (oldHeight - me.el.getHeight()));
+            }
+        }
+        if (resultRegion.constrainHeight) {
+            me.unconstrainedHeight = config.height || me.self.prototype.height;
+            me.setHeight(alignmentInfo.stats.height = resultRegion.getHeight());
+        }
+
+        // Cache the alignment options for any realign call which might happen on
+        // viewport resize or configuration change.
+        me.alignToArgs = [component, alignment, options];
+
+        me.setCurrentAlignmentInfo(alignmentInfo);
+    },
+
+<span id='Ext-Widget-method-realign'>    /**
+</span>     * @private
+     */
+    realign: function(component, alignment, options) {
+        var args = this.alignToArgs;
+
+        if (this.isVisible()) {
+            this.alignTo.call(this, component || args[0], alignment || args[1], options || args[2]);
+        }
+    },
+
+<span id='Ext-Widget-method-getAlignRegion'>    /**
+</span>     * @private
+     */
+    getAlignRegion: function(component, alignment, options) {
+        var me = this,
+            alignmentInfo = me.getAlignmentInfo(component, alignment),
+            constrainModifier,
+            inside;
+
+        if (alignmentInfo.isAligned) {
+            return;
+        }
+
+        var alignToBox = alignmentInfo.stats.alignToBox,
+            constrainBox = me.getConstrainAlignRegion(),
+            height = alignmentInfo.stats.height,
+            width = alignmentInfo.stats.width;
+
+        if (constrainBox &amp;&amp; (!alignment || alignment === &#39;auto&#39;)) {
+            if (constrainBox.bottom - alignToBox.bottom &lt; height) {
+                if (alignToBox.top - constrainBox.top &lt; height) {
+                    if (alignToBox.left - constrainBox.left &lt; width) {
+                        alignment = &#39;l-r?&#39;;
+                    }
+                    else {
+                        alignment = &#39;r-l?&#39;;
+                    }
+                }
+                else {
+                    alignment = &#39;b-t?&#39;;
+                }
+            }
+            else {
+                alignment = &#39;t-b?&#39;;
+            }
+        }
+
+        constrainModifier = alignment[alignment.length - 1];
+
+        // If the assertive form was used (like &quot;tl-bl!&quot;), constrain to the align to component.
+        if (constrainModifier === &#39;!&#39;) {
+            inside = component.isRegion ? component : (component.isWidget ? component.renderElement : Ext.fly(component)).getBox();
+            alignment = alignment.substr(0, alignment.length - 1);
+        }
+        // Constraining is always applied if the constrainAlign config is set
+        else {
+            inside = constrainBox;
+            if (constrainModifier === &#39;?&#39;) {
+                alignment = alignment.substr(0, alignment.length - 1);
+            }
+        }
+
+        return me.el.getRegion().alignTo(Ext.apply({
+            target: Ext.util.Region.from(alignmentInfo.stats.alignToBox),
+            align: alignment,
+            inside: inside,
+            minWidth: me.getMinWidth &amp;&amp; me.getMinWidth(),
+            minHeight: me.getMinHeight &amp;&amp; me.getMinHeight()
+        }, options));
+    },
+
+<span id='Ext-Widget-method-render'>    //&lt;debug&gt;
+</span>    render: function(container, insertBeforeElement) {
+        if (this.getFloated()) {
+            Ext.raise(&#39;floated: true components cannot be rendered. They render themselves on first show&#39;);
+            return;
+        }
+        this.callParent([container, insertBeforeElement]);
+    },
+    //&lt;/debug&gt;
+
+<span id='Ext-Widget-method-afterRender'>    /**
+</span>     * This method is called after the component is initially added to the DOM. If this
+     * component {@link Ext.Container contains} other components, the `afterRender` method
+     * for child components is called *before* the parent&#39;s `afterRender`.
+     *
+     * Implementations of this method should avoid reading from the DOM but are free to
+     * write to the DOM as needed. To read the DOM, consider implementing
+     * {@link #onRender onRender} instead.
+     *
+     * This method is not generally needed because components always have their own DOM
+     * {@link #property!element elements} and these are maintained by config property
+     * updaters prior to insertion in the DOM. In general, it is always best to manipulate
+     * the component&#39;s elements outside the DOM where there is no associated reflow or
+     * layout cost. This method is useful for situations where the component&#39;s elements
+     * must be in the DOM in order to be manipulated correctly.
+     *
+     * @template
+     * @method afterRender
+     * @since 6.5.0
+     */
+    afterRender: Ext.emptyFn,
+
+<span id='Ext-Widget-method-onRender'>    /**
+</span>     * @method
+     * This method is called the first time a component is inserted into the DOM. If this
+     * component {@link Ext.Container contains} other components, the `onRender` method
+     * for child components is called *after* the parent&#39;s `onRender`.
+     *
+     * Implementations of this method should avoid modifying the DOM but are free to read
+     * from and measure elements as needed. To adjust the DOM, consider implementing
+     * {@link #afterRender afterRender} instead.
+     *
+     * If this method is overridden, be sure to use `callParent` to call the base class
+     * version.
+     *
+     *      onRender: function () {
+     *          this.callParent();
+     *
+     *          // custom actions
+     *      }
+     *
+     * This method is not generally needed because components always have their own DOM
+     * {@link #property!element elements} and these are maintained by config property
+     * updaters prior to insertion in the DOM. In general, it is always best to interrogate
+     * the component&#39;s elements outside the DOM where there is no associated reflow or
+     * layout cost. This method is useful for situations where the component&#39;s elements
+     * must be in the DOM. For example to be measured correctly.
+     *
+     * @template
+     * @since 6.5.0
+     */
+    onRender: Ext.emptyFn,
+
+<span id='Ext-Widget-method-applyFloated'>    // floated
+</span>
+    applyFloated: function (floated) {
+        return Boolean(floated);
+    },
+
+<span id='Ext-Widget-method-updateFloated'>    updateFloated: function (floated, oldFloated) {
+</span>        var me = this,
+            fw = me.floatWrap,
+            modal, sibling;
+
+        if (floated) {
+            me.refreshInnerState = Ext.emptyFn;
+
+            if (me.isPositioned()) {
+                me.resetPositioned();
+            }
+
+            if (me.isDocked()) {
+                me.setDocked(false);
+            }
+
+            delete me.refreshInnerState;
+        } else {
+            // If transitioning to an inner component, unwrap ourself.
+            if (fw) {
+                fw.dom.removeChild(me.el.dom);
+                me.un(&#39;resize&#39;, &#39;syncFloatWrap&#39;, me);
+                fw.destroy();
+                me.floatWrap = null;
+                me.setRendered(false);
+            }
+        }
+
+        // Will pull a newly floated item out of the container
+        // or put a newly unfloated item in the container.
+        // So if moving from oldFloated===false to floated===true
+        // we will efectively be derendered.
+        me.refreshInnerState();
+
+        me.el.toggleCls(me.floatedCls, floated);
+
+        // If we are *changing* floatedness, then if the modal config has been
+        // processed, we need to clear it and re-evaluate it for the new mode.
+        //
+        // So for floated to non-floated, the _modal property will have
+        // to cycle from true to an instance of Ext.Mask. And vice versa
+        // for non-floated - floated.
+        if (me.hasOwnProperty(&#39;_modal&#39;)) {
+            modal = me.getModal &amp;&amp; me.getModal();
+
+            if (modal) {
+                me.setModal(false);
+                if (floated) {
+                    // If we are being changed *to* floated, then the modal
+                    // will be the mask instance, so destroy it.
+                    // And if we&#39;re visible, show the shared mask.
+                    Ext.destroy(modal);
+                    if (me.isVisible()) {
+                        me.showModalMask();
+                    }
+                } else {
+                    // We&#39;re being changed to non-floated.
+                    // The shared modal mask must be moved to below the topmost
+                    // modal sibling, or if none, hidden.
+                    sibling = me.getModalSibling();
+
+                    if (sibling) {
+                        sibling.showModalMask();
+                    } else {
+                        me.hideModalMask();
+                    }
+                }
+                me.setModal(true);
+            }
+            if (me.getHideOnMaskTap &amp;&amp; me.getHideOnMaskTap()) {
+                me.setHideOnMaskTap(false);
+                me.setHideOnMaskTap(true);
+            }
+        }
+
+        // Update in-DOM state.
+        // If component *was* floated, it will have been hoiked out of
+        // the DOM, so rendered will be passed in as false
+        me.syncFloatedState(floated, oldFloated, me.rendered &amp;&amp; oldFloated === false);
+    },
+        
+<span id='Ext-Widget-method-applyUi'>    applyUi: function(ui, oldUi) {
+</span>        var me = this,
+            inheritedUi = me._inheritedUi;
+
+        if (inheritedUi) {
+            // if some of our UI&#39;s are inherited from our parent, let&#39;s not remove those
+            ui = me.doAddUi(inheritedUi, ui);
+        }
+
+        return ui;
+    },
+
+<span id='Ext-Widget-method-updateUi'>    updateUi: function(ui, oldUi) {
+</span>        var me = this,
+            item, refItems, i, n;
+
+        me.callParent([ui, oldUi]);
+
+        if (me.$inheritUiCount) {
+            refItems = me.getRefItems();
+
+            for (i = 0, n = refItems.length; i &lt; n; i++) {
+                item = refItems[i];
+
+                if (item.inheritUi) {
+                    item.doUninheritUi();
+                    item.doInheritUi();
+                }
+            }
+        }
+    },
+
+<span id='Ext-Widget-method-updateHidden'>    updateHidden: function(hidden, oldHidden) {
+</span>        var globals = Ext.GlobalEvents,
+            event = hidden ? &#39;hide&#39; : &#39;show&#39;;
+
+        this.callParent([hidden, oldHidden]);
+
+        if (!this.isConfiguring &amp;&amp; globals.hasListeners[event]) {
+            globals.fireEvent(event, this);
+        }
+    },
+
+<span id='Ext-Widget-method-updateAlignSelf'>    updateAlignSelf: function (align) {
+</span>        this.el.setStyle({
+            &#39;align-self&#39;: align
+        });
+    },
+
+<span id='Ext-Widget-property-privates'>    privates: {
+</span><span id='Ext-Widget-method-setRendered'>        /**
+</span>         * All Components need a potentially recursive setRendered because some are
+         * pseudo containers, such as grid {@link Ext.grid.Row rows}, and some mix in
+         * {@link Ext.mixin.Toolable Toolable}.
+         * @param {Boolean} rendered
+         * @param {Boolean} [root]
+         * @private
+         */
+        setRendered: function (rendered, root) {
+            var me = this,
+                afterRenderQueue, item, items, ln, i;
+
+            if (!rendered &amp;&amp; me.rendered &amp;&amp; me.getFloated()) {
+                // A floated being derendered must return to pre render state which is out of the document.
+                // Component#preprocessShow will ensure that a floated finds its correct floatParent
+                // and inserts itself into the floatRoot.
+                me.floatWrap.dom.parentNode.removeChild(me.floatWrap.dom);
+            }
+
+            me.rendered = rendered;
+
+            if (!me.destroying &amp;&amp; !me.destroyed) {
+                if (rendered &amp;&amp; me.onRender) {
+                    me.initBindable();
+                    me.initKeyMap();
+
+                    if (!me.onRender.$nullFn) {
+                        me.onRender();
+                    }
+
+                    me.onRender = null;  // only call onRender() the first time we render
+
+                    // Queue the comp before descent since we pop() from this queue
+                    // to call afterRender ... This yields bottom-up order on afterRender
+                    // and top-down order for onRender.
+                    if (!me.afterRender.$nullFn) {
+                        (Ext._afterRenderQueue || (Ext._afterRenderQueue = [])).push(me);
+                    }
+                }
+
+                // Call getRefItems after onRender in case it changes the result
+                items = me.getRefItems &amp;&amp; me.getRefItems();
+                ln = items &amp;&amp; items.length;
+                for (i = 0; i &lt; ln; i++) {
+                    item = items[i];
+                    // Some getRefItems (eg: D3/Charts) return non-Component child items
+                    // so detect the presence of setRendered.
+                    if (item.setRendered) {
+                        me.setChildRendered(rendered, item);
+                    }
+                }
+
+                if (me.focusableContainer &amp;&amp; me.initFocusableContainer) {
+                    me.initFocusableContainer();
+                }
+
+                if (root) {
+                    afterRenderQueue = Ext._afterRenderQueue;
+
+                    if (afterRenderQueue) {
+                        while (afterRenderQueue.length) {
+                            item = afterRenderQueue.pop();
+
+                            if (!item.destroyed) {
+                                item.afterRender();
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        setChildRendered: function(rendered, item) {
+            // We do not flag floateds as rendered - they flag themselves as rendered
+            // on first show. However, we MUST UNrender and extract floateds from
+            // their floatRoot ready to be rendered anew when they are next shown.
+            if (!rendered || !item.getFloated()) {
+                item.setRendered(rendered);
+            }
+        },
+
+        hideFromModal: function() {
+            this.hide();
+        },
+
+<span id='Ext-Widget-method-owns'>        /**
+</span>         * @private
+         * Returns `true` if the passed element is within the container tree of this component.
+         *
+         * For example if a menu&#39;s submenu contains an {@link Ext.form.field.Date}, that top level
+         * menu owns the elements of the date picker. Using this method, you can tell if an event took place
+         * within a certain component tree.
+         */
+        owns: function(element) {
+            var result = false,
+                cmp;
+
+            if (element.isEvent) {
+                element = element.target;
+            } else if (element.isElement) {
+                element = element.dom;
+            }
+
+            cmp = Ext.Component.from(element);
+
+            if (cmp) {
+                result = (cmp === this) || (!!cmp.up(this));
+            }
+
+            return result;
+        },
+
+<span id='Ext-Widget-method-doInheritUi'>        /**
+</span>         * @private
+         */
+        doInheritUi: function() {
+            var me = this,
+                owner, ownerUi;
+
+            if (me.inheritUi) {
+                me._ownUi = me.getUi();
+                owner = me.getRefOwner();
+                ownerUi = owner.getUi();
+
+                if (ownerUi) {
+                    me.addUi(ownerUi);
+                    me._inheritedUi = ownerUi;
+                }
+
+                owner.$inheritUiCount = (owner.$inheritUiCount || 0) + 1;
+            }
+        },
+
+<span id='Ext-Widget-method-doUninheritUi'>        /**
+</span>         * @private
+         */
+        doUninheritUi: function () {
+            var me = this,
+                inheritUi = me.inheritUi,
+                ownUi, owner;
+
+            if (inheritUi)  {
+                owner = me.getRefOwner();
+                ownUi = me._ownUi;
+                me._ownUi = null;
+                me._inheritedUi = null;
+
+                me.setUi(ownUi || null);
+
+                if (owner.$inheritUiCount) {
+                    --owner.$inheritUiCount;
+                }
+            }
+        },
+
+        getBubbleTarget: function() {
+            return this.getParent();
+        },
+
+        getConstrainAlignRegion: function() {
+            var me = this,
+                isFloated = me.getFloated(),
+                constrainAlign = me.getConstrainAlign(),
+                parent, isViewport, docInsets;
+
+            if (constrainAlign !== false) {
+                if (typeof constrainAlign === &#39;string&#39;) {
+                    constrainAlign = parent = me.up(constrainAlign);
+                }
+                if (!constrainAlign) {
+                    // If we&#39;re floated, find the floatRoot&#39;s owning component.
+                    // If not floated, use parent component.
+                    parent = isFloated ? me.floatParentNode.getData().component : me.getParent();
+                }
+
+                // If there is an owning component, constrain into its renderTarget
+                // if it&#39;s a container, or it&#39;s bodyElement or element if not.
+                if (parent) {
+                    // If the owner is a non-relative floated, the constraint is the viewport
+                    if (parent.getFloated() &amp;&amp; !parent.getRelative()) {
+                        constrainAlign = Ext.getBody();
+                        isViewport = true;
+                    } else {
+                        constrainAlign = parent.getRenderTarget ? parent.getRenderTarget() : (parent.bodyElement || parent.element);
+                        isViewport = parent.isViewport;
+                    }
+                }
+                // No owning component and no constrainAlign; use viewport for floated, parent el for positioned.
+                else if (!constrainAlign) {
+                    if (isFloated) {
+                        isViewport = true;
+                        constrainAlign = Ext.getBody();
+                    } else {
+                        constrainAlign = me.element.parent();
+                    }
+                }
+
+                if (!constrainAlign.isRegion) {
+                    constrainAlign = Ext.fly(constrainAlign).getConstrainRegion();
+
+                    // Inset from viewport edge for readability
+                    if (isViewport) {
+                        // Round to avoid subpixel errors
+                        docInsets = Math.round(Ext.Widget.floatInset);
+                        constrainAlign.adjust(docInsets, -docInsets, -docInsets, docInsets);
+                    }
+                }
+                return constrainAlign;
+            }
+        },
+
+<span id='Ext-Widget-method-getFloatParent'>        /**
+</span>         * *For {@link #cfg-floated} components only. *
+         *
+         * Finds the owning {@link #cfg-floated} component (if any) responsible for
+         * the base z-index stack position of this compoonent, and, if that component
+         * is {@link #cfg-relative}, for the coordinate system in which this component
+         * is positioned.
+         *
+         * If this is a top level floated component, this method will return `null`
+         * @return {Ext.Component} The owning floated component or `null` if this
+         * component is top level floated.
+         * @private
+         */
+        getFloatParent: function() {
+            var result = this.floatParentNode.getData().component;
+            return result &amp;&amp; result.getFloated() ? result : null;
+        },
+
+        syncFloatedState: function(floated, oldFloated, rendered) {
+            var me = this,
+                isHidden = me.isHidden();
+
+            if (floated) {
+                if (rendered) {
+                    if (me.isCentered()) {
+                        // Ensure any configs are pulled through
+                        me.getWidth();
+                        me.getHeight();
+                        me.center();
+                    } else {
+                        me.syncXYPosition();
+                    }
+                    if (!isHidden) {
+                        me.showModalMask();
+                    }
+                }
+                // Not rendered - insert into correct floatParentNode unless we are hidden
+                else {
+                    if (!isHidden) {
+                        me.findFloatParent();
+                    }
+                    else {
+                        // Floated components start hidden but hidden-ness is not
+                        // normally reflected in an x-hidden class... they just
+                        // aren&#39;t inserted in the DOM. The problem comes when we
+                        // add a floated comp to a container. It gets put into the
+                        // DOM early, but it will appear because we don&#39;t have the
+                        // styles in place to prevent it. Since we are &quot;effectively
+                        // hidden&quot; here we just make sure we have the right styles.
+                        me.setHidden(true);
+                    }
+                }
+            }
+            // Moving back into a container.
+            // undo any translation
+            else {
+                me.translate(0, 0, 0);
+            }
+        },
+
+<span id='Ext-Widget-method-findFloatParent'>        /**
+</span>         * The method finds this floated component&#39;s floatParent. That means a DOM positioning container
+         * which acts as a root element for sibling floated components, and allows allows floated components
+         * to be absolutely positioned, and their encapsulating elements to be reordered to produce a visual
+         * stacking effect.
+         *
+         * This component&#39;s element is appended to its floatParent.
+         *
+         * There is a global floatParent element, created on demand when the first top level floated component
+         * is shown. This may be an item child of a container configured with `{@link #cfg-floated}: true`,
+         * or a free `floated` component which is programatically {@link Ext.Component#show shown}.
+         *
+         * Child items of components inside a floated component may also be configured `floated`. These
+         * are give a floatParent which is created on demand wrapping the nearest `floated` ancestor.
+         * This means that when that ancestor&#39;s element is brought to the top of the stack (by moving its
+         * element to the end of its own floatParent), the descendant elements will automatically remain above.
+         *
+         * @private
+         */
+        findFloatParent: function(needsShow) {
+            var me = this,
+                parent = me.getRefOwner();
+
+            // Climb to the nearest floated if possible
+            while (parent &amp;&amp; !parent.getFloated()) {
+                parent = parent.getRefOwner();
+            }
+
+            // Hit the top seeing no floateds; use the global floatRoot
+            // The property floatParentNode is an Element.
+            // It cannot be called floatParent because that is used by getRefOwner in the case
+            // of no ownerCt/parent/$initParent etc.
+            if (!parent) {
+                me.floatParentNode = Ext.getFloatRoot();
+            }
+            // Use the nearest floating ancestor&#39;s floatRoot wrapper.
+            else {
+                me.floatParentNode = parent.getFloatWrap();
+            }
+
+            me.insertFloatedDom(needsShow);
+        },
+
+<span id='Ext-Widget-method-getFloatWrap'>        /**
+</span>         * This method returns, or creates on demand the floatWrap element which wraps the passed
+         * floated component. It enables that floated component to act as a host for descendant floated
+         * components.
+         *
+         * @return {Ext.Element} The passed component&#39;s floatWrap element.
+         * @private
+         */
+        getFloatWrap: function() {
+            var me = this,
+                fw = me.floatWrap;
+
+            if (!fw) {
+                me.floatWrap = fw = Ext.get(Ext.DomHelper.createDom({
+                    cls: me.floatWrapCls,
+                    id: me.id + &#39;-floatWrap&#39;,
+                    &quot;data-componentId&quot;: me.id
+                }));
+
+                me.on(&#39;resize&#39;, &#39;syncFloatWrap&#39;, me);
+
+                // Need a link to the owning component so that floateds which are hosted
+                // in this element can easily find their floatParent component to move it to
+                // front.
+                fw.getData().component = me;
+
+                if (me.isContainer &amp;&amp; (!me.isWidthed() || !me.isHeighted())) {
+                    me.setAutoSize(true);
+                }
+
+                // We wrap ourselves in this, and it becomes the hosting element for
+                // child floaters.
+                fw.dom.appendChild(me.element.dom);
+
+                // alwaysOnTop flag duplicated in the floatWrap so syncAlwaysOnTop can sort.
+                fw.getData().alwaysOnTop = me.element.getData().alwaysOnTop;
+
+                me.syncFloatWrap();
+            }
+            return fw;
+        },
+
+        //&lt;debug&gt;
+        applyRenderTo: function(renderTo) {
+            if (renderTo &amp;&amp; this.getFloated()) {
+                Ext.raise(&#39;floated: true components cannot be rendered. They render themselves on first show&#39;);
+                return;
+            }
+            return renderTo;
+        },
+        //&lt;/debug&gt;
+
+<span id='Ext-Widget-method-syncFloatWrap'>        /**
+</span>         * Synchronizes the size and position of the {@link #getFloatWrap floatWrap}
+         * when this Widget is resized
+         * @private
+         */
+        syncFloatWrap: function() {
+            var me = this,
+                floatWrap = me.floatWrap,
+                mySize = me.el.getSize(),
+                mask;
+
+            // If we are positioning child floateds in our address space,
+            // size the floatWrap in which child floateds are rendered.
+            if (me.getRelative()) {
+                floatWrap.setSize(mySize);
+            } else {
+                mask = floatWrap.getData().modalMask;
+                if (mask) {
+                    mask.setSize(mySize);
+                }
+            }
+        },
+
+<span id='Ext-Widget-method-insertFloatedDom'>        /**
+</span>         * This method inserts this floated component&#39;s DOM into its owning floatParent.
+         * @private
+         */
+        insertFloatedDom: function(needsShow) {
+            var me = this,
+                fw = me.getFloatWrap(),
+                floatParentNode = me.floatParentNode;
+
+            if (fw.dom.parentNode !== floatParentNode.dom) {
+                floatParentNode.dom.appendChild(me.getFloatWrap().dom);
+                if (needsShow) {
+                    // The following operations require that the component be
+                    // temporarily visible for measurement purposes. They will
+                    // be undone by outside callers
+                    me.setVisibility(true);
+                    me._hidden = false;
+                }
+                me.setRendered(true, true);
+                me.syncXYPosition();
+            }
+        },
+
+        applyShim: function(shim) {
+            //&lt;debug&gt;
+            if (shim &amp;&amp; !this.getFloated()) {
+                Ext.raise(&#39;Cannot use setShim on a non-floated component&#39;);
+            }
+            //&lt;/debug&gt;
+            if (shim) {
+                // Allow shim config options to be passed.
+                return Ext.getBody().createChild(Ext.apply({
+                    cls: this.shimCls
+                }, shim));
+            } else {
+                Ext.destroy(this.shim);
+                return null;
+            }
+        },
+
+        updateShim: function(shim, oldShim) {
+            var me = this;
+
+            if (shim) {
+                me.syncShim();
+
+                if (!oldShim) {
+                    me.on(&#39;resize&#39;, &#39;syncShim&#39;, me);
+                }
+            } else if (oldShim) {
+                me.un(&#39;resize&#39;, &#39;syncShim&#39;, me);
+            }
+        },
+
+        hideModalMask: function() {
+            var me = this,
+                floatRoot = Ext.getFloatRoot(),
+                floatParentNode = me.floatParentNode,
+                data, mask;
+            
+            // If we&#39;re hidden there may not be a parent node
+            if (floatParentNode) {
+                data = floatParentNode.getData();
+
+                // If our floatParent is not relative we will be using the root&#39;s mask.
+                if (floatParentNode !== floatRoot &amp;&amp; !data.component.getRelative()) {
+                    data = floatRoot.getData();
+                }
+
+                mask = data.modalMask;
+                if (mask &amp;&amp; mask.dom.parentNode) {
+                    mask = mask.dom;
+                    Ext.getDetachedBody().appendChild(mask);
+                }
+            }
+        },
+
+        showModalMask: function() {
+            var me = this,
+                Widget = Ext.Widget,
+                floatRoot = Ext.getFloatRoot(),
+                positionEl = me.getFloatWrap(),
+                parent = me.getParent(),
+                floatParentNode = me.floatParentNode,
+                data = floatParentNode.getData(),
+                mask;
+
+            if (me.getFloated() &amp;&amp; me.getModal &amp;&amp; me.getModal()) {
+
+                // If our floatParent is not relative we use the root&#39;s mask.
+                // Obviously, if we are a top level floated, this will already
+                // be the case.
+                if (floatParentNode !== floatRoot &amp;&amp; !data.component.getRelative()) {
+                    data = floatRoot.getData();
+                }
+
+                // getModal might cause this to be created.
+                mask = data.modalMask;
+                if (mask) {
+                    // IE11 freaks out on insertBefore if positionEl is not yet
+                    // in the dom
+                    if (positionEl.dom.parentElement === floatParentNode.dom) {
+                        floatParentNode.dom.insertBefore(mask.dom, positionEl.dom);
+                    }
+                    else {
+                        floatParentNode.dom.appendChild(mask.dom);
+                    }
+                }
+                else {
+                    mask = data.modalMask = floatParentNode.createChild({
+                        cls: &#39;x-mask&#39;
+                    }, positionEl);
+
+                    mask.on({
+                        tap: Widget.onModalMaskTap,
+                        scope: Widget
+                    });
+
+                    // A know issue with Safari Mobile causes a body with overflow: hidden
+                    // to be scrollable on iOS.
+                    // https://bugs.webkit.org/show_bug.cgi?id=153852
+                    if (Ext.isiOS &amp;&amp; floatParentNode === floatRoot) {
+                        mask.on({
+                            touchmove: function (e) {
+                                e.preventDefault();
+                            }
+                        });
+                    }
+                }
+                Widget.topModal = me;
+
+                // Ensure that the mask is sized and positioned if
+                // parent is not relative
+                if (parent &amp;&amp; parent.getFloated() &amp;&amp; !parent.getRelative()) {
+                    parent.syncXYPosition();
+                }
+            }
+        },
+
+        syncShim: function() {
+            var me = this,
+                shim = me.getShim();
+
+            if (shim) {
+                if (me.isVisible(true)) {
+                    shim.show();
+                    me.getFloatWrap().dom.insertBefore(shim.dom, me.el.dom);
+                    shim.setSize(me.getSize());
+                } else {
+                    shim.hide();
+                }
+            }
+        },
+        
+        updateAlwaysOnTop: function(alwaysOnTop) {
+            this.getFloatWrap().getData().alwaysOnTop = Number(alwaysOnTop);
+            this.syncAlwaysOnTop();
+        },
+
+<span id='Ext-Widget-method-syncAlwaysOnTop'>        /**
+</span>         * @private
+         * Fixes up the alwaysOnTop order of this floated widget within its siblings.
+         * @param fromMousedown (private)
+         * @return {Boolean} `true` if this was the topmost widget among its siblings.
+         */
+        syncAlwaysOnTop: function(fromMousedown) {
+            var me = this,
+                positionEl = me.getFloatWrap().dom,
+                parentEl = me.floatParentNode,
+                nodes = parentEl.dom.childNodes,
+                len = nodes.length,
+                i, startIdx,
+                alwaysOnTop = Number(me.getAlwaysOnTop()),
+                range = me.statics().range,
+                refNode, isTopModal;
+
+            // If already at end, no node movement necessary
+            if (positionEl.nextSibling) {
+
+                // Fastest way of seeing whether we need to move the modal mask
+                // to just below our positionEl.
+                isTopModal = me.getModal() &amp;&amp; positionEl.previousSibling &amp;&amp; Ext.fly(positionEl.previousSibling).hasCls(Ext.Mask.prototype.baseCls);
+
+                // Start from 1.
+                // All elements if floatRoot are considered, The first element in child floatWraps
+                // is the child floated which owns that floatWrap.
+                startIdx = parentEl === Ext.floatRoot ? 0 : 1;
+                for (i = len - 1; i &gt;= startIdx; i--) {
+                    // Do not include shim elements in the comparison
+                    // Do not include our own element in the comparison.
+                    if (!Ext.fly(nodes[i]).is(&#39;.&#39; + me.shimCls) &amp;&amp; nodes[i] !== positionEl) {
+                        // If we&#39;ve gone back to find a node that should be below us,
+                        // grab its next sibling as the refNode to insertBefore.
+                        if (alwaysOnTop &gt;= (Ext.get(nodes[i]).getData().alwaysOnTop || 0)) {
+                            refNode = nodes[i].nextSibling;
+                            break;
+                        }
+                    }
+                }
+                // Already in correct position
+                if (refNode === positionEl) {
+                    return;
+                }
+
+                // If we didn&#39;t find a node we are greater than, go to bottom of stack
+                if (i &lt; startIdx) {
+                    refNode = nodes[0];
+                }
+
+                // If we contain focus, or this is triggered by a mousedown,
+                // then preserve this element&#39;s DOM, and move siblings around it.
+                if (me.containsFocus || fromMousedown) {
+
+                    // Nodes to move to before our positionEl
+                    range.setStartAfter(positionEl);
+                    range.setEndAfter(refNode || nodes[len - 1]);
+
+                    // Move before nodes to before the positionEl
+                    parentEl.dom.insertBefore(range.extractContents(), positionEl);
+                } else {
+                    parentEl.dom.insertBefore(positionEl, refNode);
+                }
+
+                // Keep shims in line.
+                if (isTopModal) {
+                    me.showModalMask();
+                }
+                me.syncShim();
+            }
+
+            if (refNode) {
+                Ext.Component.from(refNode).syncShim();
+            } else {
+                return true;
+            }
+        },
+
+        updateRelative: function() {
+            this.syncXYPosition();
+        },
+
+        updateShadow: function(shadow) {
+            this.el.toggleCls(this.shadowCls, shadow);
+            this.el.toggleCls(this.noShadowCls, shadow === false);
+        },
+
+        updateX: function() {
+            //&lt;debug&gt;
+            if (!this.getFloated()) {
+                Ext.raise(&#39;Cannot use setX on a non-floated component&#39;);
+            }
+            //&lt;/debug&gt;
+
+            if (!this.$updatingXY) {  // set Ext.Compoentn#setXY
+                this.syncXYPosition();
+            }
+        },
+
+        updateY: function() {
+            //&lt;debug&gt;
+            if (!this.getFloated()) {
+                Ext.raise(&#39;Cannot use setY on a non-floated component&#39;);
+            }
+            //&lt;/debug&gt;
+
+            if (!this.$updatingXY) {
+                this.syncXYPosition();
+            }
+        },
+
+        /*
+         * Only applicable to floated components.
+         * Ensures correct position after either {@link #cfg-x} or {@link #cfg-x} have been set.
+         * If we are positioning descendant floateds relatively, then the
+         * wrapping floatWrap is used to position both us and our descendant floateds
+         * @private
+         */
+        syncXYPosition: function (animation) {
+            var me = this,
+                floatWrap = me.getFloatWrap(),
+                maskAnim = animation,
+                mask,
+                x = me.getX() || 0,
+                y = me.getY() || 0;
+
+            // If we are configured to relatively position our descendants, then we ourselves
+            // are positioned by our floatWrap element
+            if (me.getRelative()) {
+                floatWrap.translate(x, y, animation);
+                floatWrap.setWidth(me.el.getWidth());
+                floatWrap.setHeight(me.el.getHeight());
+
+                me.translate(0, 0);
+
+                mask = floatWrap.getData().modalMask;
+                if (mask) {
+                    mask.translate(0, 0);
+                }
+            }
+            // Descendants to be positioned absolutely, just position our element.
+            else {
+                me.translate(x, y, animation);
+
+                mask = floatWrap.getData().modalMask;
+                if (mask) {
+                    if (maskAnim) {
+                        maskAnim = Ext.apply({}, maskAnim);
+                        delete maskAnim.callback;
+                    }
+
+                    mask.translate(x, y, maskAnim);
+                }
+            }
+
+            me.syncShim();
+        }
+    }
+}, function(Widget) {
+    
+    this.borrow(Ext.util.Positionable, [&#39;clipTo&#39;, &#39;clearClip&#39;]);
+
+    // Convenience shorthand sibling traverse methods.
+    // Maintainer: These methods are brought in by the Traversable mixin/
+    Widget.createAlias({
+        prev: &#39;previousSibling&#39;,
+        next: &#39;nextSibling&#39;
+    });
+
+<span id='Ext-method-getFloatRoot'>    /**
+</span>     * This method returns, or creates on demand the global floatParent element into which top
+     * level floated components are inserted.
+     *
+     * @return {Ext.Element} The global floatRoot element.
+     * @member Ext
+     * @method getFloatRoot
+     * @private
+     */
+    Ext.getFloatRoot = function() {
+        var fp = Ext.floatRoot,
+            viewport = Ext[&#39;Viewport&#39;], // Hide from Cmd dependency checking
+            prototype = Widget.prototype,
+            range = Widget.range;
+
+        if (fp) {
+            // Always ensure it&#39;s on top so that floateds are above inline components
+            if (fp.el.dom.nextSibling) {
+                // If the floatRoot contains focus, move following elements
+                // to before it by grabbing the whole bunch with a Range.
+                if (fp.el.contains(document.activeElement)) {
+                    range.setStartBefore(fp.el.dom.nextSibling);
+                    range.setEndAfter(fp.el.dom.parentNode.lastChild);
+                    fp.el.dom.parentNode.insertBefore(range.extractContents(), fp.el.dom);
+                } else {
+                    fp.el.dom.parentNode.appendChild(fp.dom);
+                }
+            }
+        } else {
+            fp = Ext.getBody().createChild({
+                cls: prototype.floatWrapCls + &#39; &#39; + prototype.rootCls,
+                id: &#39;ext-global-floatWrap&#39;,
+                &quot;data-sticky&quot;: true
+            });
+
+            //&lt;debug&gt;
+            fp.$skipResourceCheck = true;
+            //&lt;/debug&gt;
+            
+            Ext.floatRoot = fp;
+        }
+        return fp;
+    };
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-panel-Title'>/**
+</span> * A basic title component for a Panel Header.
+ *
+ * @since 6.0.1
+ */
+Ext.define(&#39;Ext.panel.Title&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    xtype: &#39;paneltitle&#39;,
+
+<span id='Ext-panel-Title-property-isPanelTitle'>    isPanelTitle: true,
+</span>
+    cachedConfig: {
+<span id='Ext-panel-Title-cfg-textAlign'>        /**
+</span>         * @cfg textAlign
+         * @inheritdoc Ext.panel.Header#cfg-titleAlign
+         * @accessor
+         */
+        textAlign: &#39;left&#39;,
+
+<span id='Ext-panel-Title-cfg-iconAlign'>        /**
+</span>         * @cfg iconAlign
+         * @inheritdoc Ext.panel.Header#cfg-iconAlign
+         * @accessor
+         */
+        iconAlign: &#39;left&#39;,
+
+<span id='Ext-panel-Title-cfg-rotation'>        /**
+</span>         * @cfg {&#39;90&#39;/&#39;270&#39;/&#39;0&#39;} rotation
+         * The rotation of the {@link #cfg-text}.
+         *
+         * - `&#39;0&#39;` - no rotation
+         * - `&#39;90&#39;` - rotate 90 degrees clockwise
+         * - `&#39;270&#39;` - rotate 270 degrees clockwise
+         */
+        rotation: 0,
+
+<span id='Ext-panel-Title-cfg-rotateIcon'>        /**
+</span>         * @cfg {Boolean} [rotateIcon=false]
+         * `true to rotate the icon in the same direction as the text when the text is rotated
+         * By default the icon always remains unrotated even when the text is rotated.
+         */
+        rotateIcon: null
+    },
+
+    config: {
+<span id='Ext-panel-Title-cfg-text'>        /**
+</span>         * @cfg {String} text
+         * The title&#39;s text (can contain html tags/entities)
+         * @accessor
+         */
+        text: &#39;&#39;,
+
+<span id='Ext-panel-Title-cfg-icon'>        /**
+</span>         * @cfg icon
+         * @inheritdoc Ext.panel.Header#cfg-icon
+         * @accessor
+         */
+        icon: null,
+
+<span id='Ext-panel-Title-cfg-iconCls'>        /**
+</span>         * @cfg iconCls
+         * @inheritdoc Ext.panel.Header#cfg-iconCls
+         * @accessor
+         */
+        iconCls: null
+    },
+
+<span id='Ext-panel-Title-cfg-weight'>    /**
+</span>     * @cfg weight
+     * @inheritdoc
+     */
+    weight: -10,
+
+<span id='Ext-panel-Title-property-inheritUi'>    /**
+</span>     * @property inheritUi
+     * @inheritdoc
+     */
+    inheritUi: true,
+
+<span id='Ext-panel-Title-property-element'>    /**
+</span>     * @property element
+     * @inheritdoc
+     */
+    element: {
+        reference: &#39;element&#39;,
+        cls: Ext.baseCSSPrefix + &#39;unselectable&#39;
+    },
+
+<span id='Ext-panel-Title-property-template'>    /**
+</span>     * @property template
+     * @inheritdoc
+     */
+    template: [{
+        reference: &#39;bodyElement&#39;,
+        cls: Ext.baseCSSPrefix + &#39;body-el&#39;,
+
+
+        children: [{
+            reference: &#39;iconElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;icon-el &#39; + Ext.baseCSSPrefix + &#39;font-icon&#39;
+        }, {
+            reference: &#39;textElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;text-el&#39;
+        }]
+    }],
+
+<span id='Ext-panel-Title-property-verticalCls'>    verticalCls: Ext.baseCSSPrefix + &#39;vertical&#39;,
+</span><span id='Ext-panel-Title-property-horizontalCls'>    horizontalCls: Ext.baseCSSPrefix + &#39;horizontal&#39;,
+</span><span id='Ext-panel-Title-property-rotateIconCls'>    rotateIconCls: Ext.baseCSSPrefix + &#39;rotate-icon&#39;,
+</span><span id='Ext-panel-Title-property-iconAlignVerticalCls'>    iconAlignVerticalCls: Ext.baseCSSPrefix + &#39;icon-align-vertical&#39;,
+</span><span id='Ext-panel-Title-property-hasIconCls'>    hasIconCls: Ext.baseCSSPrefix + &#39;has-icon&#39;,
+</span>
+<span id='Ext-panel-Title-property-_textAlignClasses'>    _textAlignClasses: {
+</span>        left: Ext.baseCSSPrefix + &#39;text-align-left&#39;,
+        center: Ext.baseCSSPrefix + &#39;text-align-center&#39;,
+        right: Ext.baseCSSPrefix + &#39;text-align-right&#39;
+    },
+
+<span id='Ext-panel-Title-property-_iconAlignClasses'>    _iconAlignClasses: {
+</span>        top: Ext.baseCSSPrefix + &#39;icon-align-top&#39;,
+        right: Ext.baseCSSPrefix + &#39;icon-align-right&#39;,
+        bottom: Ext.baseCSSPrefix + &#39;icon-align-bottom&#39;,
+        left: Ext.baseCSSPrefix + &#39;icon-align-left&#39;
+    },
+
+<span id='Ext-panel-Title-property-_rotationClasses'>    _rotationClasses: {
+</span>        90: Ext.baseCSSPrefix + &#39;rotate-90&#39;,
+        270: Ext.baseCSSPrefix + &#39;rotate-270&#39;
+    },
+
+<span id='Ext-panel-Title-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;paneltitle&#39;,
+<span id='Ext-panel-Title-property-_titleSuffix'>    _titleSuffix: &#39;-title&#39;,
+</span>
+<span id='Ext-panel-Title-method-afterRender'>    afterRender: function() {
+</span>        if (Ext.isSafari) {
+            this.repaintBodyElement();
+        }
+
+        this.callParent();
+    },
+
+<span id='Ext-panel-Title-method-updateIcon'>    updateIcon: function(icon, oldIcon) {
+</span>        var me = this,
+            iconEl;
+
+        me.syncIconVisibility();
+        iconEl = me.iconElement;
+
+        iconEl.setStyle(&#39;background-image&#39;, icon ? &#39;url(&#39; + icon + &#39;)&#39;: &#39;&#39;);
+    },
+
+<span id='Ext-panel-Title-method-updateIconAlign'>    updateIconAlign: function(align, oldAlign) {
+</span>        var me = this,
+            iconAlignClasses = me._iconAlignClasses,
+            el = me.el;
+
+        if (oldAlign) {
+            el.removeCls(iconAlignClasses[oldAlign]);
+        }
+
+        if (align) {
+            el.addCls(iconAlignClasses[align]);
+        }
+
+        el.toggleCls(me.iconAlignVerticalCls, align === &#39;top&#39; || align === &#39;bottom&#39;);
+    },
+
+<span id='Ext-panel-Title-method-updateIconCls'>    updateIconCls: function(cls, oldCls) {
+</span>        var iconEl = this.iconElement;
+
+        this.syncIconVisibility();
+
+        if (oldCls) {
+            iconEl.removeCls(oldCls);
+        }
+
+        if (cls) {
+            iconEl.addCls(cls);
+        }
+    },
+
+<span id='Ext-panel-Title-method-updateRotation'>    updateRotation: function(rotation, oldRotation) {
+</span>        var me = this,
+            verticalCls = me.verticalCls,
+            horizontalCls = me.horizontalCls,
+            el = me.el;
+
+        if (oldRotation != 0) {
+            el.removeCls(me._rotationClasses[oldRotation]);
+        }
+        
+        if (rotation == 0) {
+            el.replaceCls(verticalCls, horizontalCls);
+        } else {
+            el.replaceCls(horizontalCls, [verticalCls, me._rotationClasses[rotation]]);
+        }
+
+        if (Ext.isSafari &amp;&amp; this.rendered) {
+            this.repaintBodyElement();
+        }
+    },
+
+<span id='Ext-panel-Title-method-updateRotateIcon'>    updateRotateIcon: function(rotateIcon) {
+</span>        this.el.toggleCls(this.rotateIconCls, !!rotateIcon);
+    },
+
+<span id='Ext-panel-Title-method-updateText'>    updateText: function(text) {
+</span>        var el = this.textElement.dom;
+        el.innerHTML = text || &#39;&amp;#160;&#39;;
+        el.setAttribute(&#39;data-title&#39;, text);
+    },
+
+<span id='Ext-panel-Title-method-updateTextAlign'>    updateTextAlign: function(align, oldAlign) {
+</span>        var me = this,
+            textAlignClasses = me._textAlignClasses;
+
+        if (oldAlign) {
+            me.removeCls(textAlignClasses[oldAlign]);
+        }
+
+        if (align) {
+            me.addCls(textAlignClasses[align]);
+        }
+    },
+
+<span id='Ext-panel-Title-property-privates'>    privates: {
+</span>        repaintBodyElement: function() {
+            var bodyElement = this.bodyElement.dom,
+                bodyStyle = bodyElement.style;
+
+            // When iconAlign is &#39;top&#39; or &#39;bottom&#39; with vertically rotated text, Safari
+            // does not initially layout the title with the correct width.  Setting the
+            // width to -webkit-min-content and back to &#39;&#39; with a read of offsetWidth in
+            // between forces a synchronous reflow and corrects the issue.  Unfortunately
+            // a static width or min-width in the stylesheet does not help.
+            // We use -webkit-min-content so that the next reflow after resetting the
+            // min-width to &#39;&#39; hopefully ends up with everything the same size as before
+            // thus minimizing the effect on the surrounding dom.
+            bodyStyle.width = &#39;-webkit-min-content&#39;;
+            bodyElement.offsetWidth;
+            bodyStyle.width = &#39;&#39;;
+        },
+        
+        syncIconVisibility: function() {
+            this.el.toggleCls(this.hasIconCls, !!(this.getIcon() || this.getIconCls()));
+        }
+    },
+
+<span id='Ext-panel-Title-property-deprecated'>    deprecated: {
+</span>        &#39;6.5&#39;: {
+            configs: {
+<span id='Ext-panel-Title-cfg-glyph'>                /**
+</span>                 * @cfg {Number/String} glyph
+                 * @removed 6.5.0 Use {@link #iconCls} instead
+                 */
+                glyph: null
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

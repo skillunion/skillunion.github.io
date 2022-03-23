@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-carousel-Carousel'>/**
+</span> * Carousels, like tabs, are a great way to allow the user to swipe through multiple full-screen pages.
+ * A Carousel shows only one of its pages at a time but allows you to swipe through with your finger.
+ *
+ * Carousels can be oriented either horizontally or vertically and are easy to configure - they just work like any other
+ * Container. Here&#39;s how to set up a simple horizontal Carousel:
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.Carousel&#39;, {
+ *         fullscreen: true,
+ *
+ *         items: [
+ *             {
+ *                 html : &#39;Item 1&#39;,
+ *                 style: &#39;background-color: #5E99CC&#39;
+ *             },
+ *             {
+ *                 html : &#39;Item 2&#39;,
+ *                 style: &#39;background-color: #759E60&#39;
+ *             },
+ *             {
+ *                 html : &#39;Item 3&#39;
+ *             }
+ *         ]
+ *     });
+ *
+ * We can also make Carousels orient themselves vertically:
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.Carousel&#39;, {
+ *         fullscreen: true,
+ *         direction: &#39;vertical&#39;,
+ *
+ *         items: [
+ *             {
+ *                 html : &#39;Item 1&#39;,
+ *                 style: &#39;background-color: #759E60&#39;
+ *             },
+ *             {
+ *                 html : &#39;Item 2&#39;,
+ *                 style: &#39;background-color: #5E99CC&#39;
+ *             }
+ *         ]
+ *     });
+ *
+ * ### Common Configurations
+ * * {@link #ui} defines the style of the carousel
+ * * {@link #direction} defines the direction of the carousel
+ * * {@link #indicator} defines if the indicator show be shown
+ *
+ * ### Useful Methods
+ * * {@link #next} moves to the next card
+ * * {@link #previous} moves to the previous card
+ * * {@link #setActiveItem} moves to the passed card
+ */
+Ext.define(&#39;Ext.carousel.Carousel&#39;, {
+    extend: &#39;Ext.Container&#39;,
+
+    alternateClassName: &#39;Ext.Carousel&#39;,
+
+    xtype: &#39;carousel&#39;,
+
+    requires: [
+        &#39;Ext.fx.easing.EaseOut&#39;,
+        &#39;Ext.carousel.Item&#39;,
+        &#39;Ext.Indicator&#39;,
+        &#39;Ext.util.TranslatableGroup&#39;
+    ],
+
+    config: {
+<span id='Ext-carousel-Carousel-cfg-layout'>        /**
+</span>         * @cfg layout
+         * Hide layout config in Carousel. It only causes confusion.
+         * @accessor
+         * @private
+         */
+
+<span id='Ext-carousel-Carousel-cfg-direction'>        /**
+</span>         * @cfg {String} direction
+         * The direction of the Carousel, either &#39;horizontal&#39; or &#39;vertical&#39;.
+         * @accessor
+         */
+        direction: &#39;horizontal&#39;,
+
+<span id='Ext-carousel-Carousel-cfg-animation'>        animation: {
+</span>            duration: 250,
+            easing: {
+                type: &#39;ease-out&#39;
+            }
+        },
+
+<span id='Ext-carousel-Carousel-cfg-draggable'>        /**
+</span>         * @cfg draggable
+         * @hide
+         */
+
+<span id='Ext-carousel-Carousel-cfg-indicator'>        /**
+</span>         * @cfg {Boolean/Ext.carousel.Indicator} indicator
+         * Provides an indicator while toggling between child items to let the user
+         * know where they are in the card stack.
+         * @accessor
+         */
+        indicator: true,
+
+<span id='Ext-carousel-Carousel-cfg-ui'>        /**
+</span>         * @cfg {String} ui
+         * Style options for Carousel. Default is &#39;dark&#39;. &#39;light&#39; is also available.
+         * @accessor
+         */
+        ui: &#39;dark&#39;,
+
+<span id='Ext-carousel-Carousel-cfg-itemConfig'>        itemConfig: {
+</span>            translatable: {
+                type: &#39;csstransform&#39;
+            }
+        },
+
+<span id='Ext-carousel-Carousel-cfg-bufferSize'>        bufferSize: 1,
+</span>
+<span id='Ext-carousel-Carousel-cfg-itemLength'>        itemLength: null
+</span>    },
+
+<span id='Ext-carousel-Carousel-property-baseCls'>    baseCls: Ext.baseCSSPrefix + &#39;carousel&#39;,
+</span>
+<span id='Ext-carousel-Carousel-property-itemLength'>    itemLength: 0,
+</span>
+<span id='Ext-carousel-Carousel-property-offset'>    offset: 0,
+</span>
+<span id='Ext-carousel-Carousel-property-flickStartOffset'>    flickStartOffset: 0,
+</span>
+<span id='Ext-carousel-Carousel-property-flickStartTime'>    flickStartTime: 0,
+</span>
+<span id='Ext-carousel-Carousel-property-dragDirection'>    dragDirection: 0,
+</span>
+<span id='Ext-carousel-Carousel-property-count'>    count: 0,
+</span>
+<span id='Ext-carousel-Carousel-property-painted'>    painted: false,
+</span>
+<span id='Ext-carousel-Carousel-property-activeIndex'>    activeIndex: -1,
+</span>
+<span id='Ext-carousel-Carousel-method-beforeInitialize'>    beforeInitialize: function() {
+</span>        var me = this;
+
+        me.element.on({
+            resize: &#39;onSizeChange&#39;,
+            dragstart: &#39;onDragStart&#39;,
+            drag: &#39;onDrag&#39;,
+            dragend: &#39;onDragEnd&#39;,
+            dragcancel: &#39;onDragEnd&#39;,
+            scope: me
+        });
+
+        me.carouselItems = [];
+
+        me.orderedCarouselItems = [];
+
+        me.inactiveCarouselItems = [];
+
+        me.hiddenTranslation = 0;
+    },
+
+<span id='Ext-carousel-Carousel-method-updateBufferSize'>    updateBufferSize: function(size) {
+</span>        var ItemClass = Ext.carousel.Item,
+            total = size * 2 + 1,
+            isRendered = this.isRendered(),
+            bodyElement = this.bodyElement,
+            items = this.carouselItems,
+            ln = items.length,
+            itemConfig = Ext.apply({
+                ownerCmp: this
+            }, this.getItemConfig()),
+            itemLength = this.getItemLength(),
+            direction = this.getDirection(),
+            setterName = direction === &#39;horizontal&#39; ? &#39;setWidth&#39; : &#39;setHeight&#39;,
+            i, item;
+
+        for (i = ln; i &lt; total; i++) {
+            item = Ext.factory(itemConfig, ItemClass);
+
+            if (itemLength) {
+                item[setterName].call(item, itemLength);
+            }
+            items.push(item);
+            bodyElement.append(item.renderElement);
+
+            if (isRendered &amp;&amp; item.setRendered(true)) {
+                item.fireEvent(&#39;renderedchange&#39;, this, item, true);
+            }
+        }
+
+        this.getTranslatable().setActiveIndex(size);
+    },
+
+<span id='Ext-carousel-Carousel-method-onSizeChange'>    onSizeChange: function() {
+</span>        this.refreshSizing();
+        this.refreshCarouselItems();
+        this.refreshActiveItem();
+    },
+
+<span id='Ext-carousel-Carousel-method-onItemAdd'>    onItemAdd: function(item, index) {
+</span>        this.callParent([item, index]);
+
+        var innerIndex = this.getInnerItems().indexOf(item),
+            indicator = this.getIndicator();
+
+        if (indicator &amp;&amp; item.isInnerItem()) {
+            indicator.add();
+        }
+
+        if (innerIndex &lt;= this.getActiveIndex()) {
+            this.refreshActiveIndex();
+        }
+
+        if (this.isIndexDirty(innerIndex) &amp;&amp; !this.isItemsInitializing) {
+            this.refreshActiveItem();
+        }
+    },
+
+<span id='Ext-carousel-Carousel-method-doItemLayoutAdd'>    doItemLayoutAdd: function(item, index, destroying) {
+</span>        if (item.isInnerItem()) {
+            return;
+        }
+
+        this.callParent(arguments);
+    },
+
+<span id='Ext-carousel-Carousel-method-onItemRemove'>    onItemRemove: function(item, index, destroying) {
+</span>        this.callParent(arguments);
+
+        var innerIndex = this.getInnerItems().indexOf(item),
+            indicator = this.getIndicator(),
+            carouselItems = this.carouselItems,
+            i, ln, carouselItem;
+
+        if (item.isInnerItem() &amp;&amp; indicator) {
+            indicator.remove();
+        }
+
+        if (innerIndex &lt;= this.getActiveIndex()) {
+            this.refreshActiveIndex();
+        }
+
+        if (this.isIndexDirty(innerIndex)) {
+            for (i = 0,ln = carouselItems.length; i &lt; ln; i++) {
+                carouselItem = carouselItems[i];
+
+                if (carouselItem.getComponent() === item) {
+                    carouselItem.setComponent(null);
+                    break;
+                }
+            }
+
+            this.refreshActiveItem();
+        }
+    },
+
+<span id='Ext-carousel-Carousel-method-doItemLayoutRemove'>    doItemLayoutRemove: function(item) {
+</span>        if (item.isInnerItem()) {
+            return;
+        }
+
+        this.callParent(arguments);
+    },
+
+<span id='Ext-carousel-Carousel-method-onInnerItemMove'>    onInnerItemMove: function(item, toIndex, fromIndex) {
+</span>        if ((this.isIndexDirty(toIndex) || this.isIndexDirty(fromIndex))) {
+            this.refreshActiveItem();
+        }
+    },
+
+<span id='Ext-carousel-Carousel-method-doItemLayoutMove'>    doItemLayoutMove: function(item) {
+</span>        if (item.isInnerItem()) {
+            return;
+        }
+
+        this.callParent(arguments);
+    },
+
+<span id='Ext-carousel-Carousel-method-isIndexDirty'>    isIndexDirty: function(index) {
+</span>        var activeIndex = this.getActiveIndex(),
+            bufferSize = this.getBufferSize();
+
+        return (index &gt;= activeIndex - bufferSize &amp;&amp; index &lt;= activeIndex + bufferSize);
+    },
+
+<span id='Ext-carousel-Carousel-method-getTranslatable'>    getTranslatable: function() {
+</span>        var me = this,
+            translatable = me.translatable;
+
+        if (!translatable) {
+            me.translatable = translatable = new Ext.util.TranslatableGroup();
+            translatable.setItems(me.orderedCarouselItems);
+            translatable.on(&#39;animationend&#39;, &#39;onAnimationEnd&#39;, me);
+        }
+
+        return translatable;
+    },
+
+<span id='Ext-carousel-Carousel-method-onDragStart'>    onDragStart: function(e) {
+</span>        var direction = this.getDirection(),
+            absDeltaX = e.absDeltaX,
+            absDeltaY = e.absDeltaY;
+
+        this.isDragging = true;
+
+        if ((direction === &#39;horizontal&#39; &amp;&amp; absDeltaX &gt; absDeltaY) ||
+            (direction === &#39;vertical&#39; &amp;&amp; absDeltaY &gt; absDeltaX)) {
+            e.stopPropagation();
+        } else {
+            this.isDragging = false;
+            return;
+        }
+
+        this.getTranslatable().stopAnimation();
+
+        this.dragStartOffset = this.offset;
+        this.dragDirection = 0;
+    },
+
+<span id='Ext-carousel-Carousel-method-onDrag'>    onDrag: function(e) {
+</span>        if (!this.isDragging) {
+            return;
+        }
+
+        var startOffset = this.dragStartOffset,
+            direction = this.getDirection(),
+            delta = direction === &#39;horizontal&#39; ? e.deltaX : e.deltaY,
+            lastOffset = this.offset,
+            flickStartTime = this.flickStartTime,
+            dragDirection = this.dragDirection,
+            now = Ext.Date.now(),
+            currentActiveIndex = this.getActiveIndex(),
+            maxIndex = this.getMaxItemIndex(),
+            lastDragDirection = dragDirection,
+            offset;
+
+        if ((currentActiveIndex === 0 &amp;&amp; delta &gt; 0) || (currentActiveIndex === maxIndex &amp;&amp; delta &lt; 0)) {
+            delta *= 0.5;
+        }
+
+        offset = startOffset + delta;
+
+        if (offset &gt; lastOffset) {
+            dragDirection = 1;
+        }
+        else if (offset &lt; lastOffset) {
+            dragDirection = -1;
+        }
+
+        if (dragDirection !== lastDragDirection || (now - flickStartTime) &gt; 300) {
+            this.flickStartOffset = lastOffset;
+            this.flickStartTime = now;
+        }
+
+        this.dragDirection = dragDirection;
+
+        this.setOffset(offset);
+    },
+
+<span id='Ext-carousel-Carousel-method-onDragEnd'>    onDragEnd: function(e) {
+</span>        if (!this.isDragging) {
+            return;
+        }
+
+        this.onDrag(e);
+
+        this.isDragging = false;
+
+        var now = Ext.Date.now(),
+            itemLength = this.itemLength,
+            threshold = itemLength / 2,
+            offset = this.offset,
+            activeIndex = this.getActiveIndex(),
+            maxIndex = this.getMaxItemIndex(),
+            animationDirection = 0,
+            flickDistance = offset - this.flickStartOffset,
+            flickDuration = now - this.flickStartTime,
+            indicator = this.getIndicator(),
+            velocity;
+
+        if (flickDuration &gt; 0 &amp;&amp; Math.abs(flickDistance) &gt;= 10) {
+            velocity = flickDistance / flickDuration;
+
+            if (Math.abs(velocity) &gt;= 1) {
+                if (velocity &lt; 0 &amp;&amp; activeIndex &lt; maxIndex) {
+                    animationDirection = -1;
+                }
+                else if (velocity &gt; 0 &amp;&amp; activeIndex &gt; 0) {
+                    animationDirection = 1;
+                }
+            }
+        }
+
+        if (animationDirection === 0) {
+            if (activeIndex &lt; maxIndex &amp;&amp; offset &lt; -threshold) {
+                animationDirection = -1;
+            }
+            else if (activeIndex &gt; 0 &amp;&amp; offset &gt; threshold) {
+                animationDirection = 1;
+            }
+        }
+
+        if (indicator) {
+            indicator.setActiveIndex(activeIndex - animationDirection);
+        }
+
+        this.animationDirection = animationDirection;
+
+        this.setOffsetAnimated(animationDirection * itemLength);
+    },
+
+<span id='Ext-carousel-Carousel-method-onRender'>    onRender: function() {
+</span>        this.callParent();
+        this.refresh();
+    },
+
+<span id='Ext-carousel-Carousel-method-applyAnimation'>    applyAnimation: function(animation) {
+</span>        animation.easing = Ext.factory(animation.easing, Ext.fx.easing.EaseOut);
+
+        return animation;
+    },
+
+<span id='Ext-carousel-Carousel-method-updateDirection'>    updateDirection: function(direction) {
+</span>        var indicator = this.getIndicator(),
+            vertical = (direction === &#39;vertical&#39;);
+
+        this.currentAxis = vertical ? &#39;y&#39; : &#39;x&#39;;
+
+        this.setTouchAction(vertical ? { panY: false } : { panX: false });
+
+        if (indicator) {
+            indicator.setDirection(direction);
+        }
+    },
+
+<span id='Ext-carousel-Carousel-method-setOffset'>    /**
+</span>     * @private
+     * @chainable
+     */
+    setOffset: function(offset) {
+        this.offset = offset;
+
+        if (Ext.isNumber(this.itemOffset)) {
+            this.getTranslatable().translateAxis(this.currentAxis, offset + this.itemOffset);
+        }
+
+        return this;
+    },
+
+<span id='Ext-carousel-Carousel-method-setOffsetAnimated'>    /**
+</span>     * @private
+     * @return {Ext.carousel.Carousel} this
+     * @chainable
+     */
+    setOffsetAnimated: function(offset) {
+        var indicator = this.getIndicator();
+
+        if (indicator) {
+            indicator.setActiveIndex(this.getActiveIndex() - this.animationDirection);
+        }
+
+        this.offset = offset;
+
+        this.getTranslatable().translateAxis(this.currentAxis, offset + this.itemOffset, this.getAnimation());
+
+        return this;
+    },
+
+<span id='Ext-carousel-Carousel-method-onAnimationEnd'>    onAnimationEnd: function(translatable) {
+</span>        if (this.destroyed) {
+            return;
+        }
+
+        var currentActiveIndex = this.getActiveIndex(),
+            animationDirection = this.animationDirection,
+            axis = this.currentAxis,
+            currentOffset = translatable[axis],
+            itemLength = this.itemLength,
+            offset;
+
+        if (animationDirection === -1) {
+            offset = itemLength + currentOffset;
+        }
+        else if (animationDirection === 1) {
+            offset = currentOffset - itemLength;
+        }
+        else {
+            offset = currentOffset;
+        }
+
+        offset -= this.itemOffset;
+        this.offset = offset;
+        this.setActiveItem(currentActiveIndex - animationDirection);
+    },
+
+<span id='Ext-carousel-Carousel-method-refresh'>    refresh: function() {
+</span>        this.refreshSizing();
+        this.refreshActiveItem();
+    },
+
+<span id='Ext-carousel-Carousel-method-refreshSizing'>    refreshSizing: function() {
+</span>        var element = this.element,
+            itemLength = this.getItemLength(),
+            translatableItemLength = {
+                x: 0,
+                y: 0
+            },
+            itemOffset, containerSize;
+
+        if (this.getDirection() === &#39;horizontal&#39;) {
+            containerSize = element.getWidth();
+        }
+        else {
+            containerSize = element.getHeight();
+        }
+
+        this.hiddenTranslation = -containerSize;
+
+        if (itemLength === null) {
+            itemLength = containerSize;
+            itemOffset = 0;
+        }
+        else {
+            itemOffset = (containerSize - itemLength) / 2;
+        }
+
+        this.itemLength = itemLength;
+        this.itemOffset = itemOffset;
+        translatableItemLength[this.currentAxis] = itemLength;
+        this.getTranslatable().setItemLength(translatableItemLength);
+    },
+
+<span id='Ext-carousel-Carousel-method-refreshOffset'>    refreshOffset: function() {
+</span>        this.setOffset(this.offset);
+    },
+
+<span id='Ext-carousel-Carousel-method-refreshActiveItem'>    refreshActiveItem: function() {
+</span>        this.updateActiveItem(this.getActiveItem());
+    },
+
+<span id='Ext-carousel-Carousel-method-getActiveIndex'>    /**
+</span>     * Returns the index of the currently active card.
+     * @return {Number} The index of the currently active card.
+     */
+    getActiveIndex: function() {
+        return this.activeIndex;
+    },
+
+<span id='Ext-carousel-Carousel-method-refreshActiveIndex'>    refreshActiveIndex: function() {
+</span>        this.activeIndex = this.getInnerItemIndex(this.getActiveItem());
+    },
+
+<span id='Ext-carousel-Carousel-method-refreshCarouselItems'>    refreshCarouselItems: function() {
+</span>        var items = this.carouselItems,
+            i, ln, item;
+
+        for (i = 0,ln = items.length; i &lt; ln; i++) {
+            item = items[i];
+            item.getTranslatable().refresh();
+        }
+
+        this.refreshInactiveCarouselItems();
+    },
+
+<span id='Ext-carousel-Carousel-method-refreshInactiveCarouselItems'>    refreshInactiveCarouselItems: function() {
+</span>        var items = this.inactiveCarouselItems,
+            hiddenTranslation = this.hiddenTranslation,
+            axis = this.currentAxis,
+            i, ln, item;
+
+        for (i = 0,ln = items.length; i &lt; ln; i++) {
+            item = items[i];
+            item.translateAxis(axis, hiddenTranslation);
+        }
+    },
+
+<span id='Ext-carousel-Carousel-method-getMaxItemIndex'>    /**
+</span>     * @private
+     * @return {Number}
+     */
+    getMaxItemIndex: function() {
+        return this.innerItems.length - 1;
+    },
+
+<span id='Ext-carousel-Carousel-method-getInnerItemIndex'>    /**
+</span>     * @private
+     * @return {Number}
+     */
+    getInnerItemIndex: function(item) {
+        return this.innerItems.indexOf(item);
+    },
+
+<span id='Ext-carousel-Carousel-method-getInnerItemAt'>    /**
+</span>     * @private
+     * @return {Object}
+     */
+    getInnerItemAt: function(index) {
+        return this.innerItems[index];
+    },
+
+<span id='Ext-carousel-Carousel-method-applyActiveItem'>    /**
+</span>     * @private
+     * @return {Object}
+     */
+    applyActiveItem: function(activeItem, oldActiveItem) {
+        var activeIndex;
+
+        activeItem = this.callParent([activeItem, oldActiveItem]);
+
+        if (activeItem) {
+            activeIndex = this.getInnerItemIndex(activeItem);
+
+            if (activeIndex !== -1) {
+                this.activeIndex = activeIndex;
+                return activeItem;
+            }
+        }
+    },
+
+<span id='Ext-carousel-Carousel-method-updateActiveItem'>    updateActiveItem: function(activeItem, oldActiveItem) {
+</span>        var me = this,
+            activeIndex = me.getActiveIndex(),
+            maxIndex = me.getMaxItemIndex(),
+            indicator = me.getIndicator(),
+            bufferSize = me.getBufferSize(),
+            carouselItems = me.carouselItems.slice(),
+            orderedCarouselItems = this.orderedCarouselItems,
+            visibleIndexes = {},
+            visibleItems = {},
+            visibleItem, component, id, i, index, ln, carouselItem;
+
+        if (carouselItems.length === 0) {
+            return;
+        }
+
+        me.callParent([activeItem, oldActiveItem]);
+
+        orderedCarouselItems.length = 0;
+
+        if (activeItem) {
+            id = activeItem.getId();
+            visibleItems[id] = activeItem;
+            visibleIndexes[id] = bufferSize;
+
+            if (activeIndex &gt; 0) {
+                for (i = 1; i &lt;= bufferSize; i++) {
+                    index = activeIndex - i;
+                    if (index &gt;= 0) {
+                        visibleItem = me.getInnerItemAt(index);
+                        id = visibleItem.getId();
+                        visibleItems[id] = visibleItem;
+                        visibleIndexes[id] = bufferSize - i;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            if (activeIndex &lt; maxIndex) {
+                for (i = 1; i &lt;= bufferSize; i++) {
+                    index = activeIndex + i;
+                    if (index &lt;= maxIndex) {
+                        visibleItem = me.getInnerItemAt(index);
+                        id = visibleItem.getId();
+                        visibleItems[id] = visibleItem;
+                        visibleIndexes[id] = bufferSize + i;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            for (i = 0,ln = carouselItems.length; i &lt; ln; i++) {
+                carouselItem = carouselItems[i];
+                component = carouselItem.getComponent();
+
+                if (component) {
+                    id = component.getId();
+
+                    if (visibleIndexes.hasOwnProperty(id)) {
+                        carouselItems.splice(i, 1);
+                        i--;
+                        ln--;
+                        delete visibleItems[id];
+                        orderedCarouselItems[visibleIndexes[id]] = carouselItem;
+                    }
+                }
+            }
+
+            for (id in visibleItems) {
+                if (visibleItems.hasOwnProperty(id)) {
+                    visibleItem = visibleItems[id];
+                    carouselItem = carouselItems.pop();
+                    carouselItem.setComponent(visibleItem);
+                    orderedCarouselItems[visibleIndexes[id]] = carouselItem;
+                }
+            }
+        }
+
+        me.inactiveCarouselItems.length = 0;
+        me.inactiveCarouselItems = carouselItems;
+        me.refreshOffset();
+        me.refreshInactiveCarouselItems();
+
+        if (indicator &amp;&amp; !indicator.isDestroying &amp;&amp; activeIndex !== -1) {
+            indicator.sync(me.getInnerItems().length, activeIndex);
+        }
+    },
+
+<span id='Ext-carousel-Carousel-method-next'>    /**
+</span>     * Switches to the next card.
+     * @return {Ext.carousel.Carousel} this
+     * @chainable
+     */
+    next: function() {
+        this.setOffset(0);
+
+        if (this.activeIndex === this.getMaxItemIndex()) {
+            return this;
+        }
+
+        this.animationDirection = -1;
+        this.setOffsetAnimated(-this.itemLength);
+        return this;
+    },
+
+<span id='Ext-carousel-Carousel-method-previous'>    /**
+</span>     * Switches to the previous card.
+     * @return {Ext.carousel.Carousel} this
+     * @chainable
+     */
+    previous: function() {
+        this.setOffset(0);
+
+        if (this.activeIndex === 0) {
+            return this;
+        }
+
+        this.animationDirection = 1;
+        this.setOffsetAnimated(this.itemLength);
+        return this;
+    },
+
+<span id='Ext-carousel-Carousel-method-applyIndicator'>    /**
+</span>     * @private
+     */
+    applyIndicator: function(indicator, currentIndicator) {
+        return Ext.factory(indicator, Ext.Indicator, currentIndicator);
+    },
+
+<span id='Ext-carousel-Carousel-method-updateIndicator'>    /**
+</span>     * @private
+     */
+    updateIndicator: function(indicator) {
+        var me = this,
+            bottom, right;
+
+        if (indicator) {
+            if (me.getDirection() === &#39;horizontal&#39;) {
+                bottom = 0;
+                right = null;
+            } else {
+                bottom = null;
+                right = 0;
+            }
+
+            indicator
+                //force the indicator to be floating
+                .setRight(right)
+                .setBottom(bottom)
+                .setUi(me.getUi())
+                .on({
+                    indicatortap: &#39;onIndicatorTap&#39;,
+                    next: &#39;next&#39;,
+                    previous: &#39;previous&#39;,
+                    scope: me
+                });
+
+            me.insertFirst(indicator);
+        }
+    },
+
+<span id='Ext-carousel-Carousel-method-onIndicatorTap'>    onIndicatorTap: function (indicator, index) {
+</span>        this.setActiveItem(index);
+    },
+
+<span id='Ext-carousel-Carousel-method-doDestroy'>    doDestroy: function() {
+</span>        var me = this,
+            carouselItems = me.carouselItems.slice();
+
+        me.carouselItems.length = 0;
+
+        Ext.destroy(carouselItems, me.getIndicator(), me.translatable);
+
+        me.callParent();
+    }
+});
+</pre>
+</body>
+</html>

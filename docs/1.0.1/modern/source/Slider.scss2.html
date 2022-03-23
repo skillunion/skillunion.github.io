@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-slider-Slider'>/**
+</span> * @class Ext.slider.Slider
+ */
+
+.#{$prefix}slider {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .#{$prefix}track-el {
+        width: 100%;
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .#{$prefix}thumb-wrap-el {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+    }
+
+    .#{$prefix}fill-el {
+        position: absolute;
+        top: 0;
+        left: 0;
+        // important is needed here to override more specific styles applied by the slider-ui mixin
+        border-right-width: 0 !important;
+
+        &amp;:not(:first-child) {
+            border-left-width: 0 !important;
+        }
+    }
+}
+
+.#{$prefix}slider:not(.#{$prefix}toggleslider) .#{$prefix}fill-el {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+</pre>
+</body>
+</html>

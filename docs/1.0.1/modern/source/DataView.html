@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-DataView'>/**
+</span> * DataView makes it easy to render one or more data items, typically from a server backend
+ * or any other data source. The DataView is what powers more powerful components like
+ * {@link Ext.dataview.List List} and {@link Ext.grid.Grd Grid}.
+ *
+ * Use DataView whenever you want to repeat the same element structure for multiple records
+ * of data.
+ *
+ * # Creating a Simple DataView
+ *
+ * At its simplest, a DataView is just a Store full of data and a simple template that
+ * renders each item:
+ *
+ *      @example
+ *      var team = Ext.create({
+ *          xtype: &#39;dataview&#39;,
+ *          fullscreen: true,
+ *
+ *          store: [
+ *              { name: &#39;Peter&#39;,  age: 26 },
+ *              { name: &#39;Ray&#39;,   age: 21 },
+ *              { name: &#39;Egon&#39;, age: 24 },
+ *              { name: &#39;Winston&#39;, age: 24 }
+ *          ],
+ *
+ *          itemTpl: &#39;&lt;div&gt;{name} is {age} years old&lt;/div&gt;&#39;
+ *      });
+ *
+ * Here we just defined everything inline so it&#39;s all local with nothing being loaded from
+ * a server. For each of the data items, the DataView will render HTML using the `itemTpl`
+ * For details see {@link Ext.XTemplate XTemplate}.
+ *
+ * Because DataView actually uses an underlying {@link Ext.data.Store Store}, any changes
+ * to the data are immediately reflected on the screen. For example, if we add a new record
+ * to the Store it will be rendered into our DataView.
+ *
+ * The same happens if we modify one of the existing records in the Store:
+ *
+ *      @example
+ *      var team = Ext.create({
+ *          xtype: &#39;dataview&#39;,
+ *          fullscreen: true,
+ *
+ *          store: {
+ *             fields: [&#39;name&#39;, &#39;age&#39;],
+ *             data: [
+ *                 {name: &#39;Peter&#39;,  age: 26},
+ *                 {name: &#39;Ray&#39;,   age: 21},
+ *                 {name: &#39;Egon&#39;, age: 24},
+ *                 {name: &#39;Winston&#39;, age: 24}
+ *             ]
+ *          },
+ *
+ *          itemTpl: &#39;&lt;div&gt;{name} is {age} years old&lt;/div&gt;&#39;
+ *      });
+ *
+ *      team.getStore().add({
+ *          name: &#39;Gozer&#39;,
+ *          age: 21
+ *      });
+ *
+ *      team.getStore().getAt(0).set(&#39;age&#39;, 42);
+ *
+ * This last step will get the first record in the Store (Peter), change the age to 42 and
+ * automatically update what&#39;s on the screen.
+ *
+ * # Loading data from a server
+ *
+ * To load data from a server, we need to give the `store` some information about the
+ * server. This is done with the `proxy` config:
+ *
+ *      @example
+ *      Ext.create({
+ *          xtype: &#39;dataview&#39;,
+ *          fullscreen: true,
+ *
+ *          store: {
+ *              autoLoad: true,
+ *              proxy: {
+ *                  type: &#39;jsonp&#39;,
+ *                  url: &#39;https://itunes.apple.com/search?term=Pink+Floyd&amp;entity=album&#39;,
+ *
+ *                  reader: {
+ *                      type: &#39;json&#39;,
+ *                      rootProperty: &#39;results&#39;
+ *                  }
+ *              }
+ *          },
+ *
+ *          itemTpl: &#39;&lt;h2&gt;{collectionName}&lt;/h2&gt;&lt;p&gt;&lt;img src=&quot;{artworkUrl100}&quot; /&gt;&lt;/p&gt;&#39;
+ *      });
+ *
+ * The Store now loads using a {@link Ext.data.proxy.Proxy Proxy}, which fetches the data
+ * for us. In this case we used a JSON-P proxy so that we can load from Twitter&#39;s JSON-P
+ * search API. We also specified the fields present for each tweet, and used store&#39;s
+ * {@link Ext.data.Store#autoLoad autoLoad} configuration to load automatically. Finally,
+ * we configured a `reader` to decode the response from Twitter, telling it to expect
+ * JSON and that the tweets can be found in the &#39;results&#39; part of the JSON response.
+ *
+ * The last piece is an update to the `itemTpl` to render the image, Twitter username and
+ * message. All we need to do now is add a little CSS to style the list the way we want
+ * it and we end up with a very basic Twitter viewer. Click the preview button on the
+ * example above to see it in action.
+ *
+ * # Components As Items
+ *
+ * To use an `Ext.Component` to render and manage data items, see `Ext.dataview.Component`.
+ * Prior to version 6.5 the `useComponents` config was used but this config has been replaced
+ * by a dedicated class.
+ */
+Ext.define(&#39;Ext.dataview.DataView&#39;, {
+    extend: &#39;Ext.dataview.Abstract&#39;,
+
+    alternateClassName: &#39;Ext.DataView&#39;,
+
+    xtype: &#39;dataview&#39;,
+
+<span id='Ext-dataview-DataView-property-isElementDataView'>    isElementDataView: true,
+</span>
+<span id='Ext-dataview-DataView-event-childtouchstart'>    /**
+</span>     * @event childtouchstart
+     * Fires when a child is first touched.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-DataView-event-childtouchmove'>    /**
+</span>     * @event childtouchmove
+     * Fires when a touch move occurs on a child.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-DataView-event-childtouchend'>    /**
+</span>     * @event childtouchend
+     * Fires when a touch ends on a child.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-DataView-event-childtouchcancel'>    /**
+</span>     * @event childtouchcancel
+     * Fires when a touch is cancelled.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-DataView-event-childtap'>    /**
+</span>     * @event childtap
+     * Fires when a child is tapped.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-DataView-event-childlongpress'>    /**
+</span>     * @event childlongpress
+     * Fires when a child is long-pressed.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-DataView-event-childtaphold'>    /**
+</span>     * @event childtaphold
+     * Fires when a child is tap-held.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-DataView-event-childsingletap'>    /**
+</span>     * @event childsingletap
+     * Fires when a child is single tapped.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-DataView-event-childdoubletap'>    /**
+</span>     * @event childdoubletap
+     * Fires when a child is double tapped.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-DataView-event-childmouseenter'>    /**
+</span>     * @event childmouseenter
+     * Fires when the mouse pointer enters a child.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-DataView-event-childmouseleave'>    /**
+</span>     * @event childmouseleave
+     * Fires when the mouse pointer leaves a child.
+     * @param {Ext.dataview.DataView} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+    constructor: function (config) {
+        if (config &amp;&amp; config.useComponents) {
+            //&lt;debug&gt;
+            if (this.self !== Ext.dataview.DataView) {
+                Ext.raise(&#39;The useComponents config has been replaced by Ext.dataview.Component&#39;);
+            }
+            Ext.log.warn(&#39;The useComponents config has been replaced by Ext.dataview.Component&#39;);
+            //&lt;/debug&gt;
+
+            // For compatibility sake, we can redirect the creation to the right
+            // place:
+            return new Ext.dataview[&#39;Component&#39;](config); // hide usage from Cmd
+        }
+
+        //&lt;debug&gt;
+        if (this.useComponents) {
+            Ext.raise(&#39;The useComponents config has been replaced by Ext.dataview.Component&#39;);
+        }
+        //&lt;/debug&gt;
+
+        this.callParent([ config ]);
+    },
+
+<span id='Ext-dataview-DataView-method-getViewItems'>    getViewItems: function() {
+</span>        return Array.prototype.slice.call(this.getFastItems());
+    },
+
+<span id='Ext-dataview-DataView-method-onStoreAdd'>    onStoreAdd: function (store, records, index) {
+</span>        this.callParent(arguments);
+
+        this.renderItems(index, index + records.length);
+    },
+
+<span id='Ext-dataview-DataView-method-onStoreRemove'>    onStoreRemove: function(store, records, index) {
+</span>        this.removeItems(index, index + records.length);
+    },
+
+<span id='Ext-dataview-DataView-property-privates'>    privates: {
+</span>        dirtyCls: Ext.baseCSSPrefix + &#39;dirty&#39;,
+
+        changeItem: function (recordIndex) {
+            var me = this,
+                dataItems = me.dataItems,
+                item = dataItems[recordIndex],
+                record = me.dataRange.records[recordIndex],
+                storeCount = me.store.getCount(),
+                options = {
+                    isFirst: !recordIndex,
+                    isLast: recordIndex === storeCount -1,
+                    item: item,
+                    record: record,
+                    recordIndex: recordIndex
+                };
+
+            me.syncItemRecord(options);
+        },
+
+        clearItems: function() {
+            var elements = this.dataItems,
+                dom;
+
+            while (elements.length) {
+                dom = elements.pop();
+                Ext.fly(dom).destroy();
+            }
+        },
+
+        createDataItem: function (index, record) {
+            var me = this,
+                store = me.store,
+                data = me.gatherData(record, index),
+                markDirty = me.getMarkDirty(),
+                dom, itemEl;
+
+            itemEl = Ext.Element.create(me.getItemElementConfig(index, data, store));
+            dom = itemEl.dom;
+
+            if (markDirty) {
+                itemEl.addCls(me.markDirtyCls);
+            }
+
+            dom.setAttribute(&#39;data-viewid&#39;, me.id);
+            dom.setAttribute(&#39;data-recordid&#39;, record.internalId);
+            dom.setAttribute(&#39;data-recordindex&#39;, index);
+
+            return itemEl;
+        },
+
+        doClear: function() {
+            this.clearItems();
+
+            this.callParent();
+        },
+
+        doRefresh: function (scrollToTop) {
+            var me = this,
+                records = me.dataRange.records,
+                storeCount = records.length,
+                itemCount = me.dataItems.length,
+                scroller = me.getScrollable(),
+                restoreFocus, i;
+
+            if (scroller &amp;&amp; scrollToTop) {
+                scroller.scrollTo(0, 0);
+            }
+
+            ++me.refreshCounter;
+
+            // No items, hide all the items from the collection.
+            if (!storeCount) {
+                me.doClear();
+            }
+            else {
+                // Stashes the NavigationModel&#39;s location for restoration after refresh
+                restoreFocus = me.saveFocusState();
+                me.hideEmptyText();
+
+                if (itemCount &gt; storeCount) {
+                    me.removeItems(storeCount, itemCount);
+                    // We&#39;ve removed extra items, but all remaining items need to
+                    // be refreshed
+                    itemCount = storeCount;
+                }
+                else if (itemCount &lt; storeCount) {
+                    me.renderItems(itemCount, storeCount);
+                    // We&#39;ve rendered the new items but all pre-existing items
+                    // need to be refreshed
+                }
+
+                for (i = 0; i &lt; itemCount; ++i) {
+                    me.changeItem(i);
+                }
+
+                if (me.hasSelection()) {
+                    me.setItemSelection(me.getSelections(), true);
+                }
+                restoreFocus();
+            }
+        },
+
+        getFastItems: function() {
+            return this.getRenderTarget().dom.childNodes;
+        },
+
+        getItemElementConfig: function (index, data, store) {
+            var me = this,
+                result = {
+                    cls: me.baseCls + &#39;-item &#39; + (me.getItemCls() || &#39;&#39;),
+                    html: me.renderItemTpl(index, data, store)
+                };
+
+            // The element must accept focus for navigation to occur.
+            // The item component must not be focusable. It must not participate in a
+            // FocusableContainer relationship with the List&#39;s container,
+            // and must not react to focus events or its focus API itself.
+            // It is a slave of the NavigationModel.
+            if (me.getItemsFocusable()) {
+                result.tabIndex = -1;
+            }
+
+            return result;
+        },
+
+        removeItems: function (from, to) {
+            var me = this,
+                items = me.dataItems.splice(from, to - from),
+                i;
+
+            for (i = 0; i &lt; items.length; ++i) {
+                Ext.fly(items[i]).destroy();
+            }
+        },
+
+        renderItems: function (from, to) {
+            var me = this,
+                dataItems = me.dataItems,
+                records = me.dataRange.records,
+                parentNode = me.getRenderTarget().dom,
+                args = [ from, 0 ],
+                before = me.dataItems[from] || null,
+                dom, i;
+
+            if (records.length) {
+                me.hideEmptyText();
+            }
+
+            if (!before) {
+                // We don&#39;t have a data item rendered beyond this range, so either
+                // before should be null (to append to parentNode) or it should be
+                // the last scrollDock:&#39;end&#39;
+                before = me.findTailItem(/*rawElements=*/true);
+                before = before &amp;&amp; before.el.dom;
+            }
+
+            for (i = from; i &lt; to; ++i) {
+                args.push(dom = me.createDataItem(i, records[i]).dom);
+
+                parentNode.insertBefore(dom, before);
+            }
+
+            dataItems.splice.apply(dataItems, args);
+        },
+
+        renderItemTpl: function (index, data, store) {
+            var itemTpl = this.getItemTpl(),
+                parent = store.getData().items,
+                value;
+
+            data.xcount = typeof data.xcount === &#39;number&#39; ? data.xcount : store.getCount();
+            data.xindex = typeof data.xindex === &#39;number&#39; ? data.xindex : index;
+
+            value = itemTpl.apply(data, parent, index+1, parent.length);
+
+            value = (value == null) ? &#39;&#39; : String(value);
+
+            return value || this.getEmptyItemText();
+        },
+
+        syncItemRecord: function (options) {
+            var me = this,
+                item = options.item,
+                record = options.record,
+                store = me.store,
+                recordIndex = options ? options.recordIndex : store.indexOf(record),
+                data = me.gatherData(record, recordIndex),
+                dirtyCls = me.$dirty;
+
+            item.innerHTML = me.renderItemTpl(recordIndex, data, store);
+            item.setAttribute(&#39;data-recordid&#39;, record.internalId);
+            item.setAttribute(&#39;data-recordindex&#39;, recordIndex);
+
+            Ext.fly(item).toggleCls(me.dirtyCls, record.dirty);
+        },
+
+        traverseItem: function (item, delta) {
+            var me = this,
+                items = me.getRenderTarget().dom.childNodes,
+                next = null,
+                dom, i;
+
+            if (item) {
+                if (item.isElement) {
+                    dom = item.dom;
+                }
+                else if (item.isWidget) {
+                    dom = item.el.dom;
+                }
+
+                i = Array.prototype.indexOf.call(items, dom);
+                if (i &gt; -1) {
+                    next = items[i + delta] || null;
+
+                    if (next) {
+                        next = Ext.getCmp(next.id) || next;
+                    }
+                }
+            }
+
+            return next;
+        }
+    }
+});
+</pre>
+</body>
+</html>

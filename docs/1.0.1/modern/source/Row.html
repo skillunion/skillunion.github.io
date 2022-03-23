@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-Row'>/**
+</span> * This class is created by a {@link Ext.grid.Grid grid} to manage each record. Rows act
+ * as containers for {@link Ext.grid.cell.Base cells}.
+ *
+ * Row does not extend {@link Ext.Container} to keep overhead to a minimum. Application
+ * code should not need to create instances of this class directly. Rows are created by
+ * the {@link Ext.dataview.List} base as configured by {@link Ext.grid.Grid}.
+ */
+Ext.define(&#39;Ext.grid.Row&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    xtype: &#39;gridrow&#39;,
+
+    requires: [
+        &#39;Ext.grid.cell.Cell&#39;,
+        &#39;Ext.grid.RowBody&#39;
+    ],
+
+    mixins: [
+        &#39;Ext.mixin.Queryable&#39;,
+        &#39;Ext.dataview.GenericItem&#39;,
+        &#39;Ext.dataview.Pinnable&#39;
+    ],
+
+<span id='Ext-grid-Row-property-isGridRow'>    isGridRow: true,
+</span><span id='Ext-grid-Row-property-isRecordRefreshable'>    isRecordRefreshable: true,
+</span>
+    cachedConfig: {
+<span id='Ext-grid-Row-cfg-collapsed'>        collapsed: true
+</span>    },
+
+    config: {
+<span id='Ext-grid-Row-cfg-body'>        /**
+</span>         * @cfg {Object} body
+         * A config object for this row&#39;s {@link Ext.grid.RowBody Row Body}.
+         * When a {@link Ext.grid.plugin.RowExpander Row Expander} is used all row bodies
+         * begin collapsed, and can be expanded by clicking on the row expander icon.
+         * When no Row Expander is present row bodies are always expanded by default but
+         * can be collapsed programmatically using {@link #collapse}.
+         *
+         * Be aware that if you specify a row body, the owning grid is automatically configured
+         * with `{@link Ext.dataview.List#variableHeights}: true`.
+         */
+        body: null,
+
+<span id='Ext-grid-Row-cfg-expandedField'>        /**
+</span>         * @cfg {String} expandedField
+         * The name of a `boolean` field in the grid&#39;s record which is to be used to check expanded state.
+         * Note that this field should be `true` to indicate expanded, and `false` to indicate collapsed.
+         * By default the expanded state of a record is stored on the associated `grid` component allowing
+         * that record to have different expand/collapse states on a per-grid basis.
+         */
+        expandedField: null,
+
+<span id='Ext-grid-Row-cfg-defaultCellUI'>        /**
+</span>         * @cfg {String} defaultCellUI
+         * A default {@link #ui ui} to use for {@link Ext.grid.cell.Base cells} in this row.
+         */
+        defaultCellUI: null,
+
+<span id='Ext-grid-Row-cfg-stickyVisibility'>        /**
+</span>         * @private
+         */
+        stickyVisibility: null
+    },
+
+<span id='Ext-grid-Row-property-classCls'>    classCls: [
+</span>        Ext.baseCSSPrefix + &#39;listitem&#39;,
+        Ext.baseCSSPrefix + &#39;gridrow&#39;
+    ],
+
+<span id='Ext-grid-Row-property-inheritUi'>    inheritUi: true,
+</span>
+<span id='Ext-grid-Row-property-expandedCls'>    expandedCls: Ext.baseCSSPrefix + &#39;expanded&#39;,
+</span>
+<span id='Ext-grid-Row-property-element'>    element: {
+</span>        reference: &#39;element&#39;,
+        children: [{
+            reference: &#39;cellsElement&#39;,
+            className: Ext.baseCSSPrefix + &#39;cells-el&#39;
+        }]
+    },
+
+<span id='Ext-grid-Row-method-constructor'>    constructor: function (config) {
+</span>        this.cells = [];
+        this.columnMap = {};
+
+        this.callParent([config]);
+    },
+
+<span id='Ext-grid-Row-method-doDestroy'>    doDestroy: function () {
+</span>        var me = this;
+
+        me.setRecord(null);
+        me.setBody(null);
+        me.cells = Ext.destroy(me.cells);
+
+        me.callParent();
+    },
+
+<span id='Ext-grid-Row-method-collapse'>    /**
+</span>     * Collapses the row {@link #body}
+     */
+    collapse: function () {
+        this.setCollapsed(true);
+    },
+
+<span id='Ext-grid-Row-method-expand'>    /**
+</span>     * Expands the row {@link #body}
+     */
+    expand: function () {
+        this.setCollapsed(false);
+    },
+
+<span id='Ext-grid-Row-method-toggleCollapsed'>    toggleCollapsed: function () {
+</span>        this.setCollapsed(!this.getCollapsed());
+    },
+
+<span id='Ext-grid-Row-method-updateCollapsed'>    updateCollapsed: function (collapsed) {
+</span>        var me = this,
+            body = me.getBody(),
+            grid = me.getParent(),
+            record = me.getRecord(),
+            expandField = me.getExpandedField(),
+            expandedCls = me.expandedCls,
+            expanderCell = me.expanderCell,
+            recordsExpanded;
+
+        // Set state correctly before any other code executes which may read this.
+        if (record) {
+            // We have to track the state separately, if we are not using a record
+            // field to track expanded state.
+            if (expandField) {
+                record.set(expandField, !collapsed);
+            } else {
+                recordsExpanded = grid.$recordsExpanded || (grid.$recordsExpanded = {});
+
+                if (collapsed) {
+                    delete recordsExpanded[record.internalId];
+                } else {
+                    recordsExpanded[record.internalId] = true;
+                }
+            }
+        }
+
+        if (expanderCell) {
+            expanderCell.setCollapsed(collapsed);
+        }
+
+        if (body) {
+            if (collapsed) {
+                body.hide();
+                me.removeCls(expandedCls);
+            } else {
+                body.show();
+                me.addCls(expandedCls);
+            }
+        }
+    },
+
+<span id='Ext-grid-Row-method-applyBody'>    // // Rows shrinkwrap content, so no callParent.
+</span>    // // However their headers must be widthed.
+    // updateWidth: function(width) {
+    //     // Do not trigger its creation, just see if we have one.
+    //     var header = this.getConfig(&#39;header&#39;, false, true);
+    //
+    //     if (header) {
+    //         header.setWidth(width);
+    //     }
+    // },
+
+    applyBody: function (config, existing) {
+        return Ext.updateWidget(existing, config, this, &#39;createBody&#39;);
+    },
+
+<span id='Ext-grid-Row-method-createBody'>    createBody: function (body) {
+</span>        return Ext.merge({
+            xtype: &#39;rowbody&#39;,
+            ownerCmp: this,
+            row: this,
+            hidden: true
+        }, body);
+    },
+
+<span id='Ext-grid-Row-method-updateBody'>    updateBody: function (body) {
+</span>        var me = this,
+            grid = me.getParent();
+
+        if (body) {
+            me.bodyElement.appendChild(body.element);
+
+            if (me.rendered &amp;&amp; !body.rendered) {
+                body.setRendered(true);
+            }
+        }
+
+        if (grid) {
+            grid.setVariableHeights(true);
+            if (!grid.hasRowExpander) {
+                me.expand();
+            }
+        }
+    },
+
+<span id='Ext-grid-Row-method-onAdded'>    onAdded: function (grid) {
+</span>        var me = this,
+            cells = me.cells,
+            cell, col, columns, i, k, n;
+
+        me.callParent(arguments);
+
+        if (grid) {
+            columns = grid.getColumns();
+
+            for (i = 0, n = columns.length; i &lt; n; i++) {
+                cell = cells[i];
+                col = columns[i];
+
+                // Rows can be removed and added back (due to itemCache), so make sure
+                // the cells (if they exist) have the proper column. If not, we need to
+                // remove all cells from that index to the end. We do that backwards to
+                // make things more efficient.
+                if (cell) {
+                    if (cell.getColumn() === col) {
+                        continue; // keep what we can
+                    }
+
+                    for (k = cells.length; k-- &gt; i; ) {
+                        cell = cells[k];
+                        me.removeColumn(cell.getColumn());
+                    }
+                }
+
+                me.addColumn(columns[i]);
+            }
+        }
+    },
+
+<span id='Ext-grid-Row-method-addColumn'>    addColumn: function (column) {
+</span>        this.insertColumn(this.cells.length, column);
+    },
+
+<span id='Ext-grid-Row-method-getCells'>    /**
+</span>     * Returns the cells owned by this Row.
+     *
+     * Optionally filters the results by the passed {@link Ext.ComponentQuery
+     * ComponentQuery} selector.
+     * @param {String} [selector] The {@link Ext.ComponentQuery ComponentQuery} selector
+     * to filter the results by.
+     * @returns {Ext.grid.cell.Cell[]} The matching cells.
+     */
+    getCells: function(selector) {
+        return selector ? Ext.ComponentQuery.query(selector, this.cells) : this.cells;
+    },
+
+<span id='Ext-grid-Row-method-getRefItems'>    getRefItems: function(deep) {
+</span>        var result = [],
+            body = this.getConfig(&#39;body&#39;, false, true),  // Don&#39;t initialize lazy
+            cells = this.cells,
+            len = cells &amp;&amp; cells.length,
+            i, cell;
+
+        for (i = 0; i &lt; len; i++) {
+            cell = cells[i];
+            result.push(cell);
+
+            if (deep &amp;&amp; cell.getRefItems) {
+                result.push.apply(result, cell.getRefItems());
+            }
+        }
+
+        if (body) {
+            result.push(body);
+
+            if (deep &amp;&amp; body.getRefItems) {
+                result.push.apply(result, body.getRefItems());
+            }
+        }
+
+        return result;
+    },
+
+<span id='Ext-grid-Row-method-insertColumn'>    insertColumn: function (index, column) {
+</span>        var me = this,
+            cells = me.cells,
+            cell;
+
+        if (column.isHeaderGroup) {
+            return;
+        }
+
+        cell = me.createCell(column);
+
+        if (index &gt;= cells.length) {
+            me.cellsElement.appendChild(cell.element);
+            cells.push(cell);
+        } else {
+            cell.element.insertBefore(cells[index].element);
+            cells.splice(index, 0, cell);
+        }
+
+        me.columnMap[column.getId()] = cell;
+
+        if (cell.isExpanderCell) {
+            me.expanderCell = cell;
+        }
+
+        if (me.rendered) {
+            cell.setRendered(true);
+        }
+    },
+
+<span id='Ext-grid-Row-method-insertColumnBefore'>    insertColumnBefore: function(column, ref) {
+</span>        var me = this,
+            map = me.columnMap,
+            id = column.getId(),
+            cell = map[id],
+            cells = me.cells,
+            refCell, refIndex, index;
+
+        if (ref) {
+            refCell = me.getCellByColumn(ref);
+            refIndex = cells.indexOf(refCell);
+        } else {
+            refIndex = cells.length;
+        }
+
+        if (cell) {
+            // Moving an existing column
+            index = cells.indexOf(cell);
+            Ext.Array.move(cells, index, refIndex);
+            if (refCell) {
+                cell.element.insertBefore(refCell.element);
+            } else {
+                me.cellsElement.appendChild(cell.element);
+            }
+        } else {
+            me.insertColumn(refIndex, column);
+        }
+    },
+
+<span id='Ext-grid-Row-method-removeColumn'>    removeColumn: function (column) {
+</span>        var me = this,
+            columnMap = me.columnMap,
+            columnId = column.getId(),
+            cell = columnMap[columnId];
+
+        if (cell) {
+            Ext.Array.remove(me.cells, cell);
+            delete columnMap[columnId];
+            cell.destroy();
+        }
+    },
+
+<span id='Ext-grid-Row-method-updateRecord'>    updateRecord: function (record) {
+</span>        if (!this.destroyed &amp;&amp; !this.destroying) {
+            this.refresh();
+        }
+    },
+
+<span id='Ext-grid-Row-method-setColumnWidth'>    setColumnWidth: function (column) {
+</span>        var cell = this.getCellByColumn(column);
+        if (cell) {
+            cell.setWidth(column.getComputedWidth());
+        }
+    },
+
+<span id='Ext-grid-Row-method-showColumn'>    showColumn: function (column) {
+</span>        this.setCellHidden(column, false);
+    },
+
+<span id='Ext-grid-Row-method-hideColumn'>    hideColumn: function (column) {
+</span>        this.setCellHidden(column, true);
+    },
+
+<span id='Ext-grid-Row-method-getCellByColumn'>    getCellByColumn: function (column) {
+</span>        return this.columnMap[column.getId()];
+    },
+
+<span id='Ext-grid-Row-method-getColumnByCell'>    getColumnByCell: function (cell) {
+</span>        return cell.getColumn();
+    },
+
+<span id='Ext-grid-Row-method-updateStickyVisibility'>    updateStickyVisibility: function (value) {
+</span>        this.fireEvent(&#39;stickyvisiblitychange&#39;, value);
+    },
+
+<span id='Ext-grid-Row-method-refresh'>    refresh: function (context) {
+</span>        var me = this,
+            cells = me.cells,
+            body = me.getBody(),
+            len = cells.length,
+            expandField = me.getExpandedField(),
+            grid = me.getParent(),
+            sm = grid.getSelectable(),
+            selection = sm.getSelection(),
+            isCellSelection = selection.isCells || selection.isColumns,
+            i, visibleIndex, cell, record, recordsExpanded;
+
+        // Allows cells/body to know we are bulk updating so they can avoid
+        // things like calling record.getData(true) multiple times.
+        me.refreshContext = context = me.beginRefresh(context);
+
+        record = context.record;
+
+        me.syncDirty(record);
+
+        for (i = 0, visibleIndex = 0; i &lt; len; ++i) {
+            cell = cells[i];
+
+            if (!context.summary || !cell.getColumn().getIgnore()) {
+                if (cell.getRecord() === record) {
+                    cell.refresh(context);
+                }
+                else {
+                    cell.refreshContext = context;
+                    cell.setRecord(record);
+                    cell.refreshContext = null;
+                }
+                if (isCellSelection) {
+                    cell.toggleCls(grid.selectedCls, sm.isCellSelected(me._recordIndex, visibleIndex));
+                }
+            }
+            // Cell and column selection work on visible index.
+            if (!cell.isHidden()) {
+                visibleIndex++;
+            }
+        }
+
+        context.cell = context.column = context.dataIndex = context.scope = null;
+
+        if (body) {
+            body.refreshContext = context;
+
+            if (body.getRecord() === record) {
+                body.updateRecord(record);
+            } else {
+                body.setRecord(record);
+            }
+
+            body.refreshContext = null;
+
+            // If the plugin knows that the record contains an expanded flag
+            // ensure our state is synchronized with our record.
+            // Maintainer: We are testing the result of the assignment of expandedField
+            // in order to avoid a messy, multiple level if...else.
+            if (expandField) {
+                me.setCollapsed(!record.get(expandField));
+            }
+            else {
+                recordsExpanded = grid.$recordsExpanded || (grid.$recordsExpanded = {});
+
+                if (grid.hasRowExpander) {
+                    me.setCollapsed(!recordsExpanded[record.internalId]);
+                }
+            }
+        }
+
+        me.refreshContext = null;
+    },
+
+<span id='Ext-grid-Row-property-privates'>    privates: {
+</span>        refreshContext: null,
+
+        beginRefresh: function (context) {
+            var me = this,
+                grid = me.getParent();
+
+            context = context || {};
+
+            //&lt;debug&gt;
+            context.from = context.from || &#39;row&#39;;
+            //&lt;/debug&gt;
+            context.grid = grid;
+            context.record = me.getRecord();
+            context.row = me;
+            context.store = grid.store;
+
+            return context;
+        },
+
+        createCell: function (column) {
+            var cell = column.createCell(this);
+
+            cell = Ext.create(cell);
+            delete cell.$initParent;
+
+            if (cell.inheritUi) {
+                cell.doInheritUi();
+            }
+
+            // The cell element must accept focus for navigation to occur.
+            // The cell component must not be focusable. It must not participate in a
+            // FocusableContainer relationship with the List&#39;s container,
+            // and must not react to focus events or its focus API itself.
+            // It is a slave of the NavigationModel.
+            cell.el.setTabIndex(-1);
+
+            return cell;
+        },
+
+        setCellHidden: function (column, hidden) {
+            var cell = this.getCellByColumn(column);
+
+            if (cell) {
+                cell.setHidden(hidden);
+            }
+        },
+
+        getGrid: function () {
+            return this.getParent();  // backwards compat
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-Number'>/**
+</span> * The Number field creates an HTML5 text input that allows the editing of number values, and is usually created inside
+ * a form. Most browsers will show a specialized virtual keyboard for entering numbers. The Number field
+ * only accepts numerical input.  If you want a Number field with up/down spinners, see {@link Ext.field.Spinner}.
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         fullscreen: true,
+ *         items: [
+ *             {
+ *                 xtype: &#39;fieldset&#39;,
+ *                 title: &#39;How old are you?&#39;,
+ *                 items: [
+ *                     {
+ *                         xtype: &#39;numberfield&#39;,
+ *                         label: &#39;Age&#39;,
+ *                         minValue: 18,
+ *                         maxValue: 150,
+ *                         name: &#39;age&#39;
+ *                     }
+ *                 ]
+ *             }
+ *         ]
+ *     });
+ *
+ * Or on its own, outside of a form:
+ *
+ *     Ext.create(&#39;Ext.field.Number&#39;, {
+ *         label: &#39;Age&#39;,
+ *         value: &#39;26&#39;
+ *     });
+ *
+ * ## minValue, maxValue
+ *
+ * The {@link #minValue} and {@link #maxValue} configurations are self-explanatory and simply constrain the value
+ * For example, to create a salary field that limits entry to between 25,000 and 50,000 we can do this:
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         fullscreen: true,
+ *         items: [
+ *             {
+ *                 xtype: &#39;fieldset&#39;,
+ *                 title: &#39;Are you rich yet?&#39;,
+ *                 items: [
+ *                     {
+ *                         xtype: &#39;numberfield&#39;,
+ *                         label: &#39;Salary&#39;,
+ *                         value: 30000,
+ *                         minValue: 25000,
+ *                         maxValue: 50000
+ *                     }
+ *                 ]
+ *             }
+ *         ]
+ *     });
+ *
+ * This creates a field that starts with a value of $30,000 and will not go beneath $25,000 or above $50,000.
+ *
+ * Because number field inherits from {@link Ext.field.Text textfield} it gains all of the functionality that text
+ * fields provide, including getting and setting the value at runtime, validations and various events that are fired as
+ * the user interacts with the component. Check out the {@link Ext.field.Text} docs to see the additional functionality
+ * available.
+ */
+Ext.define(&#39;Ext.field.Number&#39;, {
+    extend: &#39;Ext.field.Text&#39;,
+    xtype: &#39;numberfield&#39;,
+    alternateClassName: &#39;Ext.form.Number&#39;,
+
+    requires: [
+        &#39;Ext.data.validator.Number&#39;
+    ],
+
+    config: {
+<span id='Ext-field-Number-cfg-minValue'>        /**
+</span>         * @cfg {Number} minValue
+         * The minimum value that this Number field can accept. Defaults to no minimum.
+         */
+        minValue: null,
+
+<span id='Ext-field-Number-cfg-maxValue'>        /**
+</span>         * @cfg {Number} maxValue
+         * The maximum value that this Number field can accept. Defaults to no maximum.
+         */
+        maxValue: null,
+
+<span id='Ext-field-Number-cfg-decimals'>        /**
+</span>         * @cfg {Number} decimals
+         * The maximum precision to display after the decimal separator.
+         */
+        decimals: 2,
+
+<span id='Ext-field-Number-cfg-trim'>        /**
+</span>         * @cfg {Boolean} trim
+         * `false` to always show zeros when formatting the number
+         */
+        trim: true
+    },
+
+<span id='Ext-field-Number-cfg-inputType'>    /**
+</span>     * @cfg {String} inputType
+     * For desktop environments, an input of `type=text` is used and a rich user experience
+     * is provided for numeric entry. For mobile environments, an input of `type=number` is
+     * used and basic validation is performed on keystroke and `minValue` and `maxValue`
+     * clamping is only done on blur or `setValue` if the field is not focused.
+     *
+     * If you specify `inputType` of `&#39;text&#39;`, the text input will be used on all devices
+     * at the expense of numeric input keyboard on non-iOS devices. Alternatively, you may
+     * specify an `inputType` of `&#39;tel&#39;` which will bring up the phone number input
+     * keyboard, which isn&#39;t as ideal as the numeric keyboard.
+     */
+    inputType: Ext.os.is.Desktop ? &#39;text&#39; : &#39;number&#39;,
+
+<span id='Ext-field-Number-cfg-minValueText'>    /**
+</span>     * @cfg {String} minValueText
+     * The error message that will be displayed if the field&#39;s value is less than minValue
+     * @Locale
+     * @since 6.5.1
+     */
+    minValueText: &#39;The minimum value for this field is {0}&#39;,
+
+<span id='Ext-field-Number-cfg-maxValueText'>    /**
+</span>     * @cfg {String} maxValueText
+     * The error message that will be displayed if the field&#39;s value is greater than maxValue.
+     * @Locale
+     * @since 6.5.1
+     */
+    maxValueText: &#39;The maximum value for this field is {0}&#39;,
+
+<span id='Ext-field-Number-cfg-decimalsText'>    /**
+</span>     * @cfg {String} decimalsText
+     * The error message that will be displayed if the field&#39;s value has incorrect number of
+     * decimal places.
+     * @Locale
+     * @since 6.5.1
+     */
+    decimalsText: &#39;The maximum decimal places is {0}&#39;,
+
+<span id='Ext-field-Number-cfg-badFormatMessage'>    badFormatMessage: &#39;Value is not a valid number&#39;,
+</span>
+<span id='Ext-field-Number-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;numberfield&#39;,
+</span>
+<span id='Ext-field-Number-cfg-parseValidator'>    parseValidator: &#39;number&#39;,
+</span>
+<span id='Ext-field-Number-method-initialize'>    initialize: function() {
+</span>        // Force numberFormat creation
+        this.getDecimals();
+
+        this.callParent();
+
+        // This isn&#39;t supported in browsers yet, but is part of the spec.
+        this.inputElement.dom.setAttribute(&#39;inputmode&#39;, &#39;numeric&#39;);
+
+        //&lt;debug&gt;
+        // Check after configuration to catch subclasses with config in prototype
+        // We cannot uses masks. The parsing would not be able to deal with
+        // fixed characters such as commas.
+        if (this.getInputMask()) {
+            Ext.raise(&#39;NumberFields cannot use input masks&#39;);
+        }
+        //&lt;/debug&gt;
+    },
+
+<span id='Ext-field-Number-method-updateDecimals'>    updateDecimals: function(decimals) {
+</span>        var me = this,
+            format = &#39;0&#39;,
+            zeroChar = me.getTrim() ? &#39;#&#39; : &#39;0&#39;,
+            value;
+
+        if (decimals) {
+            format += &#39;.&#39; + Ext.String.repeat(zeroChar, decimals);
+        }
+        me.numberFormat = format;
+
+        if (!me.isConfiguring) {
+            value = me.getValue();
+            if (Ext.isDate(value)) {
+                me.setInputValue(value);
+            }
+        }
+    },
+
+<span id='Ext-field-Number-method-applyInputValue'>    applyInputValue: function(value) {
+</span>        // Force numberFormat creation
+        this.getDecimals();
+        if (typeof value === &#39;number&#39;) {
+            value = Ext.util.Format.number(value, this.numberFormat);
+        }
+        return value;
+    },
+
+<span id='Ext-field-Number-method-doValidate'>    doValidate: function (value, errors, skipLazy) {
+</span>        var me = this,
+            String = Ext.String,
+            minValue = me.getMinValue(),
+            maxValue = me.getMaxValue();
+
+        me.callParent([ value, errors, skipLazy ]);
+
+        if (minValue != null &amp;&amp; value &lt; minValue) {
+            errors.push(String.format(me.minValueText, minValue));
+        }
+        else if (maxValue != null &amp;&amp; value &gt; maxValue) {
+            errors.push(String.format(me.maxValueText, maxValue));
+        }
+    },
+
+<span id='Ext-field-Number-method-onKeyDown'>    onKeyDown: function(e) {
+</span>        var me = this,
+            raw;
+
+        // Prevalidate the result of the keystroke unless we are using DOM inputType of number.
+        if (me.getInputType() !== &#39;number&#39;) {
+            if (!e.ctrlKey &amp;&amp; !e.altKey) {
+                raw = me.calculateNewValue(e.key());
+
+                // If the resulting raw value would be invalid, veto the event
+                if (!me.specialKeys[e.getCharCode()] &amp;&amp; !me.isAllowableValue(raw)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        }
+
+        me.callParent([e]);
+    },
+
+<span id='Ext-field-Number-method-transformValue'>    transformValue: function (value) {
+</span>        if (!(value || value === 0)) {
+            value = null;
+        }
+
+        return value;
+    },
+
+<span id='Ext-field-Number-property-privates'>    privates: {
+</span>        calculateNewValue: function(text) {
+            var me = this,
+                textSelection = me.getTextSelection(),
+                raw = me.getInputValue();
+
+            // Characters are selected, replace them.
+            if (textSelection[1]) {
+                raw = raw.substr(0, textSelection[0]) + text + raw.substr(textSelection[1]);
+            }
+            // No characters are selected, just insert at caret.
+            else {
+                raw = Ext.String.insert(raw, text, me.getCaretPos());
+            }
+            return raw;
+        },
+
+        handlePaste: function(e) {
+            var me = this,
+                text;
+
+            if (me.getInputType() !== &#39;number&#39;) {
+                text = e.getClipboardData(&#39;text/plain&#39;);
+
+                if (text) {
+                    text = me.calculateNewValue(text);
+
+                    if (me.isAllowableValue(text)) {
+                        me.setValue(text);
+                    }
+
+                    e.preventDefault();
+
+                    return false;
+                }
+            }
+
+            me.callParent([e]);
+
+            me.validate();
+        },
+
+        isAllowableValue: function(value) {
+            var minValue = this.getMinValue(),
+                allowNegative = minValue == null || minValue &lt; 0;
+
+            if (!allowNegative &amp;&amp; Ext.String.startsWith(value, &#39;-&#39;)) {
+                return false;
+            }
+
+            return this.isPartialValue(value) || this.parseValue(value) !== null;
+        },
+
+        isPartialValue: function(value) {
+            var me = this,
+                minValue = me.getMinValue(),
+                allowNegative = minValue == null || minValue &lt; 0;
+
+            // &#39;-&#39; should not tickle the validation process if -ve is allowed.
+            // &#39;.&#39; should not tickle the validation process if decimals are allowed.
+            // &#39;-.&#39; likewise if both are allowed.
+            // We do not want the validation to kick in and rewrite the calculated
+            // value back into the field if the user is typing &quot;-.5&quot; which entails
+            // going through invalid states.
+            if (allowNegative &amp;&amp; value === &#39;-&#39;) {
+                return true;
+            }
+            if (me.getDecimals() &amp;&amp; (value === &#39;.&#39; || (allowNegative &amp;&amp; value === &#39;-.&#39;))) {
+                return true;
+            }
+            return false;
+        }
+    }
+}, function (C) {
+    var E = Ext.event.Event;
+
+    C.prototype.specialKeys = Ext.Array.toMap([
+        E.BACKSPACE,
+        E.TAB,
+        E.RETURN,
+        E.CTRL,
+        E.DELETE,
+        E.LEFT,
+        E.RIGHT,
+        E.UP,
+        E.DOWN,
+        E.HOME,
+        E.END,
+        E.META
+    ]);
+});
+</pre>
+</body>
+</html>

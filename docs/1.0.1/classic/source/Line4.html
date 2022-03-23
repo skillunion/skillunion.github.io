@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-draw-sprite-Line'>/**
+</span> * A sprite that represents a line.
+ *
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;draw&#39;,
+ *        renderTo: document.body,
+ *        width: 600,
+ *        height: 400,
+ *        sprites: [{
+ *            type: &#39;line&#39;,
+ *            fromX: 20,
+ *            fromY: 20,
+ *            toX: 120,
+ *            toY: 120,
+ *            strokeStyle: &#39;#1F6D91&#39;,
+ *            lineWidth: 3
+ *        }]
+ *     });
+ */
+Ext.define(&#39;Ext.draw.sprite.Line&#39;, {
+    extend: &#39;Ext.draw.sprite.Sprite&#39;,
+    alias: &#39;sprite.line&#39;,
+<span id='Ext-draw-sprite-Line-property-type'>    type: &#39;line&#39;,
+</span>
+    inheritableStatics: {
+<span id='Ext-draw-sprite-Line-static-property-def'>        def: {
+</span>            processors: {
+                fromX: &#39;number&#39;,
+                fromY: &#39;number&#39;,
+                toX: &#39;number&#39;,
+                toY: &#39;number&#39;,
+                crisp: &#39;bool&#39;
+            },
+
+            defaults: {
+                fromX: 0,
+                fromY: 0,
+                toX: 1,
+                toY: 1,
+                crisp: false,
+                strokeStyle: &#39;black&#39;
+            },
+
+            aliases: {
+                x1: &#39;fromX&#39;,
+                y1: &#39;fromY&#39;,
+                x2: &#39;toX&#39;,
+                y2: &#39;toY&#39;
+            },
+
+            triggers: {
+                crisp: &#39;bbox&#39;
+            }
+        }
+    },
+
+<span id='Ext-draw-sprite-Line-method-updateLineBBox'>    updateLineBBox: function (bbox, isTransform, x1, y1, x2, y2) {
+</span>        var attr = this.attr,
+            matrix = attr.matrix,
+            halfLineWidth = attr.lineWidth / 2,
+            fromX, fromY, toX, toY,
+            p;
+
+        if (attr.crisp) {
+            x1 = this.align(x1);
+            x2 = this.align(x2);
+            y1 = this.align(y1);
+            y2 = this.align(y2);
+        }
+
+        if (isTransform) {
+            p = matrix.transformPoint([x1, y1]);
+            x1 = p[0];
+            y1 = p[1];
+
+            p = matrix.transformPoint([x2, y2]);
+            x2 = p[0];
+            y2 = p[1];
+        }
+
+        fromX = Math.min(x1, x2);
+        toX   = Math.max(x1, x2);
+
+        fromY = Math.min(y1, y2);
+        toY   = Math.max(y1, y2);
+
+        var angle = Math.atan2(toX - fromX, toY - fromY),
+            sin = Math.sin(angle),
+            cos = Math.cos(angle),
+            dx = halfLineWidth * cos,
+            dy = halfLineWidth * sin;
+
+        // Offset start and end points of the line by half its thickness,
+        // while accounting for line&#39;s angle.
+        fromX -= dx;
+        fromY -= dy;
+        toX += dx;
+        toY += dy;
+
+        bbox.x = fromX;
+        bbox.y = fromY;
+        bbox.width = toX - fromX;
+        bbox.height = toY - fromY;
+    },
+
+<span id='Ext-draw-sprite-Line-method-updatePlainBBox'>    updatePlainBBox: function (plain) {
+</span>        var attr = this.attr;
+
+        this.updateLineBBox(plain, false, attr.fromX, attr.fromY, attr.toX, attr.toY);
+    },
+
+<span id='Ext-draw-sprite-Line-method-updateTransformedBBox'>    updateTransformedBBox: function (transform, plain) {
+</span>        var attr = this.attr;
+
+        this.updateLineBBox(transform, true, attr.fromX, attr.fromY, attr.toX, attr.toY);
+    },
+
+<span id='Ext-draw-sprite-Line-method-align'>    align: function (x) {
+</span>        return Math.round(x) - 0.5;
+    },
+
+<span id='Ext-draw-sprite-Line-method-render'>    render: function (surface, ctx) {
+</span>        var me = this,
+            attr = me.attr,
+            matrix = attr.matrix;
+
+        matrix.toContext(ctx);
+
+        ctx.beginPath();
+
+        if (attr.crisp) {
+            ctx.moveTo(me.align(attr.fromX), me.align(attr.fromY));
+            ctx.lineTo(me.align(attr.toX),   me.align(attr.toY));
+        } else {
+            ctx.moveTo(attr.fromX, attr.fromY);
+            ctx.lineTo(attr.toX, attr.toY);
+        }
+
+        ctx.stroke();
+
+        //&lt;debug&gt;
+        var debug = attr.debug || this.statics().debug || Ext.draw.sprite.Sprite.debug;
+        if (debug) {
+            // This assumes no part of the sprite is rendered after this call.
+            // If it is, we need to re-apply transformations.
+            // But the bounding box should always be rendered as is, untransformed.
+            this.attr.inverseMatrix.toContext(ctx);
+            debug.bbox &amp;&amp; this.renderBBox(surface, ctx);
+        }
+        //&lt;/debug&gt;
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}gridcell {
+    display: table-cell;
+    vertical-align: middle;
+    position: relative;
+
+    &amp;.#{$prefix}dirty {
+        &amp;:before {
+            line-height: 1;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    }
+}
+
+.#{$prefix}gridcell-body-el {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.#{$prefix}gridcell.#{$prefix}align-center {
+    text-align: center;
+}
+
+.#{$prefix}gridcell.#{$prefix}align-right {
+    text-align: right;
+}
+</pre>
+</body>
+</html>

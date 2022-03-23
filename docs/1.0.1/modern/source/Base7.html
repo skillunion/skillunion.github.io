@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-sparkline-Base'>/**
+</span> * @class Ext.sparkline.Base
+ */
+
+Ext.define(&#39;Ext.override.sparkline.Base&#39;, {
+    override: &#39;Ext.sparkline.Base&#39;,
+
+    statics: {
+<span id='Ext-sparkline-Base-static-method-constructTip'>        constructTip: function() {
+</span>            return new Ext.tip[&#39;ToolTip&#39;]({
+                id: &#39;sparklines-tooltip&#39;,
+                trackMouse: true,
+                showDelay: 0,
+                dismissDelay: 0,
+                hideDelay: 400
+            });
+        }
+    },
+
+<span id='Ext-sparkline-Base-method-onMouseMove'>    onMouseMove: function (e) {
+</span>        this.currentEvent = e;
+        this.getSharedTooltip().currentTarget.attach(this.element);
+        this.callParent([e]);
+    },
+
+<span id='Ext-sparkline-Base-property-privates'>    privates: {
+</span>        hideTip: function() {
+            var tip = this.getSharedTooltip();
+            // Will detach the currentTarget and hide soon...
+            // unless we quickly attach to a new one.
+            tip.delayHide();
+        },
+
+        showTip: function() {
+            this.getSharedTooltip().handleTargetOver(this.currentEvent, this.element);
+        }
+    }
+});</pre>
+</body>
+</html>

@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-Component'>/**
+</span> * This class is similar to `Ext.dataview.DataView` except it renders components for each
+ * record instead of simple chunks of HTML. The `itemTpl` can still be used for components
+ * but it is more typical to use the component&#39;s config properties
+ *
+ * The type of component can be controlled using the `itemConfig` and record&#39;s fields can
+ * be mapped to config properties using `itemDataMap`.
+ *
+ *      Ext.create({
+ *          xtype: &#39;componentdataview&#39;,
+ *
+ *          store: [
+ *              { name: &#39;Peter&#39;,  age: 26 },
+ *              { name: &#39;Ray&#39;,   age: 21 },
+ *              { name: &#39;Egon&#39;, age: 24 },
+ *              { name: &#39;Winston&#39;, age: 24 }
+ *          ],
+ *
+ *          itemConfig: {
+ *              xtype: &#39;button&#39;,
+ *              cls: &#39;x-item-no-tap&#39; // Prevent childtap events
+ *          },
+ *
+ *          itemDataMap: {
+ *              &#39;#&#39;: {
+ *                  text: &#39;name&#39;
+ *              }
+ *          }
+ *      });
+ *
+ * The `itemDataMap` is a simple and efficient means for mapping fields to configs, but
+ * can only apply fields stored in the records&#39; data to configs on the target component.
+ * While this can be dynamic by using {@link Ext.data.field.Field#cfg!calculate calculated}
+ * fields, more complex mappings should use {@link Ext.data.ViewModel ViewModels} and
+ * {@link Ext.Component#cfg!bind data binding}.
+ *
+ * For example:
+ *
+ *      Ext.create({
+ *          xtype: &#39;componentdataview&#39;,
+ *
+ *          store: [
+ *              { name: &#39;Peter&#39;,  age: 26 },
+ *              { name: &#39;Ray&#39;,   age: 21 },
+ *              { name: &#39;Egon&#39;, age: 24 },
+ *              { name: &#39;Winston&#39;, age: 24 }
+ *          ],
+ *
+ *          itemConfig: {
+ *              xtype: &#39;button&#39;,
+ *
+ *              viewModel: true, // enable per-record binding
+ *
+ *              bind: &#39;Go {record.name}!&#39;
+ *          }
+ *      });
+ *
+ * ### Historical Note
+ *
+ * In previous releases, the `useComponents` config allowed any `Ext.dataview.DataView` to
+ * switch to using components instead of pure HTML for items. This feature was replaced by
+ * this class in version 6.5 as part of the numerous {@link Ext.dataview.List List} and
+ * {@link Ext.grid.Grid Grid} additions.
+ *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.dataview.Component&#39;, {
+    extend: &#39;Ext.dataview.Abstract&#39;,
+    xtype: &#39;componentdataview&#39;,
+
+    requires: [
+        &#39;Ext.dataview.DataItem&#39;
+    ],
+
+<span id='Ext-dataview-Component-property-isComponentDataView'>    isComponentDataView: true,
+</span>
+    config: {
+<span id='Ext-dataview-Component-cfg-itemInnerCls'>        /**
+</span>         * @cfg {String}
+         * A class to add to the inner element of items.
+         * @since 6.5.0
+         */
+        itemInnerCls: null,
+
+<span id='Ext-dataview-Component-cfg-itemConfig'>        /**
+</span>         * @cfg {Object/Ext.Component} itemConfig
+         * The object is used to configure the data items created by this data view. The
+         * `xtype` property of this config overrides the container&#39;s `defaultType`.
+         */
+        itemConfig: {
+            xtype: &#39;dataitem&#39;
+        },
+
+<span id='Ext-dataview-Component-cfg-itemContentCls'>        /**
+</span>         * @cfg {String} itemContentCls
+         * A class to add to the element that immediate wraps the item content produced
+         * by the `itemTpl` (the &quot;inner-html&quot; element).
+         * @since 6.5.0
+         */
+        itemContentCls: null,
+
+<span id='Ext-dataview-Component-cfg-itemDataMap'>        /**
+</span>         * @cfg {Object} itemDataMap
+         * This object allows you to map {@link Ext.data.Model record} fields to specific
+         * configs on component items.
+         *
+         * The `itemDataMap` object&#39;s keys describe the target objects to receive data
+         * from the associated {@link #cfg!record record}. These keys are either `&#39;#&#39;`
+         * (for the item itself) or a {@link Ext.Component#cfg!reference reference} to
+         * a component contained in the item.
+         *
+         * For each target listed in `itemDataMap`, the value is another map describing
+         * the config name (in the key) and the data field name (as the value).
+         *
+         * For example:
+         *
+         *      itemDataMap: {
+         *          &#39;#&#39;: {
+         *              title: &#39;fullName&#39;
+         *          },
+         *          text: {
+         *              html: &#39;name&#39;
+         *          }
+         *      }
+         *
+         * The above is equivalent to:
+         *
+         *      item.setTitle(item.getRecord().get(&#39;fullName&#39;));
+         *      item.lookup(&#39;text&#39;).setHtml(item.getRecord().get(&#39;name&#39;));
+         *
+         * For more complex mapping of data to item, you should use the data binding as
+         * described in the class documentation.
+         *
+         * @since 6.5.0
+         */
+        itemDataMap: null,
+
+<span id='Ext-dataview-Component-cfg-maxItemCache'>        /**
+</span>         * @cfg {Number} maxItemCache
+         * The number of components to cache when no longer needed (as opposed to calling
+         * `destroy` on them).
+         */
+        maxItemCache: 20,
+
+<span id='Ext-dataview-Component-cfg-striped'>        /**
+</span>         * @cfg {Boolean} [striped=false]
+         * Set this to `true` if you want the items in this DataView to be zebra striped.
+         * alternating their background color.
+         * Only applicable if the stylesheet provides styling for alternate items.
+         *
+         * By default the stylesheet does not provide styling for DataView items, but it
+         * can be enabled by setting the `ui` to `&#39;basic&#39;`.
+         *
+         * Lists and Grids provide default styling for striped items
+         */
+        striped: null,
+
+<span id='Ext-dataview-Component-cfg-itemCount'>        // --------------------
+</span>        // Private
+
+        itemCount: 0
+    },
+
+<span id='Ext-dataview-Component-event-childtouchstart'>    /**
+</span>     * @event childtouchstart
+     * Fires when a child is first touched.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-event-childtouchmove'>    /**
+</span>     * @event childtouchmove
+     * Fires when a touch move occurs on a child.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-event-childtouchend'>    /**
+</span>     * @event childtouchend
+     * Fires when a touch ends on a child.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-event-childtouchcancel'>    /**
+</span>     * @event childtouchcancel
+     * Fires when a touch is cancelled.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-event-childtap'>    /**
+</span>     * @event childtap
+     * Fires when a child is tapped. Add `x-item-no-tap` CSS class to a child
+     * of list item to suppress `childtap` events on that child. This can be
+     * useful when items contain components such as Buttons.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-event-childlongpress'>    /**
+</span>     * @event childlongpress
+     * Fires when a child is long-pressed.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-event-childtaphold'>    /**
+</span>     * @event childtaphold
+     * Fires when a child is tap-held.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-event-childsingletap'>    /**
+</span>     * @event childsingletap
+     * Fires when a child is single tapped.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-event-childdoubletap'>    /**
+</span>     * @event childdoubletap
+     * Fires when a child is double tapped.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-event-childmouseenter'>    /**
+</span>     * @event childmouseenter
+     * Fires when the mouse pointer enters a child.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-event-childmouseleave'>    /**
+</span>     * @event childmouseleave
+     * Fires when the mouse pointer leaves a child.
+     * @param {Ext.dataview.Component} this This dataview.
+     * @param {Ext.dataview.Location} location The location for the event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-dataview-Component-cfg-defaultType'>    /**
+</span>     * @cfg {Ext.enums.Widget} defaultType
+     * As a {@link Ext.Container container}, this config controls the default type of
+     * items that are added.
+     *
+     * Non-data items can also be added to this container, and these will pick up this
+     * default. This config will only apply to data items if `itemConfig` does not contain
+     * an `xtype` property (which it does by default). This means that data items will
+     * *not* be affected by this config unless an `itemConfig` is set that nulls out the
+     * `xtype` (not recommended).
+     */
+
+    firstCls: Ext.baseCSSPrefix + &#39;first&#39;,
+<span id='Ext-dataview-Component-property-lastCls'>    lastCls: Ext.baseCSSPrefix + &#39;last&#39;,
+</span><span id='Ext-dataview-Component-property-oddCls'>    oddCls: Ext.baseCSSPrefix + &#39;odd&#39;,
+</span>
+<span id='Ext-dataview-Component-method-beforeInitialize'>    beforeInitialize: function (config) {
+</span><span id='Ext-dataview-Component-property-itemCache'>        /**
+</span>         * @property {Ext.Component[]} itemCache
+         * The array of component items previously created for this view but not in
+         * current use. This array will contain no more then `maxItemCache` items.
+         * @private
+         */
+        this.itemCache = [];
+
+        this.callParent([ config ]);
+    },
+
+<span id='Ext-dataview-Component-method-isFirstItem'>    isFirstItem: function(item) {
+</span>        return item === this.getFirstItem();
+    },
+
+<span id='Ext-dataview-Component-method-isFirstDataItem'>    isFirstDataItem: function(item) {
+</span>        return item === this.getFirstDataItem();
+    },
+
+<span id='Ext-dataview-Component-method-isLastItem'>    isLastItem: function(item) {
+</span>        return item === this.getLastItem();
+    },
+
+<span id='Ext-dataview-Component-method-isLastDataItem'>    isLastDataItem: function(item) {
+</span>        return item === this.getLastDataItem();
+    },
+
+<span id='Ext-dataview-Component-method-doDestroy'>    doDestroy: function() {
+</span>        // dataItems are also in this container, so they will be handled...
+        Ext.destroy(this.itemCache, this.dataRange);
+
+        this.callParent();
+    },
+
+<span id='Ext-dataview-Component-method-onRender'>    onRender: function() {
+</span>        var me = this,
+            itemConfig = me.getItemConfig();
+
+        // If we have a viewmodel on our items, then ensure we have a single entry point
+        // to allow us to notify all of them when required
+        if (itemConfig.viewModel) {
+            me.hasItemVm = true;
+
+            if (!me.lookupViewModel()) {
+                me.setViewModel(true);
+            }
+        }
+
+        me.callParent();
+    },
+
+<span id='Ext-dataview-Component-method-getViewItems'>    getViewItems: function() {
+</span>        return this.getInnerItems().slice();
+    },
+
+<span id='Ext-dataview-Component-method-onStoreAdd'>    onStoreAdd: function (store, records, index) {
+</span>        var me = this;
+        
+        me.callParent(arguments);
+
+        me.setItemCount(store.getCount());
+        me.syncItemRange(me.getStoreChangeSyncIndex(index));
+    },
+
+<span id='Ext-dataview-Component-method-onStoreRemove'>    onStoreRemove: function (store, records, index) {
+</span>        var me = this,
+            len = records.length,
+            dataItems = me.dataItems.splice(index, len),
+            itemCount = me.getItemCount(),
+            i;
+
+        me.callParent(arguments);
+
+        if (!dataItems.length) {
+            return;
+        }
+
+        for (i = len; i-- &gt; 0; ) {
+            me.removeDataItem(dataItems[i]); // less ripple-down cost...
+        }
+
+        // The update will have nothing to do now, but the property must be updated.
+        me.setItemCount(itemCount - len);
+        me.syncItemRange(me.getStoreChangeSyncIndex(index));
+    },
+
+    //--------------------------------------------
+    // Private Configs
+
+<span id='Ext-dataview-Component-method-updateItemInnerCls'>    // itemInnerCls
+</span>
+    updateItemInnerCls: function (cls) {
+        if (!this.isConfiguring) {
+            var items = this.dataItems,
+                len = items.length,
+                i, item;
+
+            for (i = 0; i &lt; len; i++) {
+                item = items[i];
+
+                if (item.setInnerCls) {
+                    item.setInnerCls(cls);
+                }
+            }
+        }
+    },
+
+<span id='Ext-dataview-Component-method-applyItemConfig'>    // itemConfig
+</span>
+    applyItemConfig: function (itemConfig, oldItemConfig) {
+        // If the itemConfig is being set after creation, preserve the original
+        // xtype/xclass if one wasn&#39;t provided
+        itemConfig = itemConfig || {};
+
+        if (oldItemConfig &amp;&amp; !itemConfig.xtype &amp;&amp; !itemConfig.xclass) {
+            var xtype = oldItemConfig.xtype,
+                xclass = oldItemConfig.xclass;
+
+            if (xtype || xclass) {
+                itemConfig = Ext.apply({}, itemConfig);
+                itemConfig[xclass ? &#39;xclass&#39; : &#39;xtype&#39;] = xclass || xtype;
+            }
+        }
+
+        return itemConfig;
+    },
+
+<span id='Ext-dataview-Component-method-updateItemConfig'>    updateItemConfig: function () {
+</span>        if (!this.isConfiguring) {
+            this.clearItems();
+            this.refresh();
+        }
+    },
+
+<span id='Ext-dataview-Component-method-updateItemContentCls'>    // itemContentCls
+</span>
+    updateItemContentCls: function (cls) {
+        if (!this.isConfiguring) {
+            var items = this.dataItems,
+                len = items.length,
+                i, item;
+
+            for (i = 0; i &lt; len; i++) {
+                item = items[i];
+
+                if (item.setContentCls) {
+                    item.setContentCls(cls);
+                }
+            }
+        }
+    },
+
+<span id='Ext-dataview-Component-method-applyItemDataMap'>    // itemDataMap
+</span>
+    applyItemDataMap: function (dataMap) {
+        return Ext.dataview.DataItem.parseDataMap(dataMap);
+    },
+
+<span id='Ext-dataview-Component-method-updateStriped'>    // striped
+</span>
+    updateStriped: function (striped) {
+        var me = this,
+            dataItems = me.dataItems,
+            oddCls = me.oddCls,
+            i, el, odd;
+
+        me.striped = !!striped;
+
+        if (!me.isConfiguring) {
+            for (i = 0; i &lt; dataItems.length; ++i) {
+                el = dataItems[i].el;
+                odd = striped ? +el.dom.getAttribute(&#39;data-recordindex&#39;) : 0;
+                el.toggleCls(oddCls, odd % 2);
+            }
+        }
+    },
+
+<span id='Ext-dataview-Component-property-privates'>    //-----------------------------------------------------------------------
+</span>
+    privates: {
+        dataRange: null,
+        infinite: false, // to disable pieces that infinite Lists don&#39;t want
+        striped: false,
+
+        _itemChangeHandlers: [
+            &#39;changeItemRecordIndex&#39;,
+            &#39;changeItemRecord&#39;,
+            &#39;changeItemIsFirst&#39;,
+            &#39;changeItemIsLast&#39;
+        ],
+
+        acquireItem: function (cfg, itemsFocusable) {
+            var me = this,
+                at = null,
+                el, item;
+
+            if (typeof cfg === &#39;number&#39;) {
+                at = cfg;
+                cfg = null;
+            }
+
+            if (!cfg) {
+                cfg = me.getItemConfig();
+                itemsFocusable = me.getItemsFocusable();
+            }
+
+            // Pull from the itemCache first
+            if (!(item = me.itemCache.pop())) {
+                // Failing that, create new ones
+                item = me.createDataItem(cfg);
+                item = me.addDataItem(item, at);
+
+                el = item.element;
+
+                // The element must accept focus for navigation to occur.
+                // The item component must not be focusable. It must not participate in a
+                // FocusableContainer relationship with the List&#39;s container,
+                // and must not react to focus events or its focus API itself.
+                // It is a slave of the NavigationModel.
+                if (itemsFocusable) {
+                    (item.getFocusEl() || el).setTabIndex(-1);
+                }
+
+                // Set up itemSelector attribute
+                el.dom.setAttribute(&#39;data-viewid&#39;, me.id);
+            }
+            else {
+                item.removeCls(me._cachedRemoveClasses); // just in case
+                me.addDataItem(item, at);
+            }
+
+            return item;
+        },
+
+        addDataItem: function (item, at) {
+            var me = this;
+
+            if (at === null) {
+                at = me.findTailItem(/*rawElements=*/false);
+            }
+
+            item = (at &lt; 0) ? me.add(item) : me.insert(at, item);
+
+            me.dataItems.push(item); // if this changes, check List.dislodgeItem
+
+            return item;
+        },
+
+<span id='Ext-dataview-Component-method-changeItem'>        /**
+</span>         * This method changes the record bound to the specified item.
+         * @param {Number} itemIndex The index of the item in `dataItems`. Negative
+         * numbers are used to index backwards such that `-1` is the last item.
+         * @param {Number} recordIndex The record&#39;s index in the store.
+         * @private
+         */
+        changeItem: function (itemIndex, recordIndex) {
+            var me = this,
+                store = me.store,
+                page = store.currentPage,
+                datasetIndex = recordIndex + (page ? ((page - 1) * store.pageSize) : 0),
+                dataItems = me.dataItems,
+                realIndex = (itemIndex &lt; 0) ? dataItems.length + itemIndex : itemIndex,
+                item = dataItems[realIndex],
+                storeCount = store.getCount(),
+                handlers = me._itemChangeHandlers,
+                options = {
+                    isFirst: !recordIndex,
+                    isLast: recordIndex === storeCount -1,
+                    item: item,
+                    itemIndex: realIndex,
+                    record: me.dataRange.records[recordIndex],
+                    recordIndex: recordIndex,
+                    datasetIndex: datasetIndex
+                },
+                i, itemEl;
+
+            // To cope with List headers and footers, we track beforeEl and afterEl
+            // as the elements before which or after which to insert adjacent things.
+            options.afterEl = options.beforeEl = options.itemEl = itemEl =
+                item.renderElement;
+
+            options.itemClasses = itemEl.getClassMap(/*clone=*/false);
+            options.isFirstChanged = item.isFirst !== options.isFirst;
+            options.isLastChanged = item.isLast !== options.isLast;
+
+            for (i = 0; i &lt; handlers.length; ++i) {
+                me[handlers[i]](options);
+            }
+
+            itemEl.setClassMap(options.itemClasses, /*keep=*/true);
+
+            return options;
+        },
+
+        changeItemIsFirst: function (options) {
+            if (!options.isFirstChanged) {
+                return;
+            }
+
+            var me = this,
+                firstCls = me.firstCls,
+                item = options.item,
+                itemClasses = options.itemClasses,
+                items = me.scrollDockedItems,
+                i, len;
+
+            if (!(item.isFirst = options.isFirst)) {
+                delete itemClasses[firstCls];
+            }
+            else {
+                itemClasses[firstCls] = 1;
+
+                if (items &amp;&amp; !me.infinite) {
+                    // Infinite lists maintain DOM order optionally and in their
+                    // own ways...
+                    items = items.start.items;
+                    len = items.length;
+
+                    for (i = 0; i &lt; len; ++i) {
+                        items[i].renderElement.insertBefore(options.beforeEl);
+                    }
+                }
+            }
+        },
+
+        changeItemIsLast: function (options) {
+            if (!options.isLastChanged) {
+                return;
+            }
+
+            var me = this,
+                item = options.item,
+                itemClasses = options.itemClasses,
+                lastCls = me.lastCls,
+                items = me.scrollDockedItems,
+                i, len;
+
+            if (!(item.isLast = options.isLast)) {
+                delete itemClasses[lastCls];
+            }
+            else {
+                itemClasses[lastCls] = 1;
+
+                if (items &amp;&amp; !me.infinite) {
+                    // Infinite lists maintain DOM order optionally and in their
+                    // own ways...
+                    items = items.end.items;
+                    len = items.length;
+
+                    for (i = 0; i &lt; len; ++i) {
+                        items[i].renderElement.insertAfter(options.afterEl);
+                    }
+                }
+            }
+        },
+
+        changeItemRecord: function (options) {
+            this.syncItemRecord(options);
+        },
+
+        changeItemRecordIndex: function (options) {
+            var item = options.item,
+                recordIndex = options.recordIndex,
+                itemClasses = options.itemClasses,
+                oddCls = this.oddCls;
+
+            // Row needs to know its position in the dataset WRT paged stores.
+            // Currently used by Ext.grid.cell.RowNumberer
+            item.$datasetIndex = options.datasetIndex;
+
+            if (item.isDataViewItem) {
+                if (item.getRecordIndex() !== recordIndex) {
+                    item.setRecordIndex(recordIndex);
+                }
+            } else {
+                item.el.dom.setAttribute(&#39;data-recordindex&#39;, recordIndex);
+            }
+
+            if (this.striped &amp;&amp; options.recordIndex % 2) {
+                itemClasses[oddCls] = 1;
+            }
+            else {
+                delete itemClasses[oddCls];
+            }
+        },
+
+        clearItemCaches: function() {
+            var cache = this.itemCache;
+            Ext.destroy(cache);
+            cache.length = 0;
+        },
+
+        clearItems: function () {
+            var me = this,
+                dataItems = me.dataItems,
+                len = dataItems.length,
+                itemCache = me.itemCache,
+                i;
+
+            for (i = 0; i &lt; len; ++i) {
+                me.removeDataItem(dataItems[i], true);
+            }
+
+            Ext.destroy(itemCache);
+
+            dataItems.length = itemCache.length = 0;
+
+            me.setItemCount(0);
+        },
+
+        createDataItem: function (cfg) {
+            var me = this,
+                markDirty = me.getMarkDirty(),
+                cls = markDirty ? me.markDirtyCls : &#39;&#39;,
+                itemCls = me.getItemCls(),
+                config;
+
+            if (itemCls) {
+                if (markDirty) {
+                    cls += &#39; &#39;;
+                }
+
+                cls += itemCls;
+            }
+            
+            config = {
+                xtype: me.getDefaultType(),
+                cls: cls,
+                tpl: me.getItemTpl(),
+                $dataItem: &#39;record&#39;
+            };
+
+            cls = me.getItemInnerCls();
+            if (cls) {
+                config.innerCls = cls;
+            }
+
+            cls = me.getItemContentCls();
+            if (cls) {
+                config.contentCls = cls;
+            }
+
+            return Ext.apply(config, cfg || me.getItemConfig());
+        },
+
+        doClear: function() {
+            this.setItemCount(0);
+
+            this.callParent();
+        },
+
+        doRefresh: function(scrollToTop) {
+            var me = this,
+                storeCount = me.dataRange.records.length,
+                scroller = me.getScrollable(),
+                restoreFocus;
+
+            ++me.refreshCounter;
+
+            if (scroller &amp;&amp; scrollToTop) {
+                scroller.scrollTo(0, 0);
+            }
+
+            if (storeCount) {
+                // Stashes the NavigationModel&#39;s location for restoration after refresh
+                restoreFocus = me.saveFocusState();
+
+                me.hideEmptyText();
+
+                me.setItemCount(storeCount);
+
+                me.syncItemRange();
+
+                if (me.hasSelection()) {
+                    me.setItemSelection(me.getSelections(), true);
+                }
+                restoreFocus();
+            }
+            else {
+                me.doClear();
+            }
+        },
+
+        getFastItems: function() {
+            return this.getInnerItems();
+        },
+
+        getStoreChangeSyncIndex: function(index) {
+            return index;
+        },
+
+        removeCachedItem: function(item, preventCache, cache, max, preventRemoval) {
+            var me = this,
+                ret = false;
+
+            if (!preventCache &amp;&amp; cache.length &lt; max) {
+                // If we are allowed to do so, then cache what we don&#39;t
+                // need right now
+                if (preventRemoval) {
+                    me.setItemHidden(item, true);
+                } else {
+                    me.remove(item, /*destroy=*/false);
+                }
+                cache.push(item);
+            } else {
+                item.destroy();
+                ret = true;
+            }
+
+            return ret;
+        },
+
+        removeDataItem: function (item, preventCache) {
+            return this.removeCachedItem(item, preventCache, this.itemCache,
+                this.getMaxItemCache());
+        },
+
+        syncItemRange: function (start, end) {
+            var count = this.store.getCount(),
+                i;
+
+            if (end == null) {
+                end = count;
+            }
+
+            for (i = start || 0; i &lt; end; ++i) {
+                this.changeItem(i, i);
+            }
+        },
+
+        syncItemRecord: function (options, tombstoneRec) {
+            var me = this,
+                item = options.item,
+                itemClasses = options &amp;&amp; options.itemClasses,
+                oldRecord = item.getRecord(),
+                record = tombstoneRec || options.record,
+                dataMap = me.getItemDataMap(),
+                el = item.el,
+                viewModel = item.getViewModel(),
+                selectedCls = me.selectedCls;
+
+            if (oldRecord === record) {
+                if (!tombstoneRec) {
+                    if (item.isRecordRefreshable) {
+                        item.refresh(options);
+                    }
+                    else {
+                        item.updateRecord(record, oldRecord);
+                    }
+                }
+            }
+            else {
+                // Ask the selection model if this record is selected
+                if (me.getSelectable().isRowSelected(record)) {
+                    if (itemClasses) {
+                        itemClasses[selectedCls] = true;
+                    }
+                    else {
+                        el.addCls(selectedCls);
+                    }
+                }
+                else if (itemClasses) {
+                    delete itemClasses[selectedCls];
+                }
+                else {
+                    el.removeCls(selectedCls);
+                }
+
+                item.setRecord(record);
+
+                item.el.dom.setAttribute(&#39;data-recordid&#39;, record.internalId);
+            }
+
+            if (dataMap) {
+                Ext.dataview.DataItem.executeDataMap(record, item, dataMap);
+            }
+
+            if (viewModel) {
+                viewModel.setData({
+                    record: options.record  // will be null for a tombstone
+                });
+            }
+        },
+
+        traverseItem: function (item, delta) {
+            var me = this,
+                items = me.innerItems,
+                next = null,
+                cmp = item,
+                i;
+
+            if (item) {
+                if (item.isElement) {
+                    cmp = Ext.getCmp(item.id);
+                }
+
+                i = items.indexOf(cmp);
+                if (i &gt; -1) {
+                    next = items[i + delta] || null;
+                }
+            }
+
+            return next;
+        },
+
+        //--------------------------------------------
+        // Private Configs
+
+        // itemCount
+
+        updateItemCount: function (count) {
+            var me = this,
+                items = me.dataItems,
+                cfg, itemsFocusable;
+
+            if (items.length &lt; count) {
+                cfg = me.getItemConfig();
+                itemsFocusable = me.getItemsFocusable();
+
+                while (items.length &lt; count) {
+                    me.acquireItem(cfg, itemsFocusable);
+                }
+            }
+
+            while (items.length &gt; count) {
+                me.removeDataItem(items.pop());
+            }
+        }
+
+    } // privates
+},
+function (ComponentDataView) {
+    var proto = ComponentDataView.prototype;
+
+    proto._cachedRemoveClasses = [
+        proto.pressedCls,
+        proto.selectedCls
+    ];
+});
+</pre>
+</body>
+</html>

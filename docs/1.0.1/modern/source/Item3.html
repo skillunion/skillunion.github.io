@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-listswiper-Item'>/**
+</span> *
+ */
+Ext.define(&#39;Ext.dataview.listswiper.Item&#39;, {
+    extend: &#39;Ext.Container&#39;,
+    xtype: &#39;listswiperitem&#39;,
+
+<span id='Ext-dataview-listswiper-Item-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;listswiperitem&#39;,
+</span>
+    config: {
+<span id='Ext-dataview-listswiper-Item-cfg-leftActions'>        leftActions: null,
+</span><span id='Ext-dataview-listswiper-Item-cfg-rightActions'>        rightActions: null,
+</span>
+
+<span id='Ext-dataview-listswiper-Item-cfg-undo'>        /**
+</span>         * @cfg {Object} undo
+         * A config object for the undo button.
+         */
+        undo: {
+            lazy: true,
+            $value: {
+                xtype: &#39;button&#39;,
+                text: &#39;Undo&#39;,
+                touchAction: {
+                    panX: false,
+                    panY: false
+                }
+            }
+        },
+
+<span id='Ext-dataview-listswiper-Item-cfg-action'>        /**
+</span>         * @private
+         */
+        action: null,
+
+<span id='Ext-dataview-listswiper-Item-cfg-state'>        /**
+</span>         * @private
+         */
+        state: null,
+
+<span id='Ext-dataview-listswiper-Item-cfg-translationTarget'>        /**
+</span>         * @cfg {Ext.dom.Element}
+         * @private
+         * Determines what element will be translated during the swipe
+         */
+        translationTarget: null
+    },
+
+<span id='Ext-dataview-listswiper-Item-cfg-autoSize'>    autoSize: null,
+</span>
+<span id='Ext-dataview-listswiper-Item-method-initialize'>    initialize: function() {
+</span>        this.callParent();
+        this.ownerCmp.on({
+            scope: this,
+            destroy: &#39;onItemDestroy&#39;,
+            removed: &#39;onItemDestroy&#39;
+        });
+    },
+
+<span id='Ext-dataview-listswiper-Item-method-applyUndo'>    applyUndo: function(config) {
+</span>        var action = this.getAction();
+        return Ext.apply({}, action &amp;&amp; action.undoable, config);
+    },
+
+<span id='Ext-dataview-listswiper-Item-method-onItemDestroy'>    onItemDestroy: function(item) {
+</span>        var me = this,
+            plugin = me.owner;
+        plugin.destroyItem(item);
+    },
+
+<span id='Ext-dataview-listswiper-Item-method-invokeAction'>    invokeAction: function(action, type) {
+</span>        var me = this,
+            plugin = me.owner,
+            list = plugin.cmp,
+            item = me.ownerCmp,
+            fn = action[type],
+            obj = {
+                item: item,
+                record: item &amp;&amp; item.getRecord(),
+                action: action
+            };
+
+        list.fireEvent(&#39;itemaction&#39; + type, list, obj);
+
+        return Ext.callback(fn,
+            action.getScope &amp;&amp; action.getScope() || action.scope,
+            [list, obj],
+            0, me);
+    },
+
+<span id='Ext-dataview-listswiper-Item-method-updateState'>    updateState: function(state, oldState) {
+</span>        if (oldState) {
+            this.removeCls(Ext.baseCSSPrefix + oldState);
+        }
+        
+        if (state) {
+            this.addCls(Ext.baseCSSPrefix + state);
+        }
+    },
+
+<span id='Ext-dataview-listswiper-Item-method-onDragStart'>    onDragStart: Ext.emptyFn,
+</span><span id='Ext-dataview-listswiper-Item-method-onDragMove'>    onDragMove: Ext.emptyFn,
+</span><span id='Ext-dataview-listswiper-Item-method-onDragEnd'>    onDragEnd: Ext.emptyFn
+</span>});
+</pre>
+</body>
+</html>

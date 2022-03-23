@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-CandleStick'>/**
+</span> * @class Ext.chart.series.CandleStick
+ * @extends Ext.chart.series.Cartesian
+ * 
+ * Creates a candlestick or OHLC Chart.
+ *
+ * CandleStick series are typically used to plot price movements of a security on an exchange over time.
+ * The series can be used with the &#39;time&#39; axis, but since exchanges often close for weekends,
+ * and the price data has gaps for those days, it&#39;s more practical to use this series with
+ * the &#39;category&#39; axis to avoid rendering those data gaps. The &#39;category&#39; axis has no notion
+ * of time (and thus gaps) and treats every Date object (value of the &#39;xField&#39;) as a unique
+ * category. However, it also means that it doesn&#39;t support the &#39;dateFormat&#39; config,
+ * which can be easily remedied with a &#39;renderer&#39; that formats a Date object for use
+ * as an axis label. For example:
+ *
+ *     @example
+ *     new Ext.chart.CartesianChart({
+ *         xtype: &#39;cartesian&#39;,
+ *         renderTo: document.body,
+ *         width: 700,
+ *         height: 500,
+ *         insetPadding: 20,
+ *         innerPadding: &#39;0 20 0 20&#39;,
+ *
+ *         store: {
+ *             data: [
+ *                 {
+ *                     time: new Date(&#39;Nov 17 2016&#39;),
+ *                     o: 52.40, h: 52.74, l: 52.18, c: 52.29
+ *                 },
+ *                 {
+ *                     time: new Date(&#39;Nov 18 2016&#39;),
+ *                     o: 51.87, h: 52.22, l: 51.51, c: 52.04
+ *                 },
+ *                 {
+ *                     time: new Date(&#39;Nov 21 2016&#39;),
+ *                     o: 53.02, h: 53.40, l: 53.02, c: 53.33
+ *                 },
+ *                 {
+ *                     time: new Date(&#39;Nov 22 2016&#39;),
+ *                     o: 53.48, h: 53.80, l: 53.13, c: 53.70
+ *                 },
+ *                 {
+ *                     time: new Date(&#39;Nov 23 2016&#39;),
+ *                     o: 52.85, h: 53.39, l: 52.76, c: 53.28
+ *                 },
+ *                 {
+ *                     time: new Date(&#39;Nov 25 2016&#39;),
+ *                     o: 53.28, h: 53.45, l: 53.20, c: 53.40
+ *                 },
+ *                 {
+ *                     time: new Date(&#39;Nov 28 2016&#39;),
+ *                     o: 52.51, h: 52.58, l: 51.96, c: 52.00
+ *                 },
+ *                 {
+ *                     time: new Date(&#39;Nov 29 2016&#39;),
+ *                     o: 51.25, h: 51.98, l: 51.10, c: 51.79
+ *                 },
+ *                 {
+ *                     time: new Date(&#39;Nov 30 2016&#39;),
+ *                     o: 53.65, h: 54.56, l: 53.60, c: 54.17
+ *                 },
+ *                 {
+ *                     time: new Date(&#39;Dec 01 2016&#39;),
+ *                     o: 55.26, h: 55.75, l: 54.94, c: 55.13
+ *                 }
+ *             ]
+ *         },
+ *         axes: [
+ *             {
+ *                 type: &#39;numeric&#39;,
+ *                 position: &#39;left&#39;
+ *             },
+ *             {
+ *                 type: &#39;category&#39;,
+ *                 position: &#39;bottom&#39;,
+ *
+ *                 renderer: function (axis, value) {
+ *                     return Ext.Date.format(value, &#39;M j\nY&#39;);
+ *                 }
+ *             }
+ *         ],
+ *         series: {
+ *             type: &#39;candlestick&#39;,
+ *
+ *             xField: &#39;time&#39;,
+ *
+ *             openField: &#39;o&#39;,
+ *             highField: &#39;h&#39;,
+ *             lowField: &#39;l&#39;,
+ *             closeField: &#39;c&#39;,
+ *
+ *             style: {
+ *                 barWidth: 10,
+ *
+ *                 dropStyle: {
+ *                     fill: &#39;rgb(222, 87, 87)&#39;,
+ *                     stroke: &#39;rgb(222, 87, 87)&#39;,
+ *                     lineWidth: 3
+ *                 },
+ *                 raiseStyle: {
+ *                     fill: &#39;rgb(48, 189, 167)&#39;,
+ *                     stroke: &#39;rgb(48, 189, 167)&#39;,
+ *                     lineWidth: 3
+ *                 }
+ *             }
+ *         }
+ *     });
+ */
+Ext.define(&#39;Ext.chart.series.CandleStick&#39;, {
+    extend: &#39;Ext.chart.series.Cartesian&#39;,
+    requires: [&#39;Ext.chart.series.sprite.CandleStick&#39;],
+    alias: &#39;series.candlestick&#39;,
+<span id='Ext-chart-series-CandleStick-property-type'>    type: &#39;candlestick&#39;,
+</span><span id='Ext-chart-series-CandleStick-property-seriesType'>    seriesType: &#39;candlestickSeries&#39;,
+</span>
+<span id='Ext-chart-series-CandleStick-property-isCandleStick'>    isCandleStick: true,
+</span>
+    config: {
+<span id='Ext-chart-series-CandleStick-cfg-openField'>        /**
+</span>         * @cfg {String} openField
+         * The store record field name that represents the opening value of the given period.
+         */
+        openField: null,
+<span id='Ext-chart-series-CandleStick-cfg-highField'>        /**
+</span>         * @cfg {String} highField
+         * The store record field name that represents the highest value of the time interval represented.
+         */
+        highField: null,
+<span id='Ext-chart-series-CandleStick-cfg-lowField'>        /**
+</span>         * @cfg {String} lowField
+         * The store record field name that represents the lowest value of the time interval represented.
+         */
+        lowField: null,
+<span id='Ext-chart-series-CandleStick-cfg-closeField'>        /**
+</span>         * @cfg {String} closeField
+         * The store record field name that represents the closing value of the given period.
+         */
+        closeField: null
+    },
+
+<span id='Ext-chart-series-CandleStick-property-fieldCategoryY'>    fieldCategoryY: [&#39;Open&#39;, &#39;High&#39;, &#39;Low&#39;, &#39;Close&#39;],
+</span>
+<span id='Ext-chart-series-CandleStick-method-themeColorCount'>    themeColorCount: function() {
+</span>        return 2;
+    }
+
+});
+</pre>
+</body>
+</html>

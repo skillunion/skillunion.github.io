@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-google-ux-Client'>/**
+</span> * See https://developers.google.com/api-client-library/javascript/
+ * See https://developers.google.com/apis-explorer/#p/
+ *
+ *  googleApis: { &#39;calendar&#39;: { version: &#39;v3&#39; } }
+ */
+Ext.define(&#39;Ext.google.ux.Client&#39;, {
+    extend: &#39;Ext.Mixin&#39;,
+
+    mixins: [ &#39;Ext.mixin.Mashup&#39; ],
+
+<span id='Ext-google-ux-Client-cfg-requiredScripts'>    requiredScripts: [
+</span>        &#39;//apis.google.com/js/client.js?onload=_ext_google_ux_client_initialize_&#39;
+    ],
+
+    statics: {
+<span id='Ext-google-ux-Client-static-method-getApiVersion'>        getApiVersion: function(api) {
+</span>            var library = this.libraries[api];
+            return library &amp;&amp; library.state == 2?
+                library.version :
+                null;
+        }
+    },
+
+<span id='Ext-google-ux-Client-property-mixinConfig'>    mixinConfig: {
+</span>        extended: function (baseClass, derivedClass, classBody) {
+            this.load(classBody.googleApis);
+        }
+    },
+
+<span id='Ext-google-ux-Client-method-onClassMixedIn'>    onClassMixedIn: function(cls) {
+</span>        this.load(cls.prototype.googleApis);
+    },
+
+<span id='Ext-google-ux-Client-property-privates'>     privates: {
+</span>        statics: {
+<span id='Ext-google-ux-Client-property-initialized'>            /**
+</span>             * @property {Boolean} initialized
+             * `true` if the google client has been loaded and initialized.
+             * @private
+             */
+            initialized: false,
+
+<span id='Ext-google-ux-Client-property-blocked'>            /**
+</span>             * @property {Boolean} blocked
+             * `true` if this class has blocked Ext.env.Ready, else false.
+             * @private
+             */
+            blocked: false,
+
+<span id='Ext-google-ux-Client-property-loading'>            /**
+</span>             * @property {Number} loading
+             * Keep track of how many libraries are loading.
+             * @private
+             */
+            loading: 0,
+
+<span id='Ext-google-ux-Client-property-libraries'>            /**
+</span>             * @property {Object} libraries
+             * Information about required libraries.
+             * { `api_name`: { version: string, state: int }
+             * state: 0 (pending), 1 (loading), 2 (loaded)
+             * Example: { calendar: { version: &#39;v1&#39;, state: 1 } }
+             * @private
+             */
+            libraries: {},
+
+            load: function(apis) {
+                var libraries = this.libraries,
+                    version, library;
+
+                if (!Ext.isObject(apis)) {
+                    return;
+                }
+
+                Ext.Object.each(apis, function(api, cfg) {
+                    version = cfg.version || &#39;v1&#39;;
+                    library = libraries[api];
+                    if (!Ext.isDefined(library)) {
+                        libraries[api] = { version: version, state: 0 };
+                    } else if (library.version !== version) {
+                        Ext.log.error(
+                            &#39;Google API: failed to load version &quot;&#39; + version + &#39;&quot; of the&#39;,
+                            &#39;&quot;&#39; + api + &#39;&quot; API: &quot;&#39; + library.version + &#39;&quot; already loaded.&#39;)
+                    }
+                });
+
+                this.refresh();
+            },
+
+            refresh: function() {
+                var me = this;
+
+                if (!me.initialized) {
+                    return;
+                }
+
+                if (!me.blocked) {
+                    Ext.env.Ready.block();
+                    me.blocked = true;
+                }
+
+                Ext.Object.each(me.libraries, function(api, library) {
+                    if (library.state == 0) {
+                        library.state = 1; // loading
+                        gapi.client.load(api, library.version, function() {
+                            library.state = 2; // loaded
+                            if (!--me.loading) {
+                                me.refresh();
+                            }
+                        });
+                    }
+                    if (library.state == 1) {
+                        me.loading++;
+                    }
+                });
+
+                if (!me.loading &amp;&amp; me.blocked) {
+                    Ext.env.Ready.unblock();
+                    me.blocked = false;
+                }
+            },
+
+            initialize: function() {
+                this.initialized = true;
+                this.refresh();
+            }
+        }
+    }
+});
+
+// See https://developers.google.com/api-client-library/javascript/features/authentication
+_ext_google_ux_client_initialize_ = function() {
+    gapi.auth.init(function() {
+        Ext.google.ux.Client.initialize();
+    });
+}
+</pre>
+</body>
+</html>

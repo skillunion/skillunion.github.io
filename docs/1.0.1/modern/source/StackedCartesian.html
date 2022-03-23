@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-sprite-StackedCartesian'>/**
+</span> * @class Ext.chart.series.sprite.StackedCartesian
+ * @extends Ext.chart.series.sprite.Cartesian
+ *
+ * Stacked cartesian sprite.
+ */
+Ext.define(&#39;Ext.chart.series.sprite.StackedCartesian&#39;, {
+    extend: &#39;Ext.chart.series.sprite.Cartesian&#39;,
+    inheritableStatics: {
+<span id='Ext-chart-series-sprite-StackedCartesian-static-property-def'>        def: {
+</span>            processors: {
+<span id='Ext-chart-series-sprite-StackedCartesian-cfg-groupCount'>                /**
+</span>                 * @private
+                 * @cfg {Number} [groupCount=1] The number of items (e.g. bars) in a group.
+                 */
+                groupCount: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-StackedCartesian-cfg-groupOffset'>                /**
+</span>                 * @private
+                 * @cfg {Number} [groupOffset=0] The group index of the series sprite.
+                 */
+                groupOffset: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-StackedCartesian-cfg-dataStartY'>                /**
+</span>                 * @private
+                 * @cfg {Object} [dataStartY=null] The starting point of the data used in the series.
+                 */
+                dataStartY: &#39;data&#39;
+            },
+            defaults: {
+                selectionTolerance: 20,
+                groupCount: 1,
+                groupOffset: 0,
+                dataStartY: null
+            },
+            triggers: {
+                dataStartY: &#39;dataY,bbox&#39;
+            }
+        }
+    }
+
+});</pre>
+</body>
+</html>

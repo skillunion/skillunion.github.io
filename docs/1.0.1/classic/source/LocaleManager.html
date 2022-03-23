@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/* global Ext */
+
+//&lt;debug&gt;
+<span id='global-property-DEBUG_LOCALE'>/**
+</span> *
+ * @property {Boolean} DEBUG_LOCALE=false
+ * Включение отладочного вывода для локализации.
+ *
+ * _Доступно только в отладочных режимах._
+ */
+if( !Ext.isDefined(window.DEBUG_LOCALE) ) window.DEBUG_LOCALE = false;
+//&lt;/debug&gt;
+
+<span id='SU-locale-LocaleManager'>/**
+</span> * Общий класс для ExtJS 4.2+ / Sencha Touch 2.3+
+ *
+ * Обработчик локализации, позволяет переключать локаль,
+ * обновлять локализацию зарегистрированных компонентов.
+ *
+ * Простейшее подключение менеджера в файле app.js для динамической локализации:
+ *
+ *     Ext.application({
+ *         launch: function() {
+ *              var lm = {@link SU.locale.LocaleManager};
+ *				lm.{@link #mode} = &#39;dinamic&#39;;
+ *
+ *              // Подключение обработчиков (при необходимости)
+ *              lm.{@link #addListener}(&#39;changelocales&#39;, this.changeLocalesEventHandler, this);
+ *              lm.{@link #addListener}(&#39;changelocale&#39;, this.changeLocaleEventHandler, this);
+ *              lm.{@link #addListener}(&#39;initialized&#39;, this.initializedEventHandler, this);
+ *
+ *              // Определение набора доступных языковых пакетов (файлов локализации)
+ *              // и их подключение
+ *              var locales = Ext.create(&#39;{@link SU.locale.store.LocalesStore}&#39;, {
+ *                  data: [
+ *                      {id: &#39;en&#39;, label: &#39;English&#39;, url: &#39;locale/lang-en.js&#39;, propertiesClass: &#39;Locales.en.Global&#39;},
+ *                      {id: &#39;es&#39;, label: &#39;Spanish&#39;, url: &#39;locale/lang-es.js&#39;, propertiesClass: &#39;Locales.es.Global&#39;},
+ *                      {id: &#39;ru&#39;, label: &#39;Русский&#39;, url: &#39;locale/lang-ru.js&#39;, propertiesClass: &#39;Locales.ru.Global&#39;}
+ *                  ]
+ *              });
+ *              lm.{@link #setLocales}(locales);
+ *
+ *              // Определение текущей локали
+ *              var locale = lm.{@link #getPersistedLocale}();
+ *              lm.{@link #setLocale}(locale);
+ *         }
+ *     }
+ *
+ * _Примечание:_ Перед использованием должен быть определен {@link Ext.Cookie#proxyId}.
+ *
+ * Для подключения менеджера в статическом режиме необходимо &quot;отложить&quot; создание
+ * интерфейса до загрузки локализации
+ *
+ * __Sencha Touch__:
+ *
+ *		Ext.application({
+ *			launch: function() {
+ *				// Destroy the #appLoadingIndicator element
+ *				Ext.fly(&#39;appLoadingIndicator&#39;).destroy();
+ *				Ext.Cookie.setProxyId(this.getName()+&#39;.cookies&#39;);
+ *				this.initLocales();
+ *			},
+ *
+ *			initLocales: function(){
+ *				var me = this,
+ *					lm = SU.locale.LocaleManager,
+ *					lp = SU.locale.Persistence,
+ *					locale,
+ *					locales = Ext.create(&#39;store.locales&#39;, {
+ *						data: [
+ *							{id: &#39;en&#39;, label: &#39;English&#39;, url: &#39;resources/locale/locale-en.js&#39;, propertiesClass: me.getName()+&#39;.en.Languages&#39;},
+ *							{id: &#39;es&#39;, label: &#39;Spanish&#39;, url: &#39;resources/locale/locale-es.js&#39;, propertiesClass: me.getName()+&#39;.en.Global&#39;},
+ *							{id: &#39;ru&#39;, label: &#39;Русский&#39;, url: &#39;resources/locale/locale-ru.js&#39;, propertiesClass: me.getName()+&#39;.ru.Languages&#39;}
+ *						]
+ *					});
+ *
+ *				// Этот метод подключения подходит и для динамического режима
+ *				//Ext.Language.mode = &#39;dinamic&#39;;
+ *
+ *				lm.setLocales(locales);
+ *				lm.on({
+ *					initialized: {
+ *						fn: me.doInitLocales,
+ *						single: true,
+ *						scope: me
+ *					}
+ *				});
+ *				// Определение текущей локали
+ *				locale = lm.getPersistedLocale();
+ *				lm.setLocale(locale);
+ *			},
+ *
+ *			doInitLocales: function(){
+ *				// Initialize the main view
+ *				Ext.Viewport.add(Ext.create(me.getName()+&#39;.view.Main&#39;));
+ *			},
+ *		});
+ *
+ * __ExtJS__:
+ *
+ *		Ext.application({
+ *			autoCreateViewport: false,
+ *
+ *			init: function() {
+ *				Ext.Cookie.setProxyId(this.getName()+&#39;.cookies&#39;);
+ *				this.initLocales();
+ *			},
+ *
+ *			initLocales: function(){
+ *				var me = this,
+ *					lm = SU.locale.LocaleManager,
+ *					lp = SU.locale.Persistence,
+ *					locale,
+ *					locales = Ext.create(&#39;store.locales&#39;, {
+ *						data: [
+ *							{id: &#39;en&#39;, label: &#39;English&#39;, url: &#39;resources/locale/locale-en.js&#39;, propertiesClass: me.getName()+&#39;.en.Languages&#39;},
+ *							{id: &#39;es&#39;, label: &#39;Spanish&#39;, url: &#39;resources/locale/locale-es.js&#39;, propertiesClass: me.getName()+&#39;.en.Global&#39;},
+ *							{id: &#39;ru&#39;, label: &#39;Русский&#39;, url: &#39;resources/locale/locale-ru.js&#39;, propertiesClass: me.getName()+&#39;.ru.Languages&#39;}
+ *						]
+ *					});
+ *
+ *				// Этот метод подключения подходит и для динамического режима
+ *				//Ext.Language.mode = &#39;dinamic&#39;;
+ *
+ *				lm.setLocales(locales);
+ *				lm.on({
+ *					initialized: {
+ *						fn: me.doInitLocales,
+ *						single: true,
+ *						scope: me
+ *					}
+ *				});
+ *				// Определение текущей локали
+ *				locale = lm.getPersistedLocale();
+ *				lm.setLocale(locale);
+ *			},
+ *
+ *			doInitLocales: function(){
+ *				this.setMainView(&#39;Main&#39;);
+ *			},
+ *		});
+
+ * Локализация компонента:
+ *
+ *      {
+ *          xtype: &#39;label&#39;,
+ *          plugins: [
+ *              { ptype: &#39;localization&#39;, method: &#39;setText&#39;, key: &#39;title&#39; }
+ *          ]
+ *      }
+ *
+ * @singleton
+ */
+Ext.define(&#39;SU.locale.LocaleManager&#39;, {
+	singleton: true,
+	alternateClassName: &#39;Ext.Language&#39;,
+
+	mixins: {
+		observable: &#39;Ext.util.Observable&#39;
+	},
+
+	requires:[
+		//&#39;SU.LocalStorageCookie&#39;,
+		&#39;SU.locale.LocalePlugin&#39;,
+		&#39;SU.locale.Persistence&#39;,
+		&#39;SU.locale.LocaleDelegate&#39;,
+		&#39;SU.locale.store.LocalesStore&#39;
+	],
+
+<span id='SU-locale-LocaleManager-event-initialized'>	/**
+</span>	 * @event initialized
+	 *
+	 */
+<span id='SU-locale-LocaleManager-event-changelocales'>	/**
+</span>	 * @event changelocales
+	 *
+	 */
+<span id='SU-locale-LocaleManager-event-loadinglocale'>	/**
+</span>	 * @event loadinglocale
+	 *
+	 */
+<span id='SU-locale-LocaleManager-event-changelocale'>	/**
+</span>	 * @event changelocale
+	 *
+	 */
+<span id='SU-locale-LocaleManager-event-failurelocale'>	/**
+</span>	 * @event failurelocale
+	 *
+	 */
+
+<span id='SU-locale-LocaleManager-property-initialized'>	/**
+</span>	 * Указывает, что есть хотя бы один файл локализации.
+	 */
+	initialized: false,
+
+<span id='SU-locale-LocaleManager-property-clients'>	/**
+</span>	 * Массив экземпляров SU.locale.model.ClientModel, содержащих
+	 * компоненты зарегистрированных для обновления локализации.
+	 *
+	 * @private
+	 */
+	clients: [],
+
+<span id='SU-locale-LocaleManager-property-locales'>	/**
+</span>	 * Набор доступных языковых пакетов.
+	 * При отсутствии идентификатора во время
+	 * {@link #setLocale установки текущей локализации} языка,
+	 * будет выбираться первая запись из набора.
+	 * @type {SU.locale.store.LocalesStore}
+	 *
+	 * @private
+	 */
+	locales: null,
+
+<span id='SU-locale-LocaleManager-property-mode'>	/**
+</span>	 * Режим загрузки локализации:
+	 *
+	 * - static: статическая загрузка, при изменении локализации выполняется
+	 * перезагрузка страницы
+	 *
+	 * - dinamic: динамическая загрузка, при изменении локализации выполняется
+	 * загрузка файла локализации и обновление компонентов
+	 * через плагин SU.locale.LocalePlugin.
+	 *
+	 * @property {&#39;static&#39;|&#39;dinamic&#39;}
+	 */
+	mode: &#39;static&#39;,
+
+<span id='SU-locale-LocaleManager-method-getLocales'>	/**
+</span>	 * Возвращает набор доступных языковых пакетов.
+	 *
+	 * @return {SU.locale.store.LocalesStore}
+	 */
+	getLocales: function() {
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - get locales:&#39;, this.locales);
+		//&lt;/debug&gt;
+		return this.locales;
+	},
+
+<span id='SU-locale-LocaleManager-method-setLocales'>	/**
+</span>	 * Устанавливает набор доступных языковых пакетов.
+	 *
+	 * @param {SU.locale.store.LocalesStore} value
+	 * SU.locale.store.LocalesStore используемый LocaleManager
+	 */
+	setLocales: function(value) {
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - set locales:&#39;, value);
+		//&lt;/debug&gt;
+		this.locales = value;
+		this.fireEvent(&#39;changelocales&#39;, {});
+	},
+
+<span id='SU-locale-LocaleManager-property-locale'>	/**
+</span>	 * Идентификатор текущей локализации.
+	 *
+	 * @private
+	 */
+	locale: &#39;&#39;,
+
+<span id='SU-locale-LocaleManager-method-getLocale'>	/**
+</span>	 * Возвращает идентификатор текущей локализации.
+	 *
+	 * @return {String}
+	 */
+	getLocale: function(){
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - get locale: &#39;+this.locale);
+		//&lt;/debug&gt;
+		return this.locale;
+	},
+
+<span id='SU-locale-LocaleManager-method-setLocale'>	/**
+</span>	 * Устанавливает {@link #locale идентификатор текущей локализации}.
+	 * Загружает файл локализации и обновляет зарегистрированные компоненты.
+	 *
+	 * @param {String} value Идентификатор локализации
+	 */
+	setLocale: function( value ){
+		var me = this;
+		me.fireEvent(&#39;loadinglocale&#39;, {});
+		me.locale = value;
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - set locale: &#39;+value);
+		//&lt;/debug&gt;
+		me.loadPropertiesFile();
+	},
+
+<span id='SU-locale-LocaleManager-property-properties'>	/**
+</span>	 * Экземпляр загруженного класса локализации.
+	 *
+	 * @private
+	 */
+	properties: null,
+
+<span id='SU-locale-LocaleManager-method-getProperty'>	/**
+</span>	 * Возвращает значение локализации по ключу.
+	 *
+	 * @param {String}  key Ключ для поиска значения
+	 * @return {Object}
+	 */
+	getProperty: function(key) {
+		try{
+			// &lt;debug&gt;
+			if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - get property: &#39;+key);
+			// &lt;/debug&gt;
+			var res = this.properties &amp;&amp; eval(&#39;this.properties.&#39; + key);
+			// &lt;debug&gt;
+			if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - property[&quot;&#39;+key+&#39;&quot;]: &#39;+res);
+			// &lt;/debug&gt;
+			return res;
+		}catch(e){
+			// &lt;debug&gt;
+			console.log(key, this.properties);
+			console.error(e);
+			// &lt;/debug&gt;
+			return null;
+		}
+	},
+
+<span id='SU-locale-LocaleManager-method-getDefProperty'>	/**
+</span>	 * Возвращает значение локализации по ключу `key`.
+	 * При отсутствии значения возвращает `defaults`.
+	 *
+	 * @param {String}  key Ключ для поиска значения
+	 * @param {Mixed}  defaults Значение по умолчанию
+	 * @return {Object}
+	 */
+	getDefProperty: function(key, defaults) {
+		return this.getProperty(key) || defaults;
+	},
+
+<span id='SU-locale-LocaleManager-method-getPersistedLocale'>	/**
+</span>	 * Получает идентификатор локализации вызывая
+	 * SU.locale.Persistence#getLocale.
+	 *
+	 * Если локализация не найдена, то выбирается первая запись из набора #locales.
+	 *
+	 * @param {Boolean} ignoreLocation
+	 *
+	 * @return {String}
+	 */
+	getPersistedLocale: function( ignoreLocation ){
+		var me = this;
+		ignoreLocation = ignoreLocation || me.mode !== &#39;static&#39;;
+		var locale = SU.locale.Persistence.getLocale( ignoreLocation );
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - getPersistedLocale:&#39;, locale);
+		//&lt;/debug&gt;
+		return this.locales.find(&#39;id&#39;, locale) !== -1 ? locale : me.locales.getAt(0).get(&#39;id&#39;);
+	},
+
+<span id='SU-locale-LocaleManager-method-constructor'>	/**
+</span>	 * @constructor
+	 * @param {Object} config
+	 */
+	constructor: function(config) {
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] Constructing LocaleManager&#39;);
+		//&lt;/debug&gt;
+
+		this.mixins.observable.constructor.call(this, config);
+		this.callParent( arguments );
+	},
+
+<span id='SU-locale-LocaleManager-method-loadPropertiesFile'>	/**
+</span>	 * Вызов {@link SU.locale.LocaleDelegate загрузчика} языкового файла
+	 * с адресом, указанным в {@link #locales} для {@link #locale текущей локализации}.
+	 *
+	 * @private
+	 */
+	loadPropertiesFile: function() {
+		var me = this,
+			rec = me.locales.findRecord(&#39;id&#39;, me.locale),
+			fd = Ext.create(
+				&#39;SU.locale.LocaleDelegate&#39;,
+				me.loadPropertiesFileResultHandler,
+				me.loadPropertiesFileFaultHandler,
+				me
+			),
+			url = rec.get(&#39;url&#39;);
+
+		fd.loadPropertiesFile(url);
+	},
+
+<span id='SU-locale-LocaleManager-method-loadPropertiesFileResultHandler'>	/**
+</span>	 * Обработчик успешного вызова загрузчика языкового файла.
+	 *
+	 * @private
+	 * @param {String} result
+	 */
+	loadPropertiesFileResultHandler: function(result) {
+		var me = this,
+			head = document.getElementsByTagName(&quot;head&quot;)[0],
+			script = document.createElement(&#39;script&#39;);
+
+		if( !!this.script ) Ext.removeNode(this.script);
+		script.type = &#39;text/javascript&#39;;
+		script.innerHTML = result;
+		head.appendChild(script);
+		this.script = script;
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - Properties file loaded: &#39; + me.locales.findRecord(&#39;id&#39;, me.locale).get(&#39;url&#39;));
+		//&lt;/debug&gt;
+		delete me.loadingDefault;
+
+		setTimeout(function() {
+			var rec = me.locales.findRecord(&#39;id&#39;, me.locale);
+			try{
+				me.properties = Ext.create(rec.get(&#39;propertiesClass&#39;), {});
+			} catch(e){
+
+			}
+			me.updateClients();
+			if( me.properties.setLocalization ){
+				me.properties.setLocalization();
+			}
+			SU.locale.Persistence.setLocale(me.locale);
+			me.fireEvent(&#39;changelocale&#39;, {});
+			if( !me.initialized ){
+				//&lt;debug&gt;
+				if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - Locale Manager Initialized&#39;);
+				//&lt;/debug&gt;
+				me.initialized = true;
+				me.fireEvent(&#39;initialized&#39;, {});
+			}
+		}, 300);
+	},
+
+<span id='SU-locale-LocaleManager-method-loadPropertiesFileFaultHandler'>	/**
+</span>	 * Обработчик ошибки вызова загрузчика языкового файла.
+	 *
+	 * @private
+	 */
+	loadPropertiesFileFaultHandler: function() {
+		var me = this;
+		me.locale = me.getPersistedLocale( true );
+		me.fireEvent( &#39;failurelocale&#39;, {} );
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] ERROR: LocaleManager - Failure loading properties file&#39;);
+		//&lt;/debug&gt;
+		if( !me.initialized ){
+			if( !me.loadingDefault ){
+				me.loadingDefault = true;
+				me.loadPropertiesFile();
+				return;
+			}
+			delete me.loadingDefault;
+			//&lt;debug&gt;
+			if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - Locale Manager Initialized&#39;);
+			//&lt;/debug&gt;
+			me.initialized = true;
+			me.fireEvent(&#39;initialized&#39;, {});
+		}
+	},
+
+<span id='SU-locale-LocaleManager-method-updateClients'>	/**
+</span>	 * Обновляет все локализованные компоненты в приложении зарегистрированные в
+	 * {@link #clients}.
+	 *
+	 * @private
+	 */
+	updateClients: function() {
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - Updating Clients&#39;);
+		//&lt;/debug&gt;
+
+		var len = this.clients.length-1;
+		for(var i=len; i&gt;-1; i--) {
+			this.updateClient(this.clients[i]);
+		}
+	},
+
+<span id='SU-locale-LocaleManager-method-updateClient'>	/**
+</span>	 * Обновляет локализованный компонент в приложении.
+	 * Вызывает метод компонента передавая ему значение локализации.
+	 * Зачением является результат вызова {@link #getProperty} при определенном
+	 * ключе и найденном значении или весь {@link #properties экземпляр загруженного класса локализации}.
+	 *
+	 * @private
+	 * @param {SU.locale.model.ClientModel} clientModel
+	 * Объект модели компонетов локализации.
+	 */
+	updateClient: function( clientModel ){
+		var client = clientModel.get(&#39;client&#39;),
+			method = clientModel.get(&#39;method&#39;),
+			key = clientModel.get(&#39;key&#39;),
+			allowEmpty = clientModel.get(&#39;allowEmpty&#39;);
+
+		try {
+			var prop;
+			if( key ){
+//				var global = this.getProperty(key);
+//				prop = global ? global : this.properties;
+				prop = this.getProperty(key);
+			} else {
+				prop = this.properties;
+			}
+			if( !!prop || allowEmpty ){
+				if( typeof(method) === &#39;string&#39; ){
+					client[method].call( client, prop );
+				} else if( typeof(method) === &#39;function&#39; ){
+					method.call( client, prop );
+				}
+			}
+		} catch(e){
+			//&lt;debug&gt;
+			if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] ERROR: LocaleManager - Error updating client [client: &#39; + client.getId() + &#39;, method: &#39; + method + &#39;, key: &#39; + key + &#39;] - error: &#39; + e);
+			//&lt;/debug&gt;
+		}
+	},
+
+<span id='SU-locale-LocaleManager-method-registerClient'>	/**
+</span>	 * Регистрация компонента. Сохраняет объект
+	 * {@link SU.locale.model.ClientModel модели компонетов локализации}
+	 * в {@link #clients}.
+	 *
+	 * @param {SU.locale.model.ClientModel} clientModel
+	 * Объект модели компонетов локализации.
+	 */
+	registerClient: function( clientModel ){
+		var me = this;
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - Registering client component [client: &#39; + clientModel.get(&#39;client&#39;).getId() + &#39;, method: &#39; + clientModel.get(&#39;method&#39;) + &#39;, key: &#39; + clientModel.get(&#39;key&#39;) + clientModel.get(&#39;allowEmpty&#39;) + &#39;]&#39;);
+		//&lt;/debug&gt;
+
+		me.clients.push(clientModel);
+		var client = clientModel.get(&#39;client&#39;);
+		client.on(&#39;destroy&#39;, function(){
+			me.unregisterClient(clientModel);
+		});
+		if( me.properties ){
+			me.updateClient(clientModel);
+		}
+	},
+
+<span id='SU-locale-LocaleManager-method-unregisterClient'>	unregisterClient: function( clientModel ){
+</span>		var me = this,
+			clients = me.clients;
+		//&lt;debug&gt;
+		if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] LocaleManager - Unregistering client component [client: &#39; + clientModel.get(&#39;client&#39;).getId() + &#39;, method: &#39; + clientModel.get(&#39;method&#39;) + &#39;, key: &#39; + clientModel.get(&#39;key&#39;) + clientModel.get(&#39;allowEmpty&#39;) + &#39;]&#39;);
+		//&lt;/debug&gt;
+		for( var i in clients ){
+			if( !clients.hasOwnProperty(i) ) continue;
+			if( clients[i] === clientModel ){
+				clients.splice(i, 1);
+				return;
+			}
+		}
+	},
+
+<span id='SU-locale-LocaleManager-method-updateByClient'>	updateByClient: function( client ){
+</span>		var me = this,
+			len = me.clients.length-1,
+			model;
+		for( var i=len; i&gt;-1; i-- ){
+			model = me.clients[i];
+			if( model &amp;&amp; model.get(&#39;client&#39;) === client ){
+				me.updateClient(model);
+			}
+		}
+
+	}
+});
+
+</pre>
+</body>
+</html>

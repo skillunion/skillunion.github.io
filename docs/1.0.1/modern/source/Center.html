@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-Center'>/**
+</span> * This layout is used to center contents within a container.
+ *
+ * Example usage:
+ *
+ *      // The content component is centered inside the panel
+ *
+ *      var p = Ext.create(&#39;Ext.Panel&#39;, {
+ *          title: &#39;Center Layout&#39;,
+ *          layout: &#39;center&#39;,
+ *          height: 200,
+ *          width: 200,
+ *          items: [{
+ *              title: &#39;Centered Content&#39;,
+ *              width: &#39;75%&#39;,
+ *              height: &#39;75%&#39;,
+ *              html: &#39;Some content&#39;
+ *          }]
+ *      });
+ */
+Ext.define(&#39;Ext.layout.Center&#39;, {
+    extend: &#39;Ext.layout.Auto&#39;,
+    alias: &#39;layout.center&#39;,
+<span id='Ext-layout-Center-property-cls'>    cls: Ext.baseCSSPrefix + &#39;layout-center&#39;,
+</span><span id='Ext-layout-Center-property-itemCls'>    itemCls: Ext.baseCSSPrefix + &#39;layout-center-item&#39;
+</span>});</pre>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-Radar'>/**
+</span> * @class Ext.chart.series.Radar
+ * @extends Ext.chart.series.Polar
+ *
+ * Creates a Radar Chart. A Radar Chart is a useful visualization technique for comparing different quantitative values for
+ * a constrained number of categories.
+ * As with all other series, the Radar series must be appended in the *series* Chart array configuration. See the Chart
+ * documentation for more information. A typical configuration object for the radar series could be:
+ *
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;polar&#39;,
+ *        renderTo: document.body,
+ *        width: 500,
+ *        height: 400,
+ *        interactions: &#39;rotate&#39;,
+ *        store: {
+ *            fields: [&#39;name&#39;, &#39;data1&#39;],
+ *            data: [{
+ *                &#39;name&#39;: &#39;metric one&#39;,
+ *                &#39;data1&#39;: 8
+ *            }, {
+ *                &#39;name&#39;: &#39;metric two&#39;,
+ *                &#39;data1&#39;: 10
+ *            }, {
+ *                &#39;name&#39;: &#39;metric three&#39;,
+ *                &#39;data1&#39;: 12
+ *            }, {
+ *                &#39;name&#39;: &#39;metric four&#39;,
+ *                &#39;data1&#39;: 1
+ *            }, {
+ *                &#39;name&#39;: &#39;metric five&#39;,
+ *                &#39;data1&#39;: 13
+ *            }]
+ *        },
+ *        series: {
+ *            type: &#39;radar&#39;,
+ *            angleField: &#39;name&#39;,
+ *            radiusField: &#39;data1&#39;,
+ *            style: {
+ *                fillStyle: &#39;#388FAD&#39;,
+ *                fillOpacity: .1,
+ *                strokeStyle: &#39;#388FAD&#39;,
+ *                strokeOpacity: .8,
+ *                lineWidth: 1
+ *            }
+ *        },
+ *        axes: [{
+ *            type: &#39;numeric&#39;,
+ *            position: &#39;radial&#39;,
+ *            fields: &#39;data1&#39;,
+ *            style: {
+ *                estStepSize: 10
+ *            },
+ *            grid: true
+ *        }, {
+ *            type: &#39;category&#39;,
+ *            position: &#39;angular&#39;,
+ *            fields: &#39;name&#39;,
+ *            style: {
+ *                estStepSize: 1
+ *            },
+ *            grid: true
+ *        }]
+ *     });
+ *
+ */
+Ext.define(&#39;Ext.chart.series.Radar&#39;, {
+    extend: &#39;Ext.chart.series.Polar&#39;,
+<span id='Ext-chart-series-Radar-property-type'>    type: &#39;radar&#39;,
+</span><span id='Ext-chart-series-Radar-property-seriesType'>    seriesType: &#39;radar&#39;,
+</span>    alias: &#39;series.radar&#39;,
+    requires: [&#39;Ext.chart.series.sprite.Radar&#39;],
+
+<span id='Ext-chart-series-Radar-method-themeColorCount'>    themeColorCount: function() {
+</span>        return 1;
+    },
+
+<span id='Ext-chart-series-Radar-property-isStoreDependantColorCount'>    isStoreDependantColorCount: false,
+</span>
+<span id='Ext-chart-series-Radar-method-themeMarkerCount'>    themeMarkerCount: function() {
+</span>        return 1;
+    },
+
+<span id='Ext-chart-series-Radar-method-updateAngularAxis'>    updateAngularAxis: function (axis) {
+</span>        axis.processData(this);
+    },
+
+<span id='Ext-chart-series-Radar-method-updateRadialAxis'>    updateRadialAxis: function (axis) {
+</span>        axis.processData(this);
+    },
+
+<span id='Ext-chart-series-Radar-method-coordinateX'>    coordinateX: function () {
+</span>        return this.coordinate(&#39;X&#39;, 0, 2);
+    },
+
+<span id='Ext-chart-series-Radar-method-coordinateY'>    coordinateY: function () {
+</span>        return this.coordinate(&#39;Y&#39;, 1, 2);
+    },
+
+<span id='Ext-chart-series-Radar-method-updateCenter'>    updateCenter: function (center) {
+</span>        this.setStyle({
+            translationX: center[0] + this.getOffsetX(),
+            translationY: center[1] + this.getOffsetY()
+        });
+        this.doUpdateStyles();
+    },
+
+<span id='Ext-chart-series-Radar-method-updateRadius'>    updateRadius: function (radius) {
+</span>        this.setStyle({
+            endRho: radius
+        });
+        this.doUpdateStyles();
+    },
+
+<span id='Ext-chart-series-Radar-method-updateRotation'>    updateRotation: function (rotation) {
+</span>        // Overrides base class method.
+        var me = this,
+            chart = me.getChart(),
+            axes = chart.getAxes(),
+            i, ln, axis;
+
+        for (i = 0, ln = axes.length; i &lt; ln; i++) {
+            axis = axes[i];
+            axis.setRotation(rotation);
+        }
+
+        me.setStyle({
+            rotationRads: rotation
+        });
+        me.doUpdateStyles();
+    },
+
+<span id='Ext-chart-series-Radar-method-updateTotalAngle'>    updateTotalAngle: function (totalAngle) {
+</span>        this.processData();
+    },
+
+<span id='Ext-chart-series-Radar-method-getItemForPoint'>    getItemForPoint: function (x, y) {
+</span>        var me = this,
+            sprite = me.sprites &amp;&amp; me.sprites[0],
+            attr = sprite.attr,
+            dataX = attr.dataX,
+            length = dataX.length,
+            store = me.getStore(),
+            marker = me.getMarker(),
+            threshhold, item, xy, i, bbox, markers;
+
+        if (me.getHidden()) {
+            return null;
+        }
+        if (sprite &amp;&amp; marker) {
+            markers = sprite.getMarker(&#39;markers&#39;);
+            for (i = 0; i &lt; length; i++) {
+                bbox = markers.getBBoxFor(i);
+                threshhold = (bbox.width + bbox.height) * .25;
+                xy = sprite.getDataPointXY(i);
+                if (Math.abs(xy[0] - x) &lt; threshhold &amp;&amp;
+                    Math.abs(xy[1] - y) &lt; threshhold) {
+                    item = {
+                        series: me,
+                        sprite: sprite,
+                        index: i,
+                        category: &#39;markers&#39;,
+                        record: store.getData().items[i],
+                        field: me.getYField()
+                    };
+                    return item;
+                }
+            }
+        }
+        return me.callParent(arguments);
+    },
+
+<span id='Ext-chart-series-Radar-method-getDefaultSpriteConfig'>    getDefaultSpriteConfig: function () {
+</span>        var config = this.callParent(),
+            animation = {
+                customDurations: {
+                    translationX: 0,
+                    translationY: 0,
+                    rotationRads: 0,
+                    // Prevent animation of &#39;dataMinX&#39; and &#39;dataMaxX&#39; attributes in order
+                    // to react instantaniously to changes to the &#39;hidden&#39; attribute.
+                    dataMinX: 0,
+                    dataMaxX: 0
+                }
+            };
+
+        if (config.animation) {
+            Ext.apply(config.animation, animation);
+        } else {
+            config.animation = animation;
+        }
+
+        return config;
+    },
+
+<span id='Ext-chart-series-Radar-method-getSprites'>    getSprites: function () {
+</span>        var me = this,
+            chart = me.getChart(),
+            sprites = me.sprites;
+
+        if (!chart) {
+            return Ext.emptyArray;
+        }
+        if (!sprites.length) {
+            me.createSprite();
+        }
+
+        return sprites;
+    },
+
+<span id='Ext-chart-series-Radar-method-provideLegendInfo'>    provideLegendInfo: function (target) {
+</span>        var me = this,
+            style = me.getSubStyleWithTheme(),
+            fill = style.fillStyle;
+
+        if (Ext.isArray(fill)) {
+            fill = fill[0];
+        }
+        target.push({
+            name: me.getTitle() || me.getYField() || me.getId(),
+            mark: (Ext.isObject(fill) ? fill.stops &amp;&amp; fill.stops[0].color : fill) || style.strokeStyle || &#39;black&#39;,
+            disabled: me.getHidden(),
+            series: me.getId(),
+            index: 0
+        });
+    }
+
+});
+
+</pre>
+</body>
+</html>

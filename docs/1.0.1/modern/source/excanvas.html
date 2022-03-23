@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">// @define Ext.draw.engine.excanvas
+<span id='global-property-'>/**
+</span> * @private
+ */
+Ext.draw || (Ext.draw = {});
+Ext.draw.engine || (Ext.draw.engine = {});
+Ext.draw.engine.excanvas = true;
+
+// Copyright 2006 Google Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+// Known Issues:
+//
+// * Patterns only support repeat.
+// * Radial gradient are not implemented. The VML version of these look very
+//   different from the canvas one.
+// * Clipping paths are not implemented.
+// * Coordsize. The width and height attribute have higher priority than the
+//   width and height style values which isn&#39;t correct.
+// * Painting mode isn&#39;t implemented.
+// * Canvas width/height should is using content-box by default. IE in
+//   Quirks mode will draw the canvas using border-box. Either change your
+//   doctype to HTML5
+//   (http://www.whatwg.org/specs/web-apps/current-work/#the-doctype)
+//   or use Box Sizing Behavior from WebFX
+//   (http://webfx.eae.net/dhtml/boxsizing/boxsizing.html)
+// * Non uniform scaling does not correctly scale strokes.
+// * Optimize. There is always room for speed improvements.
+
+// Only add this code if we do not already have a canvas implementation
+if (!document.createElement(&#39;canvas&#39;).getContext) {
+
+(function() {
+
+  // alias some functions to make (compiled) code shorter
+  var m = Math;
+  var mr = m.round;
+  var ms = m.sin;
+  var mc = m.cos;
+  var abs = m.abs;
+  var sqrt = m.sqrt;
+
+  // this is used for sub pixel precision
+  var Z = 10;
+  var Z2 = Z / 2;
+
+  var IE_VERSION = +navigator.userAgent.match(/MSIE ([\d.]+)?/)[1];
+
+  /*
+   * @method getContext
+   * This function is assigned to the &lt;canvas&gt;&lt;/canvas&gt; elements as element.getContext().
+   * @return {CanvasRenderingContext2D_}
+   */
+  function getContext() {
+    return this.context_ ||
+        (this.context_ = new CanvasRenderingContext2D_(this));
+  }
+
+  var slice = Array.prototype.slice;
+
+  /*
+   * @method bind
+   * Binds a function to an object. The returned function will always use the
+   * passed in {@code obj} as {@code this}.
+   *
+   * Example:
+   *
+   *   g = bind(f, obj, a, b)
+   *   g(c, d) // will do f.call(obj, a, b, c, d)
+   *
+   * @param {Function} f The function to bind the object to
+   * @param {Object} obj The object that should act as this when the function
+   *     is called
+   * @param {*} var_args Rest arguments that will be used as the initial
+   *     arguments when the function is called
+   * @return {Function} A new function that has bound this
+   */
+  function bind(f, obj, var_args) {
+    var a = slice.call(arguments, 2);
+    return function() {
+      return f.apply(obj, a.concat(slice.call(arguments)));
+    };
+  }
+
+  function encodeHtmlAttribute(s) {
+    return String(s).replace(/&amp;/g, &#39;&amp;amp;&#39;).replace(/&quot;/g, &#39;&amp;quot;&#39;);
+  }
+
+  function addNamespace(doc, prefix, urn) {
+    Ext.onReady(function() {
+      if (!doc.namespaces[prefix]) {
+        doc.namespaces.add(prefix, urn, &#39;#default#VML&#39;);
+      }
+    });
+  }
+
+  function addNamespacesAndStylesheet(doc) {
+    addNamespace(doc, &#39;g_vml_&#39;, &#39;urn:schemas-microsoft-com:vml&#39;);
+    addNamespace(doc, &#39;g_o_&#39;, &#39;urn:schemas-microsoft-com:office:office&#39;);
+
+    // Setup default CSS.  Only add one style sheet per document
+    if (!doc.styleSheets[&#39;ex_canvas_&#39;]) {
+      var ss = doc.createStyleSheet();
+      ss.owningElement.id = &#39;ex_canvas_&#39;;
+      ss.cssText = &#39;canvas{display:inline-block;overflow:hidden;&#39; +
+          // default size is 300x150 in Gecko and Opera
+          &#39;text-align:left;width:300px;height:150px}&#39;;
+    }
+  }
+
+  // Add namespaces and stylesheet at startup.
+  addNamespacesAndStylesheet(document);
+
+  var G_vmlCanvasManager_ = {
+    init: function(opt_doc) {
+      var doc = opt_doc || document;
+      // Create a dummy element so that IE will allow canvas elements to be
+      // recognized.
+      doc.createElement(&#39;canvas&#39;);
+      doc.attachEvent(&#39;onreadystatechange&#39;, bind(this.init_, this, doc));
+    },
+
+    init_: function(doc) {
+      // find all canvas elements
+      var els = doc.getElementsByTagName(&#39;canvas&#39;);
+      for (var i = 0; i &lt; els.length; i++) {
+        this.initElement(els[i]);
+      }
+    },
+
+    /*
+     * Public initializes a canvas element so that it can be used as canvas
+     * element from now on. This is called automatically before the page is
+     * loaded but if you are creating elements using createElement you need to
+     * make sure this is called on the element.
+     * @param {HTMLElement} el The canvas element to initialize.
+     * @return {HTMLElement} the element that was created.
+     */
+    initElement: function(el) {
+      if (!el.getContext) {
+        el.getContext = getContext;
+
+        // Add namespaces and stylesheet to document of the element.
+        addNamespacesAndStylesheet(el.ownerDocument);
+
+        // Remove fallback content. There is no way to hide text nodes so we
+        // just remove all childNodes. We could hide all elements and remove
+        // text nodes but who really cares about the fallback content.
+        el.innerHTML = &#39;&#39;;
+
+        // do not use inline function because that will leak memory
+        el.attachEvent(&#39;onpropertychange&#39;, onPropertyChange);
+        el.attachEvent(&#39;onresize&#39;, onResize);
+
+        var attrs = el.attributes;
+        if (attrs.width &amp;&amp; attrs.width.specified) {
+          // TODO: use runtimeStyle and coordsize
+          // el.getContext().setWidth_(attrs.width.nodeValue);
+          el.style.width = attrs.width.nodeValue + &#39;px&#39;;
+        } else {
+          el.width = el.clientWidth;
+        }
+        if (attrs.height &amp;&amp; attrs.height.specified) {
+          // TODO: use runtimeStyle and coordsize
+          // el.getContext().setHeight_(attrs.height.nodeValue);
+          el.style.height = attrs.height.nodeValue + &#39;px&#39;;
+        } else {
+          el.height = el.clientHeight;
+        }
+        //el.getContext().setCoordsize_()
+      }
+      return el;
+    }
+  };
+
+  function onPropertyChange(e) {
+    var el = e.srcElement;
+
+    switch (e.propertyName) {
+      case &#39;width&#39;:
+        el.getContext().clearRect();
+        el.style.width = el.attributes.width.nodeValue + &#39;px&#39;;
+        // In IE8 this does not trigger onresize.
+        el.firstChild.style.width =  el.clientWidth + &#39;px&#39;;
+        break;
+      case &#39;height&#39;:
+        el.getContext().clearRect();
+        el.style.height = el.attributes.height.nodeValue + &#39;px&#39;;
+        el.firstChild.style.height = el.clientHeight + &#39;px&#39;;
+        break;
+    }
+  }
+
+  function onResize(e) {
+    var el = e.srcElement;
+    if (el.firstChild) {
+      el.firstChild.style.width =  el.clientWidth + &#39;px&#39;;
+      el.firstChild.style.height = el.clientHeight + &#39;px&#39;;
+    }
+  }
+
+  G_vmlCanvasManager_.init();
+
+  // precompute &quot;00&quot; to &quot;FF&quot;
+  var decToHex = [];
+  for (var i = 0; i &lt; 16; i++) {
+    for (var j = 0; j &lt; 16; j++) {
+      decToHex[i * 16 + j] = i.toString(16) + j.toString(16);
+    }
+  }
+
+  function createMatrixIdentity() {
+    return [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ];
+  }
+
+  function matrixMultiply(m1, m2) {
+    var result = createMatrixIdentity();
+
+    for (var x = 0; x &lt; 3; x++) {
+      for (var y = 0; y &lt; 3; y++) {
+        var sum = 0;
+
+        for (var z = 0; z &lt; 3; z++) {
+          sum += m1[x][z] * m2[z][y];
+        }
+
+        result[x][y] = sum;
+      }
+    }
+    return result;
+  }
+
+  function copyState(o1, o2) {
+    o2.fillStyle     = o1.fillStyle;
+    o2.lineCap       = o1.lineCap;
+    o2.lineJoin      = o1.lineJoin;
+    o2.lineDash      = o1.lineDash;
+    o2.lineWidth     = o1.lineWidth;
+    o2.miterLimit    = o1.miterLimit;
+    o2.shadowBlur    = o1.shadowBlur;
+    o2.shadowColor   = o1.shadowColor;
+    o2.shadowOffsetX = o1.shadowOffsetX;
+    o2.shadowOffsetY = o1.shadowOffsetY;
+    o2.strokeStyle   = o1.strokeStyle;
+    o2.globalAlpha   = o1.globalAlpha;
+    o2.font          = o1.font;
+    o2.textAlign     = o1.textAlign;
+    o2.textBaseline  = o1.textBaseline;
+    o2.arcScaleX_    = o1.arcScaleX_;
+    o2.arcScaleY_    = o1.arcScaleY_;
+    o2.lineScale_    = o1.lineScale_;
+  }
+
+  var colorData = {
+    aliceblue: &#39;#F0F8FF&#39;,
+    antiquewhite: &#39;#FAEBD7&#39;,
+    aquamarine: &#39;#7FFFD4&#39;,
+    azure: &#39;#F0FFFF&#39;,
+    beige: &#39;#F5F5DC&#39;,
+    bisque: &#39;#FFE4C4&#39;,
+    black: &#39;#000000&#39;,
+    blanchedalmond: &#39;#FFEBCD&#39;,
+    blueviolet: &#39;#8A2BE2&#39;,
+    brown: &#39;#A52A2A&#39;,
+    burlywood: &#39;#DEB887&#39;,
+    cadetblue: &#39;#5F9EA0&#39;,
+    chartreuse: &#39;#7FFF00&#39;,
+    chocolate: &#39;#D2691E&#39;,
+    coral: &#39;#FF7F50&#39;,
+    cornflowerblue: &#39;#6495ED&#39;,
+    cornsilk: &#39;#FFF8DC&#39;,
+    crimson: &#39;#DC143C&#39;,
+    cyan: &#39;#00FFFF&#39;,
+    darkblue: &#39;#00008B&#39;,
+    darkcyan: &#39;#008B8B&#39;,
+    darkgoldenrod: &#39;#B8860B&#39;,
+    darkgray: &#39;#A9A9A9&#39;,
+    darkgreen: &#39;#006400&#39;,
+    darkgrey: &#39;#A9A9A9&#39;,
+    darkkhaki: &#39;#BDB76B&#39;,
+    darkmagenta: &#39;#8B008B&#39;,
+    darkolivegreen: &#39;#556B2F&#39;,
+    darkorange: &#39;#FF8C00&#39;,
+    darkorchid: &#39;#9932CC&#39;,
+    darkred: &#39;#8B0000&#39;,
+    darksalmon: &#39;#E9967A&#39;,
+    darkseagreen: &#39;#8FBC8F&#39;,
+    darkslateblue: &#39;#483D8B&#39;,
+    darkslategray: &#39;#2F4F4F&#39;,
+    darkslategrey: &#39;#2F4F4F&#39;,
+    darkturquoise: &#39;#00CED1&#39;,
+    darkviolet: &#39;#9400D3&#39;,
+    deeppink: &#39;#FF1493&#39;,
+    deepskyblue: &#39;#00BFFF&#39;,
+    dimgray: &#39;#696969&#39;,
+    dimgrey: &#39;#696969&#39;,
+    dodgerblue: &#39;#1E90FF&#39;,
+    firebrick: &#39;#B22222&#39;,
+    floralwhite: &#39;#FFFAF0&#39;,
+    forestgreen: &#39;#228B22&#39;,
+    gainsboro: &#39;#DCDCDC&#39;,
+    ghostwhite: &#39;#F8F8FF&#39;,
+    gold: &#39;#FFD700&#39;,
+    goldenrod: &#39;#DAA520&#39;,
+    grey: &#39;#808080&#39;,
+    greenyellow: &#39;#ADFF2F&#39;,
+    honeydew: &#39;#F0FFF0&#39;,
+    hotpink: &#39;#FF69B4&#39;,
+    indianred: &#39;#CD5C5C&#39;,
+    indigo: &#39;#4B0082&#39;,
+    ivory: &#39;#FFFFF0&#39;,
+    khaki: &#39;#F0E68C&#39;,
+    lavender: &#39;#E6E6FA&#39;,
+    lavenderblush: &#39;#FFF0F5&#39;,
+    lawngreen: &#39;#7CFC00&#39;,
+    lemonchiffon: &#39;#FFFACD&#39;,
+    lightblue: &#39;#ADD8E6&#39;,
+    lightcoral: &#39;#F08080&#39;,
+    lightcyan: &#39;#E0FFFF&#39;,
+    lightgoldenrodyellow: &#39;#FAFAD2&#39;,
+    lightgreen: &#39;#90EE90&#39;,
+    lightgrey: &#39;#D3D3D3&#39;,
+    lightpink: &#39;#FFB6C1&#39;,
+    lightsalmon: &#39;#FFA07A&#39;,
+    lightseagreen: &#39;#20B2AA&#39;,
+    lightskyblue: &#39;#87CEFA&#39;,
+    lightslategray: &#39;#778899&#39;,
+    lightslategrey: &#39;#778899&#39;,
+    lightsteelblue: &#39;#B0C4DE&#39;,
+    lightyellow: &#39;#FFFFE0&#39;,
+    limegreen: &#39;#32CD32&#39;,
+    linen: &#39;#FAF0E6&#39;,
+    magenta: &#39;#FF00FF&#39;,
+    mediumaquamarine: &#39;#66CDAA&#39;,
+    mediumblue: &#39;#0000CD&#39;,
+    mediumorchid: &#39;#BA55D3&#39;,
+    mediumpurple: &#39;#9370DB&#39;,
+    mediumseagreen: &#39;#3CB371&#39;,
+    mediumslateblue: &#39;#7B68EE&#39;,
+    mediumspringgreen: &#39;#00FA9A&#39;,
+    mediumturquoise: &#39;#48D1CC&#39;,
+    mediumvioletred: &#39;#C71585&#39;,
+    midnightblue: &#39;#191970&#39;,
+    mintcream: &#39;#F5FFFA&#39;,
+    mistyrose: &#39;#FFE4E1&#39;,
+    moccasin: &#39;#FFE4B5&#39;,
+    navajowhite: &#39;#FFDEAD&#39;,
+    oldlace: &#39;#FDF5E6&#39;,
+    olivedrab: &#39;#6B8E23&#39;,
+    orange: &#39;#FFA500&#39;,
+    orangered: &#39;#FF4500&#39;,
+    orchid: &#39;#DA70D6&#39;,
+    palegoldenrod: &#39;#EEE8AA&#39;,
+    palegreen: &#39;#98FB98&#39;,
+    paleturquoise: &#39;#AFEEEE&#39;,
+    palevioletred: &#39;#DB7093&#39;,
+    papayawhip: &#39;#FFEFD5&#39;,
+    peachpuff: &#39;#FFDAB9&#39;,
+    peru: &#39;#CD853F&#39;,
+    pink: &#39;#FFC0CB&#39;,
+    plum: &#39;#DDA0DD&#39;,
+    powderblue: &#39;#B0E0E6&#39;,
+    rosybrown: &#39;#BC8F8F&#39;,
+    royalblue: &#39;#4169E1&#39;,
+    saddlebrown: &#39;#8B4513&#39;,
+    salmon: &#39;#FA8072&#39;,
+    sandybrown: &#39;#F4A460&#39;,
+    seagreen: &#39;#2E8B57&#39;,
+    seashell: &#39;#FFF5EE&#39;,
+    sienna: &#39;#A0522D&#39;,
+    skyblue: &#39;#87CEEB&#39;,
+    slateblue: &#39;#6A5ACD&#39;,
+    slategray: &#39;#708090&#39;,
+    slategrey: &#39;#708090&#39;,
+    snow: &#39;#FFFAFA&#39;,
+    springgreen: &#39;#00FF7F&#39;,
+    steelblue: &#39;#4682B4&#39;,
+    tan: &#39;#D2B48C&#39;,
+    thistle: &#39;#D8BFD8&#39;,
+    tomato: &#39;#FF6347&#39;,
+    turquoise: &#39;#40E0D0&#39;,
+    violet: &#39;#EE82EE&#39;,
+    wheat: &#39;#F5DEB3&#39;,
+    whitesmoke: &#39;#F5F5F5&#39;,
+    yellowgreen: &#39;#9ACD32&#39;
+  };
+
+
+  function getRgbHslContent(styleString) {
+    var start = styleString.indexOf(&#39;(&#39;, 3);
+    var end = styleString.indexOf(&#39;)&#39;, start + 1);
+    var parts = styleString.substring(start + 1, end).split(&#39;,&#39;);
+    // add alpha if needed
+    if (parts.length != 4 || styleString.charAt(3) != &#39;a&#39;) {
+      parts[3] = 1;
+    }
+    return parts;
+  }
+
+  function percent(s) {
+    return parseFloat(s) / 100;
+  }
+
+  function clamp(v, min, max) {
+    return Math.min(max, Math.max(min, v));
+  }
+
+  function hslToRgb(parts){
+    var r, g, b, h, s, l;
+    h = parseFloat(parts[0]) / 360 % 360;
+    if (h &lt; 0)
+      h++;
+    s = clamp(percent(parts[1]), 0, 1);
+    l = clamp(percent(parts[2]), 0, 1);
+    if (s == 0) {
+      r = g = b = l; // achromatic
+    } else {
+      var q = l &lt; 0.5 ? l * (1 + s) : l + s - l * s;
+      var p = 2 * l - q;
+      r = hueToRgb(p, q, h + 1 / 3);
+      g = hueToRgb(p, q, h);
+      b = hueToRgb(p, q, h - 1 / 3);
+    }
+
+    return &#39;#&#39; + decToHex[Math.floor(r * 255)] +
+        decToHex[Math.floor(g * 255)] +
+        decToHex[Math.floor(b * 255)];
+  }
+
+  function hueToRgb(m1, m2, h) {
+    if (h &lt; 0)
+      h++;
+    if (h &gt; 1)
+      h--;
+
+    if (6 * h &lt; 1)
+      return m1 + (m2 - m1) * 6 * h;
+    else if (2 * h &lt; 1)
+      return m2;
+    else if (3 * h &lt; 2)
+      return m1 + (m2 - m1) * (2 / 3 - h) * 6;
+    else
+      return m1;
+  }
+
+  var processStyleCache = {};
+
+  function processStyle(styleString) {
+    if (styleString in processStyleCache) {
+      return processStyleCache[styleString];
+    }
+
+    var str, alpha = 1;
+
+    styleString = String(styleString);
+    if (styleString.charAt(0) == &#39;#&#39;) {
+      str = styleString;
+    } else if (/^rgb/.test(styleString)) {
+      var parts = getRgbHslContent(styleString);
+      var str = &#39;#&#39;, n;
+      for (var i = 0; i &lt; 3; i++) {
+        if (parts[i].indexOf(&#39;%&#39;) != -1) {
+          n = Math.floor(percent(parts[i]) * 255);
+        } else {
+          n = +parts[i];
+        }
+        str += decToHex[clamp(n, 0, 255)];
+      }
+      alpha = +parts[3];
+    } else if (/^hsl/.test(styleString)) {
+      var parts = getRgbHslContent(styleString);
+      str = hslToRgb(parts);
+      alpha = parts[3];
+    } else {
+      str = colorData[styleString] || styleString;
+    }
+    return processStyleCache[styleString] = {color: str, alpha: alpha};
+  }
+
+  var DEFAULT_STYLE = {
+    style: &#39;normal&#39;,
+    variant: &#39;normal&#39;,
+    weight: &#39;normal&#39;,
+    size: 10,
+    family: &#39;sans-serif&#39;
+  };
+
+  // Internal text style cache
+  var fontStyleCache = {};
+
+  function processFontStyle(styleString) {
+    if (fontStyleCache[styleString]) {
+      return fontStyleCache[styleString];
+    }
+
+    var el = document.createElement(&#39;div&#39;);
+    var style = el.style;
+    try {
+      style.font = styleString;
+    } catch (ex) {
+      // Ignore failures to set to invalid font.
+    }
+
+    return fontStyleCache[styleString] = {
+      style: style.fontStyle || DEFAULT_STYLE.style,
+      variant: style.fontVariant || DEFAULT_STYLE.variant,
+      weight: style.fontWeight || DEFAULT_STYLE.weight,
+      size: style.fontSize || DEFAULT_STYLE.size,
+      family: style.fontFamily || DEFAULT_STYLE.family
+    };
+  }
+
+  function getComputedStyle(style, element) {
+    var computedStyle = {};
+
+    for (var p in style) {
+      computedStyle[p] = style[p];
+    }
+
+    // Compute the size
+    var canvasFontSize = parseFloat(element.currentStyle.fontSize),
+        fontSize = parseFloat(style.size);
+
+    if (typeof style.size == &#39;number&#39;) {
+      computedStyle.size = style.size;
+    } else if (style.size.indexOf(&#39;px&#39;) != -1) {
+      computedStyle.size = fontSize;
+    } else if (style.size.indexOf(&#39;em&#39;) != -1) {
+      computedStyle.size = canvasFontSize * fontSize;
+    } else if(style.size.indexOf(&#39;%&#39;) != -1) {
+      computedStyle.size = (canvasFontSize / 100) * fontSize;
+    } else if (style.size.indexOf(&#39;pt&#39;) != -1) {
+      computedStyle.size = fontSize / .75;
+    } else {
+      computedStyle.size = canvasFontSize;
+    }
+
+    // Different scaling between normal text and VML text. This was found using
+    // trial and error to get the same size as non VML text.
+    computedStyle.size *= 0.981;
+
+    return computedStyle;
+  }
+
+  function buildStyle(style) {
+    return style.style + &#39; &#39; + style.variant + &#39; &#39; + style.weight + &#39; &#39; +
+        style.size + &#39;px &#39; + style.family;
+  }
+
+  var lineCapMap = {
+    &#39;butt&#39;: &#39;flat&#39;,
+    &#39;round&#39;: &#39;round&#39;
+  };
+
+  function processLineCap(lineCap) {
+    return lineCapMap[lineCap] || &#39;square&#39;;
+  }
+
+  /*
+   * This class implements CanvasRenderingContext2D interface as described by
+   * the WHATWG.
+   * @param {HTMLElement} canvasElement The element that the 2D context should
+   * be associated with
+   * @private
+   */
+  function CanvasRenderingContext2D_(canvasElement) {
+    this.m_ = createMatrixIdentity();
+
+    this.mStack_ = [];
+    this.aStack_ = [];
+    this.currentPath_ = [];
+
+    // Canvas context properties
+    this.strokeStyle = &#39;#000&#39;;
+    this.fillStyle = &#39;#000&#39;;
+
+    this.lineWidth = 1;
+    this.lineJoin = &#39;miter&#39;;
+    this.lineDash = [];
+    this.lineCap = &#39;butt&#39;;
+    this.miterLimit = Z * 1;
+    this.globalAlpha = 1;
+    this.font = &#39;10px sans-serif&#39;;
+    this.textAlign = &#39;left&#39;;
+    this.textBaseline = &#39;alphabetic&#39;;
+    this.canvas = canvasElement;
+
+    var cssText = &#39;width:&#39; + canvasElement.clientWidth + &#39;px;height:&#39; +
+        canvasElement.clientHeight + &#39;px;overflow:hidden;position:absolute&#39;;
+    var el = canvasElement.ownerDocument.createElement(&#39;div&#39;);
+    el.style.cssText = cssText;
+    canvasElement.appendChild(el);
+
+    var overlayEl = el.cloneNode(false);
+    // Use a non transparent background.
+    overlayEl.style.backgroundColor = &#39;red&#39;;
+    overlayEl.style.filter = &#39;alpha(opacity=0)&#39;;
+    canvasElement.appendChild(overlayEl);
+
+    this.element_ = el;
+    this.arcScaleX_ = 1;
+    this.arcScaleY_ = 1;
+    this.lineScale_ = 1;
+  }
+
+  var contextPrototype = CanvasRenderingContext2D_.prototype;
+  contextPrototype.clearRect = function() {
+    if (this.textMeasureEl_) {
+      this.textMeasureEl_.removeNode(true);
+      this.textMeasureEl_ = null;
+    }
+    this.element_.innerHTML = &#39;&#39;;
+  };
+
+  contextPrototype.beginPath = function() {
+    // TODO: Branch current matrix so that save/restore has no effect
+    //       as per safari docs.
+    this.currentPath_ = [];
+  };
+
+  contextPrototype.moveTo = function(aX, aY) {
+    var p = getCoords(this, aX, aY);
+    this.currentPath_.push({type: &#39;moveTo&#39;, x: p.x, y: p.y});
+    this.currentX_ = p.x;
+    this.currentY_ = p.y;
+  };
+
+  contextPrototype.lineTo = function(aX, aY) {
+    var p = getCoords(this, aX, aY);
+    this.currentPath_.push({type: &#39;lineTo&#39;, x: p.x, y: p.y});
+
+    this.currentX_ = p.x;
+    this.currentY_ = p.y;
+  };
+
+  contextPrototype.bezierCurveTo = function(aCP1x, aCP1y,
+                                            aCP2x, aCP2y,
+                                            aX, aY) {
+    var p = getCoords(this, aX, aY);
+    var cp1 = getCoords(this, aCP1x, aCP1y);
+    var cp2 = getCoords(this, aCP2x, aCP2y);
+    bezierCurveTo(this, cp1, cp2, p);
+  };
+
+  // Helper function that takes the already fixed cordinates.
+  function bezierCurveTo(self, cp1, cp2, p) {
+    self.currentPath_.push({
+      type: &#39;bezierCurveTo&#39;,
+      cp1x: cp1.x,
+      cp1y: cp1.y,
+      cp2x: cp2.x,
+      cp2y: cp2.y,
+      x: p.x,
+      y: p.y
+    });
+    self.currentX_ = p.x;
+    self.currentY_ = p.y;
+  }
+
+  contextPrototype.quadraticCurveTo = function(aCPx, aCPy, aX, aY) {
+    // the following is lifted almost directly from
+    // http://developer.mozilla.org/en/docs/Canvas_tutorial:Drawing_shapes
+
+    var cp = getCoords(this, aCPx, aCPy);
+    var p = getCoords(this, aX, aY);
+
+    var cp1 = {
+      x: this.currentX_ + 2.0 / 3.0 * (cp.x - this.currentX_),
+      y: this.currentY_ + 2.0 / 3.0 * (cp.y - this.currentY_)
+    };
+    var cp2 = {
+      x: cp1.x + (p.x - this.currentX_) / 3.0,
+      y: cp1.y + (p.y - this.currentY_) / 3.0
+    };
+
+    bezierCurveTo(this, cp1, cp2, p);
+  };
+
+  contextPrototype.arc = function(aX, aY, aRadius,
+                                  aStartAngle, aEndAngle, aClockwise) {
+    aRadius *= Z;
+    var arcType = aClockwise ? &#39;at&#39; : &#39;wa&#39;;
+
+    var xStart = aX + mc(aStartAngle) * aRadius - Z2;
+    var yStart = aY + ms(aStartAngle) * aRadius - Z2;
+
+    var xEnd = aX + mc(aEndAngle) * aRadius - Z2;
+    var yEnd = aY + ms(aEndAngle) * aRadius - Z2;
+
+    // IE won&#39;t render arches drawn counter clockwise if xStart == xEnd.
+    if (xStart == xEnd &amp;&amp; !aClockwise) {
+      xStart += 0.125; // Offset xStart by 1/80 of a pixel. Use something
+                       // that can be represented in binary
+    }
+
+    var p = getCoords(this, aX, aY);
+    var pStart = getCoords(this, xStart, yStart);
+    var pEnd = getCoords(this, xEnd, yEnd);
+
+    this.currentPath_.push({type: arcType,
+                           x: p.x,
+                           y: p.y,
+                           radius: aRadius,
+                           xStart: pStart.x,
+                           yStart: pStart.y,
+                           xEnd: pEnd.x,
+                           yEnd: pEnd.y});
+
+  };
+
+  contextPrototype.rect = function(aX, aY, aWidth, aHeight) {
+    this.moveTo(aX, aY);
+    this.lineTo(aX + aWidth, aY);
+    this.lineTo(aX + aWidth, aY + aHeight);
+    this.lineTo(aX, aY + aHeight);
+    this.closePath();
+  };
+
+  contextPrototype.strokeRect = function(aX, aY, aWidth, aHeight) {
+    var oldPath = this.currentPath_;
+    this.beginPath();
+
+    this.moveTo(aX, aY);
+    this.lineTo(aX + aWidth, aY);
+    this.lineTo(aX + aWidth, aY + aHeight);
+    this.lineTo(aX, aY + aHeight);
+    this.closePath();
+    this.stroke();
+
+    this.currentPath_ = oldPath;
+  };
+
+  contextPrototype.fillRect = function(aX, aY, aWidth, aHeight) {
+    var oldPath = this.currentPath_;
+    this.beginPath();
+
+    this.moveTo(aX, aY);
+    this.lineTo(aX + aWidth, aY);
+    this.lineTo(aX + aWidth, aY + aHeight);
+    this.lineTo(aX, aY + aHeight);
+    this.closePath();
+    this.fill();
+
+    this.currentPath_ = oldPath;
+  };
+
+  contextPrototype.createLinearGradient = function(aX0, aY0, aX1, aY1) {
+    var gradient = new CanvasGradient_(&#39;gradient&#39;);
+    gradient.x0_ = aX0;
+    gradient.y0_ = aY0;
+    gradient.x1_ = aX1;
+    gradient.y1_ = aY1;
+    return gradient;
+  };
+
+  contextPrototype.createRadialGradient = function(aX0, aY0, aR0,
+                                                   aX1, aY1, aR1) {
+    var gradient = new CanvasGradient_(&#39;gradientradial&#39;);
+    gradient.x0_ = aX0;
+    gradient.y0_ = aY0;
+    gradient.r0_ = aR0;
+    gradient.x1_ = aX1;
+    gradient.y1_ = aY1;
+    gradient.r1_ = aR1;
+    return gradient;
+  };
+
+  contextPrototype.drawImage = function(image, var_args) {
+    var dx, dy, dw, dh, sx, sy, sw, sh;
+
+    // to find the original width we overide the width and height
+    var oldRuntimeWidth = image.runtimeStyle.width;
+    var oldRuntimeHeight = image.runtimeStyle.height;
+    image.runtimeStyle.width = &#39;auto&#39;;
+    image.runtimeStyle.height = &#39;auto&#39;;
+
+    // get the original size
+    var w = image.width;
+    var h = image.height;
+
+    // and remove overides
+    image.runtimeStyle.width = oldRuntimeWidth;
+    image.runtimeStyle.height = oldRuntimeHeight;
+
+    if (arguments.length == 3) {
+      dx = arguments[1];
+      dy = arguments[2];
+      sx = sy = 0;
+      sw = dw = w;
+      sh = dh = h;
+    } else if (arguments.length == 5) {
+      dx = arguments[1];
+      dy = arguments[2];
+      dw = arguments[3];
+      dh = arguments[4];
+      sx = sy = 0;
+      sw = w;
+      sh = h;
+    } else if (arguments.length == 9) {
+      sx = arguments[1];
+      sy = arguments[2];
+      sw = arguments[3];
+      sh = arguments[4];
+      dx = arguments[5];
+      dy = arguments[6];
+      dw = arguments[7];
+      dh = arguments[8];
+    } else {
+      throw Error(&#39;Invalid number of arguments&#39;);
+    }
+
+    var d = getCoords(this, dx, dy);
+
+    var vmlStr = [];
+
+    var W = 10;
+    var H = 10;
+
+    var m = this.m_;
+
+    vmlStr.push(&#39; &lt;g_vml_:group&#39;,
+                &#39; coordsize=&quot;&#39;, Z * W, &#39;,&#39;, Z * H, &#39;&quot;&#39;,
+                &#39; coordorigin=&quot;0,0&quot;&#39; ,
+                &#39; style=&quot;width:&#39;, mr(W*m[0][0]), &#39;px;height:&#39;, mr(H*m[1][1]), &#39;px;position:absolute;&#39;,
+                &#39;top:&#39;, mr(d.y / Z), &#39;px;left:&#39;, mr(d.x / Z), &#39;px; rotation:&#39;, mr(Math.atan(m[0][1]/m[1][1])*180/Math.PI), &#39;;&#39;);
+
+    vmlStr.push(&#39;&quot; &gt;&#39; ,
+                &#39;&lt;g_vml_:image src=&quot;&#39;, image.src, &#39;&quot;&#39;,
+                &#39; style=&quot;width:&#39;, Z * dw, &#39;px;&#39;,
+                &#39; height:&#39;, Z * dh, &#39;px&quot;&#39;,
+                &#39; cropleft=&quot;&#39;, sx / w, &#39;&quot;&#39;,
+                &#39; croptop=&quot;&#39;, sy / h, &#39;&quot;&#39;,
+                &#39; cropright=&quot;&#39;, (w - sx - sw) / w, &#39;&quot;&#39;,
+                &#39; cropbottom=&quot;&#39;, (h - sy - sh) / h, &#39;&quot;&#39;,
+                &#39; /&gt;&#39;,
+                &#39;&lt;/g_vml_:group&gt;&#39;);
+
+    this.element_.insertAdjacentHTML(&#39;BeforeEnd&#39;, vmlStr.join(&#39;&#39;));
+  };
+
+  contextPrototype.setLineDash = function (lineDash) {
+      if (lineDash.length === 1) {
+          lineDash = lineDash.slice();
+          lineDash[1] = lineDash[0];
+      }
+      this.lineDash = lineDash;
+  };
+
+  contextPrototype.getLineDash = function () {
+      return this.lineDash;
+  };
+
+  contextPrototype.stroke = function(aFill) {
+    var lineStr = [];
+    var W = 10;
+    var H = 10;
+
+    lineStr.push(&#39;&lt;g_vml_:shape&#39;,
+                 &#39; filled=&quot;&#39;, !!aFill, &#39;&quot;&#39;,
+                 &#39; style=&quot;position:absolute;width:&#39;, W, &#39;px;height:&#39;, H, &#39;px;left:0px;top:0px;&quot;&#39;,
+                 &#39; coordorigin=&quot;0,0&quot;&#39;,
+                 &#39; coordsize=&quot;&#39;, Z * W, &#39;,&#39;, Z * H, &#39;&quot;&#39;,
+                 &#39; stroked=&quot;&#39;, !aFill, &#39;&quot;&#39;,
+                 &#39; path=&quot;&#39;);
+
+    var min = {x: null, y: null};
+    var max = {x: null, y: null};
+
+    for (var i = 0; i &lt; this.currentPath_.length; i++) {
+      var p = this.currentPath_[i];
+      var c;
+
+      switch (p.type) {
+        case &#39;moveTo&#39;:
+          c = p;
+          lineStr.push(&#39; m &#39;, mr(p.x), &#39;,&#39;, mr(p.y));
+          break;
+        case &#39;lineTo&#39;:
+          lineStr.push(&#39; l &#39;, mr(p.x), &#39;,&#39;, mr(p.y));
+          break;
+        case &#39;close&#39;:
+          lineStr.push(&#39; x &#39;);
+          p = null;
+          break;
+        case &#39;bezierCurveTo&#39;:
+          lineStr.push(&#39; c &#39;,
+                       mr(p.cp1x), &#39;,&#39;, mr(p.cp1y), &#39;,&#39;,
+                       mr(p.cp2x), &#39;,&#39;, mr(p.cp2y), &#39;,&#39;,
+                       mr(p.x), &#39;,&#39;, mr(p.y));
+          break;
+        case &#39;at&#39;:
+        case &#39;wa&#39;:
+          lineStr.push(&#39; &#39;, p.type, &#39; &#39;,
+                       mr(p.x - this.arcScaleX_ * p.radius), &#39;,&#39;,
+                       mr(p.y - this.arcScaleY_ * p.radius), &#39; &#39;,
+                       mr(p.x + this.arcScaleX_ * p.radius), &#39;,&#39;,
+                       mr(p.y + this.arcScaleY_ * p.radius), &#39; &#39;,
+                       mr(p.xStart), &#39;,&#39;, mr(p.yStart), &#39; &#39;,
+                       mr(p.xEnd), &#39;,&#39;, mr(p.yEnd));
+          break;
+      }
+
+
+      // TODO: Following is broken for curves due to
+      //       move to proper paths.
+
+      // Figure out dimensions so we can do gradient fills
+      // properly
+      if (p) {
+        if (min.x == null || p.x &lt; min.x) {
+          min.x = p.x;
+        }
+        if (max.x == null || p.x &gt; max.x) {
+          max.x = p.x;
+        }
+        if (min.y == null || p.y &lt; min.y) {
+          min.y = p.y;
+        }
+        if (max.y == null || p.y &gt; max.y) {
+          max.y = p.y;
+        }
+      }
+    }
+    lineStr.push(&#39; &quot;&gt;&#39;);
+
+    if (!aFill) {
+      appendStroke(this, lineStr);
+    } else {
+      appendFill(this, lineStr, min, max);
+    }
+
+    lineStr.push(&#39;&lt;/g_vml_:shape&gt;&#39;);
+
+    this.element_.insertAdjacentHTML(&#39;beforeEnd&#39;, lineStr.join(&#39;&#39;));
+  };
+
+  function appendStroke(ctx, lineStr) {
+    var a = processStyle(ctx.strokeStyle);
+    var color = a.color;
+    var opacity = a.alpha * ctx.globalAlpha;
+    var lineWidth = ctx.lineScale_ * ctx.lineWidth;
+
+    // VML cannot correctly render a line if the width is less than 1px.
+    // In that case, we dilute the color to make the line look thinner.
+    if (lineWidth &lt; 1) {
+      opacity *= lineWidth;
+    }
+
+    lineStr.push(
+      &#39;&lt;g_vml_:stroke&#39;,
+      &#39; opacity=&quot;&#39;, opacity, &#39;&quot;&#39;,
+      &#39; joinstyle=&quot;&#39;, ctx.lineJoin, &#39;&quot;&#39;,
+      &#39; dashstyle=&quot;&#39;, ctx.lineDash.join(&#39; &#39;), &#39;&quot;&#39;,
+      &#39; miterlimit=&quot;&#39;, ctx.miterLimit, &#39;&quot;&#39;,
+      &#39; endcap=&quot;&#39;, processLineCap(ctx.lineCap), &#39;&quot;&#39;,
+      &#39; weight=&quot;&#39;, lineWidth, &#39;px&quot;&#39;,
+      &#39; color=&quot;&#39;, color, &#39;&quot; /&gt;&#39;
+    );
+  }
+
+  function appendFill(ctx, lineStr, min, max) {
+    var fillStyle = ctx.fillStyle;
+    var arcScaleX = ctx.arcScaleX_;
+    var arcScaleY = ctx.arcScaleY_;
+    var width = max.x - min.x;
+    var height = max.y - min.y;
+    if (fillStyle instanceof CanvasGradient_) {
+      // TODO: Gradients transformed with the transformation matrix.
+      var angle = 0;
+      var focus = {x: 0, y: 0};
+
+      // additional offset
+      var shift = 0;
+      // scale factor for offset
+      var expansion = 1;
+
+      if (fillStyle.type_ == &#39;gradient&#39;) {
+        var x0 = fillStyle.x0_ / arcScaleX;
+        var y0 = fillStyle.y0_ / arcScaleY;
+        var x1 = fillStyle.x1_ / arcScaleX;
+        var y1 = fillStyle.y1_ / arcScaleY;
+        var p0 = getCoords(ctx, x0, y0);
+        var p1 = getCoords(ctx, x1, y1);
+        var dx = p1.x - p0.x;
+        var dy = p1.y - p0.y;
+        angle = Math.atan2(dx, dy) * 180 / Math.PI;
+
+        // The angle should be a non-negative number.
+        if (angle &lt; 0) {
+          angle += 360;
+        }
+
+        // Very small angles produce an unexpected result because they are
+        // converted to a scientific notation string.
+        if (angle &lt; 1e-6) {
+          angle = 0;
+        }
+      } else {
+        var p0 = getCoords(ctx, fillStyle.x0_, fillStyle.y0_);
+        focus = {
+          x: (p0.x - min.x) / width,
+          y: (p0.y - min.y) / height
+        };
+
+        width  /= arcScaleX * Z;
+        height /= arcScaleY * Z;
+        var dimension = m.max(width, height);
+        shift = 2 * fillStyle.r0_ / dimension;
+        expansion = 2 * fillStyle.r1_ / dimension - shift;
+      }
+
+      // We need to sort the color stops in ascending order by offset,
+      // otherwise IE won&#39;t interpret it correctly.
+      var stops = fillStyle.colors_;
+      stops.sort(function(cs1, cs2) {
+        return cs1.offset - cs2.offset;
+      });
+
+      var length = stops.length;
+      var color1 = stops[0].color;
+      var color2 = stops[length - 1].color;
+      var opacity1 = stops[0].alpha * ctx.globalAlpha;
+      var opacity2 = stops[length - 1].alpha * ctx.globalAlpha;
+
+      var colors = [];
+      for (var i = 0; i &lt; length; i++) {
+        var stop = stops[i];
+        colors.push(stop.offset * expansion + shift + &#39; &#39; + stop.color);
+      }
+
+      // When colors attribute is used, the meanings of opacity and o:opacity2
+      // are reversed.
+      lineStr.push(&#39;&lt;g_vml_:fill type=&quot;&#39;, fillStyle.type_, &#39;&quot;&#39;,
+                   &#39; method=&quot;none&quot; focus=&quot;100%&quot;&#39;,
+                   &#39; color=&quot;&#39;, color1, &#39;&quot;&#39;,
+                   &#39; color2=&quot;&#39;, color2, &#39;&quot;&#39;,
+                   &#39; colors=&quot;&#39;, colors.join(&#39;,&#39;), &#39;&quot;&#39;,
+                   &#39; opacity=&quot;&#39;, opacity2, &#39;&quot;&#39;,
+                   &#39; g_o_:opacity2=&quot;&#39;, opacity1, &#39;&quot;&#39;,
+                   &#39; angle=&quot;&#39;, angle, &#39;&quot;&#39;,
+                   &#39; focusposition=&quot;&#39;, focus.x, &#39;,&#39;, focus.y, &#39;&quot; /&gt;&#39;);
+    } else if (fillStyle instanceof CanvasPattern_) {
+      if (width &amp;&amp; height) {
+        var deltaLeft = -min.x;
+        var deltaTop = -min.y;
+        lineStr.push(&#39;&lt;g_vml_:fill&#39;,
+                     &#39; position=&quot;&#39;,
+                     deltaLeft / width * arcScaleX * arcScaleX, &#39;,&#39;,
+                     deltaTop / height * arcScaleY * arcScaleY, &#39;&quot;&#39;,
+                     &#39; type=&quot;tile&quot;&#39;,
+                     // TODO: Figure out the correct size to fit the scale.
+                     //&#39; size=&quot;&#39;, w, &#39;px &#39;, h, &#39;px&quot;&#39;,
+                     &#39; src=&quot;&#39;, fillStyle.src_, &#39;&quot; /&gt;&#39;);
+       }
+    } else {
+      var a = processStyle(ctx.fillStyle);
+      var color = a.color;
+      var opacity = a.alpha * ctx.globalAlpha;
+      lineStr.push(&#39;&lt;g_vml_:fill color=&quot;&#39;, color, &#39;&quot; opacity=&quot;&#39;, opacity,
+                   &#39;&quot; /&gt;&#39;);
+    }
+  }
+
+  contextPrototype.fill = function() {
+    // Calling `$stroke` here because otherwise we&#39;d call not the native ctx.stroke,
+    // but our override from Ext.draw.engine.Canvas.statics.contextOverrides.
+    this.$stroke(true);
+  };
+
+  contextPrototype.closePath = function() {
+    this.currentPath_.push({type: &#39;close&#39;});
+  };
+
+  function getCoords(ctx, aX, aY) {
+    var m = ctx.m_;
+    return {
+      x: Z * (aX * m[0][0] + aY * m[1][0] + m[2][0]) - Z2,
+      y: Z * (aX * m[0][1] + aY * m[1][1] + m[2][1]) - Z2
+    };
+  }
+
+  contextPrototype.save = function() {
+    var o = {};
+    copyState(this, o);
+    this.aStack_.push(o);
+    this.mStack_.push(this.m_);
+  };
+
+  contextPrototype.restore = function() {
+    if (this.aStack_.length) {
+      copyState(this.aStack_.pop(), this);
+      this.m_ = this.mStack_.pop();
+    }
+  };
+
+  function matrixIsFinite(m) {
+    return isFinite(m[0][0]) &amp;&amp; isFinite(m[0][1]) &amp;&amp;
+        isFinite(m[1][0]) &amp;&amp; isFinite(m[1][1]) &amp;&amp;
+        isFinite(m[2][0]) &amp;&amp; isFinite(m[2][1]);
+  }
+
+  function setM(ctx, m, updateLineScale) {
+    if (!matrixIsFinite(m)) {
+      return;
+    }
+    ctx.m_ = m;
+
+    if (updateLineScale) {
+      // Get the line scale.
+      // Determinant of this.m_ means how much the area is enlarged by the
+      // transformation. So its square root can be used as a scale factor
+      // for width.
+      var det = m[0][0] * m[1][1] - m[0][1] * m[1][0];
+      ctx.lineScale_ = sqrt(abs(det));
+    }
+  }
+
+  contextPrototype.translate = function(aX, aY) {
+    var m1 = [
+      [1,  0,  0],
+      [0,  1,  0],
+      [aX, aY, 1]
+    ];
+
+    setM(this, matrixMultiply(m1, this.m_), false);
+  };
+
+  contextPrototype.rotate = function(aRot) {
+    var c = mc(aRot);
+    var s = ms(aRot);
+
+    var m1 = [
+      [c,  s, 0],
+      [-s, c, 0],
+      [0,  0, 1]
+    ];
+
+    setM(this, matrixMultiply(m1, this.m_), false);
+  };
+
+  contextPrototype.scale = function(aX, aY) {
+    this.arcScaleX_ *= aX;
+    this.arcScaleY_ *= aY;
+    var m1 = [
+      [aX, 0,  0],
+      [0,  aY, 0],
+      [0,  0,  1]
+    ];
+
+    setM(this, matrixMultiply(m1, this.m_), true);
+  };
+
+  contextPrototype.transform = function(m11, m12, m21, m22, dx, dy) {
+    var m1 = [
+      [m11, m12, 0],
+      [m21, m22, 0],
+      [dx,  dy,  1]
+    ];
+
+    setM(this, matrixMultiply(m1, this.m_), true);
+  };
+
+  contextPrototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
+    var m = [
+      [m11, m12, 0],
+      [m21, m22, 0],
+      [dx,  dy,  1]
+    ];
+
+    setM(this, m, true);
+  };
+
+  /*
+   * The text drawing function.
+   * The maxWidth argument isn&#39;t taken in account, since no browser supports
+   * it yet.
+   */
+  contextPrototype.drawText_ = function(text, x, y, maxWidth, stroke) {
+    var m = this.m_,
+        delta = 1000,
+        left = 0,
+        right = delta,
+        offset = {x: 0, y: 0},
+        lineStr = [];
+
+    var fontStyle = getComputedStyle(processFontStyle(this.font),
+                                     this.element_);
+
+    var fontStyleString = buildStyle(fontStyle);
+
+    var elementStyle = this.element_.currentStyle;
+    var textAlign = this.textAlign.toLowerCase();
+    switch (textAlign) {
+      case &#39;left&#39;:
+      case &#39;center&#39;:
+      case &#39;right&#39;:
+        break;
+      case &#39;end&#39;:
+        textAlign = elementStyle.direction == &#39;ltr&#39; ? &#39;right&#39; : &#39;left&#39;;
+        break;
+      case &#39;start&#39;:
+        textAlign = elementStyle.direction == &#39;rtl&#39; ? &#39;right&#39; : &#39;left&#39;;
+        break;
+      default:
+        textAlign = &#39;left&#39;;
+    }
+
+    // 1.75 is an arbitrary number, as there is no info about the text baseline
+    switch (this.textBaseline) {
+      case &#39;hanging&#39;:
+      case &#39;top&#39;:
+        offset.y = fontStyle.size / 1.75;
+        break;
+      case &#39;middle&#39;:
+        break;
+      default:
+      case null:
+      case &#39;alphabetic&#39;:
+      case &#39;ideographic&#39;:
+      case &#39;bottom&#39;:
+        offset.y = -fontStyle.size / 3;
+        break;
+    }
+
+    switch(textAlign) {
+      case &#39;right&#39;:
+        left = delta;
+        right = 0.05;
+        break;
+      case &#39;center&#39;:
+        left = right = delta / 2;
+        break;
+    }
+
+    var d = getCoords(this, x + offset.x, y + offset.y);
+
+    lineStr.push(&#39;&lt;g_vml_:line from=&quot;&#39;, -left ,&#39; 0&quot; to=&quot;&#39;, right ,&#39; 0.05&quot; &#39;,
+                 &#39; coordsize=&quot;100 100&quot; coordorigin=&quot;0 0&quot;&#39;,
+                 &#39; filled=&quot;&#39;, !stroke, &#39;&quot; stroked=&quot;&#39;, !!stroke,
+                 &#39;&quot; style=&quot;position:absolute;width:1px;height:1px;left:0px;top:0px;&quot;&gt;&#39;);
+
+    if (stroke) {
+      appendStroke(this, lineStr);
+    } else {
+      // TODO: Fix the min and max params.
+      appendFill(this, lineStr, {x: -left, y: 0},
+                 {x: right, y: fontStyle.size});
+    }
+
+    var skewM = m[0][0].toFixed(3) + &#39;,&#39; + m[1][0].toFixed(3) + &#39;,&#39; +
+                m[0][1].toFixed(3) + &#39;,&#39; + m[1][1].toFixed(3) + &#39;,0,0&#39;;
+
+    var skewOffset = mr(d.x / Z) + &#39;,&#39; + mr(d.y / Z);
+
+    lineStr.push(&#39;&lt;g_vml_:skew on=&quot;t&quot; matrix=&quot;&#39;, skewM ,&#39;&quot; &#39;,
+                 &#39; offset=&quot;&#39;, skewOffset, &#39;&quot; origin=&quot;&#39;, left ,&#39; 0&quot; /&gt;&#39;,
+                 &#39;&lt;g_vml_:path textpathok=&quot;true&quot; /&gt;&#39;,
+                 &#39;&lt;g_vml_:textpath on=&quot;true&quot; string=&quot;&#39;,
+                 encodeHtmlAttribute(text),
+                 &#39;&quot; style=&quot;v-text-align:&#39;, textAlign,
+                 &#39;;font:&#39;, encodeHtmlAttribute(fontStyleString),
+                 &#39;&quot; /&gt;&lt;/g_vml_:line&gt;&#39;);
+
+    this.element_.insertAdjacentHTML(&#39;beforeEnd&#39;, lineStr.join(&#39;&#39;));
+  };
+
+  contextPrototype.fillText = function(text, x, y, maxWidth) {
+    this.drawText_(text, x, y, maxWidth, false);
+  };
+
+  contextPrototype.strokeText = function(text, x, y, maxWidth) {
+    this.drawText_(text, x, y, maxWidth, true);
+  };
+
+  contextPrototype.measureText = function(text) {
+    if (!this.textMeasureEl_) {
+      var s = &#39;&lt;span style=&quot;position:absolute;&#39; +
+          &#39;top:-20000px;left:0;padding:0;margin:0;border:none;&#39; +
+          &#39;white-space:pre;&quot;&gt;&lt;/span&gt;&#39;;
+      this.element_.insertAdjacentHTML(&#39;beforeEnd&#39;, s);
+      this.textMeasureEl_ = this.element_.lastChild;
+    }
+    var doc = this.element_.ownerDocument;
+    this.textMeasureEl_.innerHTML = &#39;&#39;;
+    this.textMeasureEl_.style.font = this.font;
+    // Don&#39;t use innerHTML or innerText because they allow markup/whitespace.
+    this.textMeasureEl_.appendChild(doc.createTextNode(text));
+    return {width: this.textMeasureEl_.offsetWidth};
+  };
+
+  /* STUBS */
+  contextPrototype.clip = function() {
+    // TODO: Implement
+  };
+
+  contextPrototype.arcTo = function() {
+    // TODO: Implement
+  };
+
+  contextPrototype.createPattern = function(image, repetition) {
+    return new CanvasPattern_(image, repetition);
+  };
+
+  // Gradient / Pattern Stubs
+  function CanvasGradient_(aType) {
+    this.type_ = aType;
+    this.x0_ = 0;
+    this.y0_ = 0;
+    this.r0_ = 0;
+    this.x1_ = 0;
+    this.y1_ = 0;
+    this.r1_ = 0;
+    this.colors_ = [];
+  }
+
+  CanvasGradient_.prototype.addColorStop = function(aOffset, aColor) {
+    aColor = processStyle(aColor);
+    this.colors_.push({offset: aOffset,
+                       color: aColor.color,
+                       alpha: aColor.alpha});
+  };
+
+  function CanvasPattern_(image, repetition) {
+    assertImageIsValid(image);
+    switch (repetition) {
+      case &#39;repeat&#39;:
+      case null:
+      case &#39;&#39;:
+        this.repetition_ = &#39;repeat&#39;;
+        break;
+      case &#39;repeat-x&#39;:
+      case &#39;repeat-y&#39;:
+      case &#39;no-repeat&#39;:
+        this.repetition_ = repetition;
+        break;
+      default:
+        throwException(&#39;SYNTAX_ERR&#39;);
+    }
+
+    this.src_ = image.src;
+    this.width_ = image.width;
+    this.height_ = image.height;
+  }
+
+  function throwException(s) {
+    throw new DOMException_(s);
+  }
+
+  function assertImageIsValid(img) {
+    if (!img || img.nodeType != 1 || img.tagName != &#39;IMG&#39;) {
+      throwException(&#39;TYPE_MISMATCH_ERR&#39;);
+    }
+    if (img.readyState != &#39;complete&#39;) {
+      throwException(&#39;INVALID_STATE_ERR&#39;);
+    }
+  }
+
+  function DOMException_(s) {
+    this.code = this[s];
+    this.message = s +&#39;: DOM Exception &#39; + this.code;
+  }
+  var p = DOMException_.prototype = new Error;
+  p.INDEX_SIZE_ERR = 1;
+  p.DOMSTRING_SIZE_ERR = 2;
+  p.HIERARCHY_REQUEST_ERR = 3;
+  p.WRONG_DOCUMENT_ERR = 4;
+  p.INVALID_CHARACTER_ERR = 5;
+  p.NO_DATA_ALLOWED_ERR = 6;
+  p.NO_MODIFICATION_ALLOWED_ERR = 7;
+  p.NOT_FOUND_ERR = 8;
+  p.NOT_SUPPORTED_ERR = 9;
+  p.INUSE_ATTRIBUTE_ERR = 10;
+  p.INVALID_STATE_ERR = 11;
+  p.SYNTAX_ERR = 12;
+  p.INVALID_MODIFICATION_ERR = 13;
+  p.NAMESPACE_ERR = 14;
+  p.INVALID_ACCESS_ERR = 15;
+  p.VALIDATION_ERR = 16;
+  p.TYPE_MISMATCH_ERR = 17;
+
+  // set up externs
+  G_vmlCanvasManager = G_vmlCanvasManager_;
+  CanvasRenderingContext2D = CanvasRenderingContext2D_;
+  CanvasGradient = CanvasGradient_;
+  CanvasPattern = CanvasPattern_;
+  DOMException = DOMException_;
+})();
+
+} // if
+</pre>
+</body>
+</html>

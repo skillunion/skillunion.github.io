@@ -1,0 +1,49 @@
+{
+  "name": "material-icons",
+  "namespace": "Ext",
+  "format": "1",
+  "version": "1.0.2.3",
+  "compatVersion": "1.0.2",
+  "creator": "skillunion",
+  "summary": "Package wrapper for Material Fonts",
+  "detailedDescription": "Sencha Cmd package wrapper for Google\u0027s Material Fonts",
+  "type": "code",
+  "signatures": [
+    {
+      "name": "skillunion",
+      "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+      "created": "2022-03-22T23:08:06Z",
+      "algorithm": "SHA1withRSA",
+      "nonce": "TzBV5/JDzYw\u003d",
+      "signature": "JwdHaoNWF72Ru5yCW405aqxywsTl8N+0VrdURkje+FM4yXb/tkjWvEYWt7lwnlPwTuNEE5jPyEJVe8uxSGynI25IpbZjKPRS2uF2A8ziSvV0sxJE1Kp2Anw8No/lqG7FSa0gzfpoZ8449e4/q/lScuXtKOA89THgr58kZ5BAxX2dl5ZAy9XpLGTSPP+nFme58j7/9y7qHfGst6haIGyLJ06CgxZ4FxoZb/y+f1UM1pLbSlqsCdJTrRcqVi5pCNUwURjk07EAaW12cYki4MAiZQYm9TgTDFNNyGRvjh9FyOsPUq9jPaHoMk+Ac+M90iXyMFm8WEfBn3+WUG+Feo6SyA\u003d\u003d"
+    }
+  ],
+  "resources": [
+    {
+      "path": "${package.dir}/resources",
+      "output": "shared"
+    }
+  ],
+  "framework": "ext",
+  "output": "${workspace.packages.dir}/build",
+  "resource": {
+    "paths": ""
+  },
+  "sass": {
+    "namespace": "Ext",
+    "etc": "${package.dir}/sass/etc/all.scss",
+    "var": "${package.dir}/sass/var",
+    "src": [
+      "${package.dir}/sass/src",
+      "${package.dir}/sass/src/all.scss"
+    ]
+  },
+  "classpath": "${package.dir}/src",
+  "overrides": "${package.dir}/overrides",
+  "properties": {
+    "skip.slice": 1,
+    "skip.js": 1,
+    "skip.examples": 1,
+    "pkg.build.dir": "${workspace.build.dir}/pkgs"
+  }
+}

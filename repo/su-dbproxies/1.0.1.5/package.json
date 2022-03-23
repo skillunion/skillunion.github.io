@@ -1,0 +1,61 @@
+{
+  "name": "su-dbproxies",
+  "namespace": "SU.dbproxies",
+  "format": "1",
+  "version": "1.0.1.5",
+  "compatVersion": "1.0.1",
+  "creator": "skillunion",
+  "summary": "ExtJS proxies for Websql/Sqlite and IndexedDB",
+  "detailedDescription": "ExtJS proxies for Websql/Sqlite and IndexedDB",
+  "type": "code",
+  "signatures": [
+    {
+      "name": "skillunion",
+      "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+      "created": "2022-03-23T09:44:27Z",
+      "algorithm": "SHA1withRSA",
+      "nonce": "jPaVwgDGaB4\u003d",
+      "signature": "sOIySUiHmNg9Fpoelm9vu/mq5Ds7MoamZsteSOYLCDCwCOeH4EGTvPhboc+kTQmChjidbHh9yKBH5Wndur/gPJAvvKJYEzK5zNvmXdpVY/DZE+r8RjddfdLjbEtOr7tnfPedG5sz5VlOpNhpIJiK2iHWmTw1kfK22KOGG/OtI3LNVSZcNq7fwdsasK+v98TbAiYPjyBk2r5GmRCAp2fqmDwAbay/5ugfFrbSs6hrZP2vN0bEcd4rPdQjGtgVz/dhYO+bNh+It2uPHVMZk6+ulRASK3KoTHodk6GmyZCSkiH0iYgRUpQ+ca8wj5LlpzqAhs0nko9nJgVkA45bA/QJ/w\u003d\u003d"
+    }
+  ],
+  "slicer": {
+    "js": [
+      {
+        "path": "${package.dir}/sass/example/custom.js",
+        "isWidgetManifest": true
+      }
+    ]
+  },
+  "builds": {
+    "su-dbproxies-classic": {
+      "toolkit": "classic",
+      "name": "su-dbproxies-classic"
+    },
+    "su-dbproxies-modern": {
+      "toolkit": "modern",
+      "name": "su-dbproxies-modern"
+    }
+  },
+  "framework": "ext",
+  "output": "${workspace.packages.dir}/build",
+  "sass": {},
+  "classpath": [
+    "${package.dir}/src"
+  ],
+  "overrides": [
+    "${package.dir}/src/overrides"
+  ],
+  "example": {
+    "path": [
+      "${package.dir}/examples"
+    ]
+  },
+  "properties": {
+    "skip.js": 0,
+    "skip.sass": 1,
+    "skip.slice": 1,
+    "skip.examples": 1,
+    "pkg.build.dir": "${workspace.build.dir}/pkgs",
+    "pkg.file.name": "su-dbproxies.pkg"
+  }
+}

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-virtual-PageMap'>/**
+</span> * This class manages a sparse collection of `Page` objects keyed by their page number.
+ * Pages are lazily created on request by the `getPage` method.
+ *
+ * When pages are locked, they are scheduled to be loaded. The loading is prioritized by
+ * the type of lock held on the page. Pages with &quot;active&quot; locks are loaded first while
+ * those with &quot;prefetch&quot; locks are loaded only when no &quot;active&quot; locked pages are in the
+ * queue.
+ *
+ * The value of the `concurrentLoading` config controls the maximum number of simultaneously
+ * pending, page load requests.
+ *
+ * @private
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.data.virtual.PageMap&#39;, {
+    requires: [
+        &#39;Ext.data.virtual.Page&#39;
+    ],
+
+<span id='Ext-data-virtual-PageMap-property-isVirtualPageMap'>    isVirtualPageMap: true,
+</span>
+    config: {
+<span id='Ext-data-virtual-PageMap-cfg-cacheSize'>        /**
+</span>         * @cfg {Number} cacheSize
+         * The number of pages to retain in the `cache`.
+         */
+        cacheSize: 10,
+
+<span id='Ext-data-virtual-PageMap-cfg-concurrentLoading'>        /**
+</span>         * @cfg {Number} concurrentLoading
+         * The maximum number of simultaneous load requests that should be made to the
+         * server for pages.
+         */
+        concurrentLoading: 1,
+
+<span id='Ext-data-virtual-PageMap-cfg-pageCount'>        /**
+</span>         * The number of pages in the data set.
+         */
+        pageCount: null
+    },
+
+<span id='Ext-data-virtual-PageMap-property-generation'>    generation: 0,
+</span>
+<span id='Ext-data-virtual-PageMap-property-store'>    store: null,
+</span>
+<span id='Ext-data-virtual-PageMap-method-constructor'>    constructor: function (config) {
+</span>        var me = this;
+
+        me.prefetchSortFn = me.prefetchSortFn.bind(me);
+
+        me.initConfig(config);
+
+        me.clear();
+    },
+
+<span id='Ext-data-virtual-PageMap-method-destroy'>    destroy: function () {
+</span>        this.clear(true);
+        this.callParent();
+    },
+
+<span id='Ext-data-virtual-PageMap-method-canSatisfy'>    canSatisfy: function(range) {
+</span>        var end = this.getPageIndex(range.end),
+            pageCount = this.getPageCount();
+
+        return pageCount === null || end &lt; pageCount;
+    },
+
+<span id='Ext-data-virtual-PageMap-method-clear'>    clear: function (destroy) {
+</span>        var me = this,
+            alive = !destroy || null,
+            pages = me.pages,
+            pg;
+
+        ++me.generation;
+
+<span id='Ext-data-virtual-PageMap-property-byId'>        /**
+</span>         * @property {Object} byId
+         * A map of records by their `idProperty`.
+         */
+        me.byId = alive &amp;&amp; {};
+
+<span id='Ext-data-virtual-PageMap-property-byInternalId'>        /**
+</span>         * @property {Object} byInternalId
+         * A map of records by their `internalId`.
+         */
+        me.byInternalId = alive &amp;&amp; {};
+
+<span id='Ext-data-virtual-PageMap-property-cache'>        /**
+</span>         * @property {Ext.data.virtual.Page[]} cache
+         * The array of unlocked pages with the oldest at the front and the newest (most
+         * recently unlocked) page at the end.
+         * @readonly
+         */
+        me.cache = alive &amp;&amp; [];
+
+<span id='Ext-data-virtual-PageMap-property-indexMap'>        /**
+</span>         * @property {Object} indexMap
+         * A map of record indices by their `internalId`.
+         */
+        me.indexMap = alive &amp;&amp; {};
+
+<span id='Ext-data-virtual-PageMap-property-pages'>        /**
+</span>         * @property {Object} pages
+         * The sparse collection of `Page` objects keyed by their page number.
+         * @readonly
+         */
+        me.pages = alive &amp;&amp; {};
+
+<span id='Ext-data-virtual-PageMap-property-loading'>        /**
+</span>         * @property {Ext.data.virtual.Page[]} loading
+         * The array of currently loading pages.
+         */
+        me.loading = alive &amp;&amp; [];
+
+<span id='Ext-data-virtual-PageMap-property-loadQueues'>        /**
+</span>         * @property {Object} loadQueues
+         * A collection of loading queues keyed by the lock state.
+         * @property {Ext.data.virtual.Page[]} loadQueues.active The queue of pages to
+         * load that have an &quot;active&quot; lock state.
+         * @property {Ext.data.virtual.Page[]} loadQueues.prefetch The queue of pages to
+         * load that have a &quot;prefetch&quot; lock state.
+         */
+        me.loadQueues = alive &amp;&amp; {
+            active: [],
+            prefetch: []
+        };
+
+        if (pages) {
+            for (pg in pages) {
+                me.destroyPage(pages[pg]);
+            }
+        }
+    },
+
+<span id='Ext-data-virtual-PageMap-method-getPage'>    getPage: function (number, autoCreate) {
+</span>        var me = this,
+            pageCount = me.getPageCount(),
+            pages = me.pages,
+            page;
+
+        if (pageCount === null || number &lt; pageCount) {
+            page = pages[number];
+
+            if (!page &amp;&amp; autoCreate !== false) {
+                pages[number] = page = new Ext.data.virtual.Page({
+                    pageMap: me,
+                    number: number
+                });
+            }
+        }
+        //&lt;debug&gt;
+        else {
+            Ext.raise(&#39;Invalid page number &#39; + number + &#39; when limit is &#39; + pageCount);
+        }
+        //&lt;/debug&gt;
+
+        return page || null;
+    },
+
+<span id='Ext-data-virtual-PageMap-method-getPageIndex'>    getPageIndex: function(index) {
+</span>        if (index.isEntity) {
+            index = this.indexOf(index);
+        }
+
+        return Math.floor(index / this.store.getPageSize());
+    },
+
+<span id='Ext-data-virtual-PageMap-method-getPageOf'>    getPageOf: function (index, autoCreate) {
+</span>        var pageSize = this.store.getPageSize(),
+            n = Math.floor(index / pageSize);
+
+        return this.getPage(n, autoCreate);
+    },
+
+<span id='Ext-data-virtual-PageMap-method-getPages'>    getPages: function (begin, end) {
+</span>        var pageSize = this.store.getPageSize(),
+            // Convert record indices into page numbers:
+            first = Math.floor(begin / pageSize),
+            last = Math.ceil(end / pageSize),
+            ret = {},
+            n;
+
+        for (n = first; n &lt; last; ++n) {
+            ret[n] = this.getPage(n);
+        }
+
+        return ret;
+    },
+
+<span id='Ext-data-virtual-PageMap-method-flushNextLoad'>    flushNextLoad: function () {
+</span>        var me = this,
+            queueTimer = me.queueTimer;
+
+        if (queueTimer) {
+            Ext.unasap(queueTimer);
+        }
+
+        me.loadNext();
+    },
+
+<span id='Ext-data-virtual-PageMap-method-indexOf'>    indexOf: function(record) {
+</span>        var ret = this.indexMap[record.internalId];
+        return (ret || ret === 0) ? ret : -1;
+    },
+
+<span id='Ext-data-virtual-PageMap-method-getByInternalId'>    getByInternalId: function(internalId) {
+</span>        var index = this.indexMap[internalId],
+            page;
+
+        if (index || index === 0) {
+            page = this.pages[Math.floor(index / this.store.getPageSize())];
+            if (page) {
+                return page.records[index - page.begin];
+            }
+        }
+    },
+
+<span id='Ext-data-virtual-PageMap-method-updatePageCount'>    updatePageCount: function (pageCount, oldPageCount) {
+</span>        var pages = this.pages,
+            pageNumber, page;
+
+        if (oldPageCount === null || pageCount &lt; oldPageCount) {
+            // Safe to delete during a for in
+            for (pageNumber in pages) {
+                page = pages[pageNumber];
+                if (page.number &gt;= pageCount) {
+                    this.clearPage(page);
+                    this.destroyPage(page);
+                }
+            }
+        }
+    },
+
+<span id='Ext-data-virtual-PageMap-property-privates'>    privates: {
+</span>        queueTimer: null,
+
+        clearPage: function(page, fromCache) {
+            var me = this,
+                A = Ext.Array,
+                loadQueues = me.loadQueues;
+
+            delete me.pages[page.number];
+            page.clearRecords(me.byId, &#39;id&#39;);
+            page.clearRecords(me.byInternalId, &#39;internalId&#39;);
+            page.clearRecords(me.indexMap, &#39;internalId&#39;);
+
+            A.remove(loadQueues.active, page);
+            A.remove(loadQueues.prefetch, page);
+            if (!fromCache) {
+                Ext.Array.remove(me.cache, page);
+            }
+        },
+
+        destroyPage: function(page) {
+            this.store.onPageDestroy(page);
+            page.destroy();
+        },
+
+        loadNext: function () {
+            var me = this,
+                concurrency = me.getConcurrentLoading(),
+                loading = me.loading,
+                loadQueues = me.loadQueues,
+                page;
+
+            me.queueTimer = null;
+
+            // Keep pulling from the queue(s) as long as we have more concurrency
+            // allowed...
+            while (loading.length &lt; concurrency) {
+                if (!(page = loadQueues.active.shift() || loadQueues.prefetch.shift())) {
+                    break;
+                }
+
+                loading.push(page);
+                page.load();
+            }
+        },
+
+        onPageLoad: function (page) {
+            var me = this,
+                store = me.store,
+                activeRanges = store.activeRanges,
+                n = activeRanges.length,
+                i;
+
+            Ext.Array.remove(me.loading, page);
+
+            if (!page.error) {
+                page.fillRecords(me.byId, &#39;id&#39;);
+                page.fillRecords(me.byInternalId, &#39;internalId&#39;);
+                page.fillRecords(me.indexMap, &#39;internalId&#39;, true);
+
+                store.onPageDataAcquired(page);
+
+                for (i = 0; i &lt; n; ++i) {
+                    activeRanges[i].onPageLoad(page);
+                }
+            }
+
+            me.flushNextLoad();
+        },
+
+        onPageLockChange: function (page, state, oldState) {
+            var me = this,
+                cache = me.cache,
+                loadQueues = me.loadQueues,
+                store = me.store,
+                cacheSize, concurrency;
+
+            // When a page that has never been loaded becomes locked, we want to put
+            // it in the appropriate loadQueue. It is also possible for the lock state
+            // to change while waiting in a loadQueue, so we may need to move it around
+            // while it waits...
+            if (page.isInitial()) {
+                if (oldState) {
+                    Ext.Array.remove(loadQueues[oldState], page);
+                }
+
+                if (state) {
+                    loadQueues[state].push(page);
+                    concurrency = me.getConcurrentLoading();
+
+                    // Initiating loads immediately can easily cause problems, so wait
+                    // for a tick before firing off the loads.
+                    if (!me.queueTimer &amp;&amp; me.loading.length &lt; concurrency) {
+                        me.queueTimer = Ext.asap(me.loadNext, me);
+                    }
+                }
+            }
+
+            if (state) {
+                if (!oldState) {
+                    // Make sure the page is not in the LRU queue for recycling. If it
+                    // was previously not locked (!oldState) then the page is in line
+                    // for removal...
+                    Ext.Array.remove(cache, page);
+                }
+            }
+            else {
+                cache.push(page); // put MRU item at the end
+
+                for (cacheSize = me.getCacheSize(); cache.length &gt; cacheSize; ) {
+                    page = cache.shift();
+                    me.clearPage(page, true); // remove LRU item
+                    store.onPageEvicted(page);
+                    me.destroyPage(page);
+                }
+            }
+        },
+
+        prefetchSortFn: function(a, b) {
+            a = a.number;
+            b = b.number;
+
+            var M = Math,
+                firstPage = this.sortFirstPage,
+                lastPage = this.sortLastPage,
+                direction = this.sortDirection,
+                aDir = a &lt; firstPage,
+                bDir = b &lt; firstPage,
+                ret;
+
+            a = aDir ? M.abs(firstPage - a) : M.abs(lastPage - a);
+            b = bDir ? M.abs(firstPage - b) : M.abs(lastPage - b);
+            if (a === b) {
+                ret = aDir ? direction : -direction;
+            } else {
+                ret = a - b;
+            }
+            return ret;
+        },
+
+        prioritizePrefetch: function(direction, firstPage, lastPage) {
+            var me = this;
+            me.sortDirection = direction;
+            me.sortFirstPage = firstPage;
+            me.sortLastPage = lastPage;
+
+            me.loadQueues.prefetch.sort(me.prefetchSortFn);
+        }
+    }
+});
+</pre>
+</body>
+</html>

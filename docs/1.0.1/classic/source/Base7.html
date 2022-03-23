@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-sparkline-Base'>/**
+</span> * @class Ext.sparkline.Base
+ */
+
+Ext.define(&#39;Ext.override.sparkline.Base&#39;, {
+    override: &#39;Ext.sparkline.Base&#39;,
+
+    statics: {
+<span id='Ext-sparkline-Base-static-method-constructTip'>        constructTip: function() {
+</span>            return new Ext.tip[&#39;ToolTip&#39;]({
+                id: &#39;sparklines-tooltip&#39;,
+                showDelay: 0,
+                dismissDelay: 0,
+                hideDelay: 400
+            });
+        }
+    },
+
+<span id='Ext-sparkline-Base-method-onMouseMove'>    onMouseMove: function (e) {
+</span>        this.getSharedTooltip().triggerEvent = e;
+        this.callParent([e]);
+    },
+
+<span id='Ext-sparkline-Base-method-onMouseLeave'>    onMouseLeave: function(e) {
+</span>        this.callParent([e]);
+        this.getSharedTooltip().target = null;
+    },
+
+<span id='Ext-sparkline-Base-property-privates'>    privates: {
+</span>        hideTip: function() {
+            var tip = this.getSharedTooltip();
+            tip.target = null;  
+            tip.hide();
+        },
+
+        showTip: function() {
+            var tip = this.getSharedTooltip();
+            tip.target = this.el;
+            tip.onTargetOver(tip.triggerEvent);
+        }
+    }
+}, function(Cls) {
+    // If we are on a VML platform (IE8 - TODO: remove this when that retires)...
+    if (!Ext.supports.Canvas) {
+        Cls.prototype.element = {
+            tag: &#39;span&#39;,
+            reference: &#39;element&#39;,
+            listeners: {
+                mouseenter: &#39;onMouseEnter&#39;,
+                mouseleave: &#39;onMouseLeave&#39;,
+                mousemove: &#39;onMouseMove&#39;
+            },
+            style: {
+                display: &#39;inline-block&#39;,
+                position: &#39;relative&#39;,
+                overflow: &#39;hidden&#39;,
+                margin: &#39;0px&#39;,
+                padding: &#39;0px&#39;,
+                verticalAlign: &#39;top&#39;,
+                cursor: &#39;default&#39;
+            },
+            children: [{
+                tag: &#39;svml:group&#39;,
+                reference: &#39;groupEl&#39;,
+                coordorigin: &#39;0 0&#39;,
+                coordsize: &#39;0 0&#39;,
+                style: &#39;position:absolute;width:0;height:0;pointer-events:none&#39;
+            }]
+        };
+    }
+});</pre>
+</body>
+</html>

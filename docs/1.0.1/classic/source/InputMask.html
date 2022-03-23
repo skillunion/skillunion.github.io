@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-InputMask'>/**
+</span> * Input masks provide a way for developers to define rules that govern user input. This ensures
+ * that data is submitted in an expected format and with the appropriate character set.
+ *
+ * Frequent uses of input masks include:
+ *
+ * + Zip or postal codes
+ * + Times
+ * + Dates
+ * + Telephone numbers
+ *
+ * ## Character Sets
+ *
+ * Input mask characters can be defined by representations of the desired set.  For instance,
+ * if you only want to allow numbers, you can use 0 or 9.  Here is the list of default
+ * representations:
+ *
+ * + &#39;*&#39;: &#39;[A-Za-z0-9]&#39; // any case letter A-Z, any integer
+ * + &#39;a&#39;: &#39;[a-z]&#39;       // any lower case letter a-z
+ * + &#39;A&#39;: &#39;[A-Z]&#39;       // any upper case letter A-Z
+ * + &#39;0&#39;: &#39;[0-9]&#39;       // any integer
+ * + &#39;9&#39;: &#39;[0-9]&#39;        // any integer
+ *
+ * So, to create a telephone input mask, you could use:
+ *
+ * + (000) 000-0000
+ *
+ * or
+ *
+ * + (999) 999-9999
+ *
+ * ## Telephone input mask
+ *
+ *     @example toolkit=modern
+ *     Ext.create({
+ *         fullscreen: true,
+ *         xtype: &#39;formpanel&#39;,
+ *
+ *         items: [{
+ *             xtype: &#39;textfield&#39;,
+ *             label: &#39;Phone Number&#39;,
+ *             placeholder: &#39;(xxx) xxx-xxxx&#39;,
+ *             inputMask: &#39;(999) 999-9999&#39;
+ *         }]
+ *     });
+ */
+Ext.define(&#39;Ext.field.InputMask&#39;, function (InputMask) { return {
+    requires: [
+        &#39;Ext.util.LRU&#39;
+    ],
+
+    cachedConfig: {
+<span id='Ext-field-InputMask-cfg-blank'>        blank: &#39;_&#39;,
+</span>
+<span id='Ext-field-InputMask-cfg-characters'>        characters: {
+</span>            &#39;*&#39;: &#39;[A-Za-z0-9]&#39;,
+            &#39;a&#39;: &#39;[a-z]&#39;,
+            &#39;A&#39;: &#39;[A-Z]&#39;,
+            &#39;0&#39;: &#39;[0-9]&#39;,
+            &#39;9&#39;: &#39;[0-9]&#39;
+        },
+
+<span id='Ext-field-InputMask-cfg-ignoreCase'>        ignoreCase: true
+</span>    },
+
+    config: {
+<span id='Ext-field-InputMask-cfg-pattern'>        /**
+</span>         * @cfg {String} pattern (required)
+         */
+        pattern: null
+    },
+
+<span id='Ext-field-InputMask-property-_cached'>    _cached: false,
+</span><span id='Ext-field-InputMask-property-_lastEditablePos'>    _lastEditablePos: null,
+</span><span id='Ext-field-InputMask-property-_mask'>    _mask: null,
+</span>
+    statics: {
+<span id='Ext-field-InputMask-static-property-active'>        active: {},
+</span>
+<span id='Ext-field-InputMask-static-method-from'>        from: function (value, existing) {
+</span>            var active = InputMask.active,
+                ret;
+
+            if (value === null) {
+                ret = null;
+            }
+            else if (typeof value !== &#39;string&#39;) {
+                if (existing &amp;&amp; !existing._cached) {
+                    ret = existing;
+                    ret.setConfig(value);
+                }
+                else {
+                    ret = new InputMask(value);
+                }
+            }
+            else if (!(ret = active[value])) {
+                // No one is currently using this mask, but check the cache of
+                // recently used masks. We remove the mask from the cache and
+                // move it to the active set... if it was there.
+                if (!(ret = InputMask.cache.remove(value))) {
+                    ret = new InputMask({
+                        pattern: value
+                    });
+                }
+
+                active[value] = ret;
+                ret._cached = 1; // this is the first user either way
+            }
+            else {
+                // The mask was found in the active set so we can reuse it
+                // (just bump the counter).
+                ++ret._cached;
+            }
+
+            return ret;
+        }
+    },
+
+<span id='Ext-field-InputMask-method-constructor'>    constructor: function (config) {
+</span>        this.initConfig(config);
+    },
+
+<span id='Ext-field-InputMask-method-release'>    release: function () {
+</span>        var me = this,
+            cache = InputMask.cache,
+            key;
+
+        if (me._cached &amp;&amp; !--me._cached) {
+            key = me.getPattern();
+            //&lt;debug&gt;
+            if (InputMask.active[key] !== me) {
+                Ext.raise(&#39;Invalid call to InputMask#release (not active)&#39;);
+            }
+            if (cache.map[key]) {
+                Ext.raise(&#39;Invalid call to InputMask#release (already cached)&#39;);
+            }
+            //&lt;/debug&gt;
+
+            delete InputMask.active[key];
+            cache.add(key, me);
+            cache.trim(cache.maxSize);
+        }
+        //&lt;debug&gt;
+        else if (me._cached === 0) {
+            Ext.raise(&#39;Invalid call to InputMask#release (already released)&#39;);
+        }
+        //&lt;/debug&gt;
+    },
+
+<span id='Ext-field-InputMask-method-clearRange'>    clearRange: function (value, start, len) {
+</span>        var me = this,
+            blank = me.getBlank(),
+            end = start + len,
+            n = value.length,
+            s = &#39;&#39;,
+            i, mask, prefixLen;
+
+        if (!blank) {
+            prefixLen = me._prefix.length;
+
+            for (i = 0; i &lt; n; ++i) {
+                if (i &lt; prefixLen || i &lt; start || i &gt;= end) {
+                    s += value[i];
+                }
+            }
+
+            s = me.formatValue(s);
+        }
+        else {
+            mask = me.getPattern();
+
+            for (i = 0; i &lt; n; ++i) {
+                if (i &lt; start || i &gt;= end) {
+                    s += value[i];
+                }
+                else if (me.isFixedChar(i)) {
+                    s += mask[i];
+                }
+                else {
+                    s += blank;
+                }
+            }
+        }
+
+        return s;
+    },
+
+<span id='Ext-field-InputMask-method-formatValue'>    formatValue: function (value) {
+</span>        var me = this,
+            blank = me.getBlank(),
+            i, length, mask, prefix, s;
+
+        if (!blank) {
+            prefix = me._prefix;
+            length = prefix.length;
+
+            s = this.insertRange(&#39;&#39;, value, 0);
+
+            for (i = s.length; i &gt; length &amp;&amp; me.isFixedChar(i - 1);) {
+                --i;
+            }
+
+            s = (i &lt; length) ? prefix : s.slice(0, i - 1);
+        }
+        else if (value) {
+            s = me.formatValue(&#39;&#39;);
+            s = me.insertRange(s, value, 0);
+        }
+        else {
+            mask = me.getPattern();
+            s = &#39;&#39;;
+
+            for (i = 0, length = mask.length; i &lt; length; ++i) {
+                if (me.isFixedChar(i)) {
+                    s += mask[i];
+                }
+                else {
+                    s += blank;
+                }
+            }
+        }
+
+        return s;
+    },
+
+<span id='Ext-field-InputMask-method-getEditPosLeft'>    getEditPosLeft: function (pos) {
+</span>        for (var i = pos; i &gt;= 0; --i) {
+            if (!this.isFixedChar(i)) {
+                return i;
+            }
+        }
+
+        return null;
+    },
+
+<span id='Ext-field-InputMask-method-getEditPosRight'>    getEditPosRight: function (pos) {
+</span>        var mask = this._mask,
+            len = mask.length,
+            i;
+
+        for (i = pos; i &lt; len; ++i) {
+            if (!this.isFixedChar(i)) {
+                return i;
+            }
+        }
+
+        return null;
+    },
+
+<span id='Ext-field-InputMask-method-getFilledLength'>    getFilledLength: function (value) {
+</span>        var me = this,
+            blank = me.getBlank(),
+            c, i;
+
+        if (!blank) {
+            return value.length;
+        }
+
+        for (i = value &amp;&amp; value.length; i-- &gt; 0;) {
+            c = value[i];
+
+            if (!me.isFixedChar(i) &amp;&amp; me.isAllowedChar(c, i)) {
+                break;
+            }
+        }
+
+        return ++i || me._prefix.length;
+    },
+
+<span id='Ext-field-InputMask-method-getSubLength'>    getSubLength: function (value, substr, pos) {
+</span>        var me = this,
+            mask = me.getPattern(),
+            k = 0,
+            maskLen = mask.length,
+            substrLen = substr.length,
+            i;
+
+        for (i = pos; i &lt; maskLen &amp;&amp; k &lt; substrLen;) {
+            if (!me.isFixedChar(i) || mask[i] === substr[k]) {
+                if (me.isAllowedChar(substr[k++], i, true)) {
+                    ++i;
+                }
+            }
+            else {
+                ++i;
+            }
+        }
+
+        return i - pos;
+    },
+
+<span id='Ext-field-InputMask-method-insertRange'>    insertRange: function (value, substr, pos) {
+</span>        var me = this,
+            mask = me.getPattern(),
+            blank = me.getBlank(),
+            filled = me.isFilled(value),
+            prefixLen = me._prefix.length,
+            maskLen = mask.length,
+            substrLen = substr.length,
+            s = value,
+            ch, fixed, i, k;
+
+        if (!blank &amp;&amp; pos &gt; s.length) {
+            s += mask.slice(s.length, pos);
+        }
+
+        for (i = pos, k = 0; i &lt; maskLen &amp;&amp; k &lt; substrLen;) {
+            fixed = me.isFixedChar(i);
+
+            if (!fixed || mask[i] === substr[k]) {
+                ch = substr[k++];
+
+                if (me.isAllowedChar(ch, i, true)) {
+                    if (i &lt; s.length) {
+                        if (blank || filled || i &lt; prefixLen) {
+                            s = s.slice(0, i) + ch + s.slice(i + 1);
+                        }
+                        else {
+                            s = me.formatValue(s.substr(0, i) + ch + s.substr(i));
+                        }
+                    }
+                    else if (!blank) {
+                        s += ch;
+                    }
+
+                    ++i;
+                }
+            }
+            else {
+                if (!blank &amp;&amp; i &gt;= s.length) {
+                    s += mask[i];
+                }
+                else if (blank &amp;&amp; fixed &amp;&amp; substr[k] === blank) {
+                    ++k;
+                }
+
+                ++i;
+            }
+        }
+
+        return s;
+    },
+
+<span id='Ext-field-InputMask-method-isAllowedChar'>    isAllowedChar: function (character, pos, allowBlankChar) {
+</span>        var me = this,
+            mask = me.getPattern(),
+            c, characters, rule;
+
+        if (me.isFixedChar(pos)) {
+            return mask[pos] === character;
+        }
+
+        c = mask[pos];
+        characters = me.getCharacters();
+        rule = characters[c];
+
+        return !rule || rule.test(character || &#39;&#39;) || (allowBlankChar &amp;&amp; character === me.getBlank());
+    },
+
+<span id='Ext-field-InputMask-method-isEmpty'>    isEmpty: function (value) {
+</span>        for (var i = 0, len = value.length; i &lt; len; ++i) {
+            if (!this.isFixedChar(i) &amp;&amp; this.isAllowedChar(value[i], i)) {
+                return false;
+            }
+        }
+
+        return true;
+    },
+
+<span id='Ext-field-InputMask-method-isFilled'>    // TODO This function would benefit from optimization
+</span>    // Used during validation and range insert
+    isFilled: function (value) {
+        return this.getFilledLength(value) === this._mask.length;
+    },
+
+<span id='Ext-field-InputMask-method-isFixedChar'>    isFixedChar: function (pos) {
+</span>        return Ext.Array.indexOf(this._fixedCharPositions, pos) &gt; -1;
+    },
+
+<span id='Ext-field-InputMask-method-setCaretToEnd'>    setCaretToEnd: function (field, value) {
+</span>        var filledLen = this.getFilledLength(value),
+            pos = this.getEditPosRight(filledLen);
+
+        if (pos !== null) {
+            // Because we are called during a focus event, we have to delay pushing
+            // down the new caret position to the next frame or else the browser will
+            // position the caret at the end of the text. Note, Ext.asap() does *not*
+            // work reliably for this.
+            Ext.raf(function () {
+                if (!field.destroyed) {
+                    field.setCaretPos(pos);
+
+                    Ext.raf(function () {
+                        if (!field.destroyed) {
+                            field.setCaretPos(pos);
+                        }
+                    });
+                }
+            });
+        }
+    },
+
+<span id='Ext-field-InputMask-method-onBlur'>    //---------------------------------------------------------------------
+</span>    // Event Handling
+
+    onBlur: function (field, value) {
+        if (field.getAutoHideInputMask() !== false) {
+            if (this.isEmpty(value)) {
+                field.maskProcessed = true;
+                field.setValue(&#39;&#39;);
+            }
+        }
+    },
+
+<span id='Ext-field-InputMask-method-onFocus'>    onFocus: function (field, value) {
+</span>        // On focus we have to show the mask and move caret to the last editable position
+        // If field has autoHideInputMask === false, inputMask is always shown so we only move the caret
+        if (field.getAutoHideInputMask() !== false) {
+            if (!value) {
+                field.maskProcessed = true;
+                field.setValue(this._mask);
+            }
+        }
+
+        this.setCaretToEnd(field, value);
+    },
+
+<span id='Ext-field-InputMask-method-onChange'>    onChange: function (field, value, oldValue) {
+</span>        var me = this,
+            s;
+
+        if (field.maskProcessed || value === oldValue) {
+            field.maskProcessed = false;
+            return true;
+        }
+
+        if (value) {
+            s = me.formatValue(value);
+            field.maskProcessed = true;
+            field.setValue(s);
+        }
+    },
+
+<span id='Ext-field-InputMask-method-processAutocomplete'>    processAutocomplete: function (field, value) {
+</span>        var me = this,
+            s;
+
+        if (value) {
+            if (value.length &gt; me._mask.length) {
+                value = value.substr(0, me._mask.length);
+            }
+
+            s = me.formatValue(value);
+            field.maskProcessed = true;
+            field.inputElement.dom.value = s; //match DOM
+            field.setValue(s);
+            this.setCaretToEnd(field, value);
+        }
+    },
+
+<span id='Ext-field-InputMask-method-showEmptyMask'>    /**
+</span>     * @private
+     * @param field
+     * @param adjustCaret {Boolean} move caret to the first editable position
+     */
+    showEmptyMask: function (field, adjustCaret) {
+        var s = this.formatValue();
+
+        field.maskProcessed = true;
+        field.setValue(s);
+
+        if (adjustCaret) {
+            this.setCaretToEnd(field);
+        }
+    },
+
+<span id='Ext-field-InputMask-method-onKeyDown'>    onKeyDown: function (field, value, event) {
+</span>        if (event.ctrlKey || event.metaKey) {
+            return;
+        }
+
+        var me = this,
+            //key = event.key(), // Does not work on mobile
+            key = event.keyCode === event.DELETE,
+            del = key === &#39;Delete&#39;,
+            handled = del || (event.keyCode === event.BACKSPACE),
+            s = value,
+            caret, editPos, len, prefixLen, textSelection, start;
+
+        if (handled) {
+            caret = field.getCaretPos();
+            prefixLen = me._prefix.length;
+            textSelection = field.getTextSelection();
+            start = textSelection[0];
+            len = textSelection[1] - start;
+
+            if (len) {
+                s = me.clearRange(value, start, len);
+            }
+            else if (caret &lt; prefixLen || (!del &amp;&amp; caret === prefixLen)) {
+                caret = prefixLen;
+            }
+            else {
+                editPos = del ? me.getEditPosRight(caret) : me.getEditPosLeft(caret - 1);
+
+                if (editPos !== null) {
+                    s = me.clearRange(value, editPos, 1);
+                    caret = editPos;
+                }
+            }
+
+            if (s !== value) {
+                field.maskProcessed = true;
+                field.setValue(s);
+            }
+
+            event.preventDefault();
+            field.setCaretPos(caret);
+        }
+    },
+
+<span id='Ext-field-InputMask-method-onKeyPress'>    onKeyPress: function (field, value, event) {
+</span>        var me = this,
+            key = event.keyCode,
+            ch = event.getChar(),
+            mask = me.getPattern(),
+            prefixLen = me._prefix.length,
+            s = value,
+            caretPos, pos, start, textSelection;
+
+        if (key === event.ENTER || key === event.TAB || event.ctrlKey || event.metaKey) {
+            return;
+        }
+
+        //TODO Windows Phone may need to return here
+
+        caretPos = field.getCaretPos();
+        textSelection = field.getTextSelection();
+
+        if (me.isFixedChar(caretPos) &amp;&amp; mask[caretPos] === ch) {
+            s = me.insertRange(s, ch, caretPos);
+            ++caretPos;
+        }
+        else {
+            pos = me.getEditPosRight(caretPos);
+
+            if (pos !== null &amp;&amp; me.isAllowedChar(ch, pos)) {
+                start = textSelection[0];
+
+                s = me.clearRange(s, start, textSelection[1] - start);
+                s = me.insertRange(s, ch, pos);
+                caretPos = pos + 1;
+            }
+        }
+
+        if (s !== value) {
+            field.maskProcessed = true;
+            field.setValue(s);
+        }
+
+        event.preventDefault();
+
+        if (caretPos &lt; me._lastEditablePos &amp;&amp; caretPos &gt; prefixLen) {
+            caretPos = me.getEditPosRight(caretPos);
+        }
+
+        field.setCaretPos(caretPos);
+    },
+
+<span id='Ext-field-InputMask-method-onPaste'>    onPaste: function (field, value, event) {
+</span>        // TODO Android browser issues
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=369101
+        var text,
+            clipdData = event.browserEvent.clipboardData;
+
+        if (clipdData &amp;&amp; clipdData.getData) {
+            text = clipdData.getData(&#39;text/plain&#39;);
+        }
+        else if (Ext.global.clipboardData &amp;&amp; Ext.global.clipboardData.getData) {
+            text = Ext.global.clipboardData.getData(&#39;Text&#39;); // IE
+        }
+
+        if (text) {
+            this.paste(field, value, text, field.getTextSelection());
+        }
+
+        event.preventDefault();
+    },
+
+<span id='Ext-field-InputMask-method-paste'>    paste: function (field, value, text, selection) {
+</span>        var me = this,
+            caretPos = selection[0],
+            len = selection[1] - caretPos,
+            s = len ? me.clearRange(value, caretPos, len) : value,
+            textLen = me.getSubLength(s, text, caretPos);
+
+        s = me.insertRange(s, text, caretPos);
+        caretPos += textLen;
+        caretPos = me.getEditPosRight(caretPos) || caretPos;
+
+        if (s !== value) {
+            field.maskProcessed = true;
+            field.setValue(s);
+        }
+
+        field.setCaretPos(caretPos);
+    },
+
+<span id='Ext-field-InputMask-method-syncPattern'>    syncPattern: function (field) {
+</span>        var fieldValue = field.getValue(),
+            s;
+
+        if (field.getAutoHideInputMask() === false) {
+            //show blank input mask if there is no initial value
+            if (!fieldValue) {
+                this.showEmptyMask(field);
+            } else {
+                //format any value and combine with mask
+                s = this.formatValue(fieldValue);
+                field.maskProcessed = true;
+                field.setValue(s);
+            }
+        } else {
+            //field has auto hide mask, but there might be an initial value
+            //don&#39;t process empty value as that will set value to match the mask
+            if (fieldValue) {
+                s = this.formatValue(fieldValue);
+                field.maskProcessed = true;
+                field.setValue(s);
+            }
+        }
+    },
+
+<span id='Ext-field-InputMask-method-applyCharacters'>    //---------------------------------------------------------------------
+</span>    // Configs
+
+    applyCharacters: function (map) {
+        var ret = {},
+            flags = this.getIgnoreCase() ? &#39;i&#39; : &#39;&#39;,
+            c, v;
+
+        for (c in map) {
+            v = map[c];
+
+            if (typeof v === &#39;string&#39;) {
+                v = new RegExp(v, flags);
+            }
+
+            ret[c] = v;
+        }
+
+        return ret;
+    },
+
+<span id='Ext-field-InputMask-method-updatePattern'>    updatePattern: function (mask) {
+</span>        var me = this,
+            characters = me.getCharacters(),
+            lastEditablePos = 0,
+            n = mask &amp;&amp; mask.length,
+            blank = me.getBlank(),
+            fixedPosArr = [],
+            prefix = &#39;&#39;,
+            str = &#39;&#39;,
+            c, i;
+
+        for (i = 0; i &lt; n; ++i) {
+            c = mask[i];
+
+            if (!characters[c]) {
+                fixedPosArr.push(str.length);
+                str += c;
+            } else {
+                lastEditablePos = str.length + 1;
+                str += blank;
+            }
+        }
+
+        me._lastEditablePos = lastEditablePos;
+        me._mask = str;
+        me._fixedCharPositions = fixedPosArr;
+
+        //Now that _fixedCharPositions are populated, isFixedChar can be used
+        for (i = 0; i &lt; str.length &amp;&amp; me.isFixedChar(i); ++i) {
+            prefix += str[i];
+        }
+
+        me._prefix = prefix;
+    }
+};},
+function (InputMask) {
+    InputMask.cache = new Ext.util.LRU();
+    InputMask.cache.maxSize = 100;
+});
+</pre>
+</body>
+</html>

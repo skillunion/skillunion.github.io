@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-slider-Toggle'>/**
+</span> * Toggle switch component used by Ext.field.Toggle
+ */
+Ext.define(&#39;Ext.slider.Toggle&#39;, {
+    extend: &#39;Ext.slider.Slider&#39;,
+    xtype: &#39;toggleslider&#39;,
+
+    config: {
+<span id='Ext-slider-Toggle-cfg-onThumbUi'>        onThumbUi: &#39;toggle-on&#39;,
+</span><span id='Ext-slider-Toggle-cfg-offThumbUi'>        offThumbUi: &#39;toggle-off&#39;
+</span>    },
+
+<span id='Ext-slider-Toggle-cfg-value'>    /**
+</span>     * @cfg value
+     * @inheritdoc
+     */
+    value: 0,
+
+<span id='Ext-slider-Toggle-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;toggleslider&#39;,
+</span>
+<span id='Ext-slider-Toggle-property-minValueCls'>    // TODO:  7.0 remove these two classes once legacy themes that rely on them are removed
+</span>    minValueCls: Ext.baseCSSPrefix + &#39;off&#39;,
+<span id='Ext-slider-Toggle-property-maxValueCls'>    maxValueCls: Ext.baseCSSPrefix + &#39;on&#39;,
+</span>
+<span id='Ext-slider-Toggle-method-applyMinValue'>    applyMinValue: function() {
+</span>        return 0;
+    },
+
+<span id='Ext-slider-Toggle-method-applyMaxValue'>    applyMaxValue: function() {
+</span>        return 1;
+    },
+
+<span id='Ext-slider-Toggle-method-applyIncrement'>    applyIncrement: function() {
+</span>        return 1;
+    },
+
+<span id='Ext-slider-Toggle-method-updateMinValueCls'>    updateMinValueCls: function(newCls, oldCls) {
+</span>        var element = this.element;
+
+        if (oldCls &amp;&amp; element.hasCls(oldCls)) {
+            element.replaceCls(oldCls, newCls);
+        }
+    },
+
+<span id='Ext-slider-Toggle-method-updateMaxValueCls'>    updateMaxValueCls: function(newCls, oldCls) {
+</span>        var element = this.element;
+
+        if (oldCls &amp;&amp; element.hasCls(oldCls)) {
+            element.replaceCls(oldCls, newCls);
+        }
+    },
+
+<span id='Ext-slider-Toggle-method-setIndexValue'>    setIndexValue: function(index, value, animation) {
+</span>        var oldValue = this.getValue()[index];
+        this.callParent(arguments);
+
+        var thumb = this.thumbs[index],
+            newValue = this.getValue();
+
+        if (oldValue !== newValue) {
+            this.fireEvent(&#39;change&#39;, this, thumb, newValue, oldValue);
+        }
+    },
+
+<span id='Ext-slider-Toggle-method-onChange'>    onChange: function(thumb, newValue, oldValue) {
+</span>        var me = this,
+            isOn = newValue &gt; 0,
+            onCls = me.maxValueCls,
+            offCls = me.minValueCls,
+            element = me.element;
+
+        element.addCls(isOn ? onCls : offCls);
+        element.removeCls(isOn ? offCls : onCls);
+
+        me.thumbs[0].setUi(isOn ? me.getOnThumbUi() : me.getOffThumbUi());
+
+        me.callParent([thumb, newValue, oldValue]);
+    },
+
+<span id='Ext-slider-Toggle-method-toggle'>    toggle: function() {
+</span>        var value = this.getValue();
+        this.setValue((value == 1) ? 0 : 1);
+
+        return this;
+    },
+
+<span id='Ext-slider-Toggle-method-onTap'>    onTap: function() {
+</span>        if (this.isDisabled() || this.getReadOnly()) {
+            return;
+        }
+
+        var oldValue = this.getValue(),
+            newValue = (oldValue == 1) ? 0 : 1,
+            thumb = this.thumbs[0];
+
+        this.setIndexValue(0, newValue, this.getAnimation());
+        this.refreshAdjacentThumbConstraints(thumb);
+    },
+
+<span id='Ext-slider-Toggle-property-privates'>    privates: {
+</span>        syncFill: function() {
+            var me = this,
+                fillElement = me.trackElement.down(me.fillSelector),
+                values = me.getArrayValues();
+
+            if (values &amp;&amp; (values[0] === 1)) {
+                fillElement.show();
+            } else {
+                fillElement.hide();
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

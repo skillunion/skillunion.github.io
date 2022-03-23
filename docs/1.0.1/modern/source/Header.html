@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-panel-Header'>/**
+</span> * This container is used to manage the items (such as title and tools) for `Ext.Panel`.
+ *
+ * @since 6.0.1
+ */
+Ext.define(&#39;Ext.panel.Header&#39;, {
+    extend: &#39;Ext.Container&#39;,
+    xtype: &#39;panelheader&#39;,
+
+<span id='Ext-panel-Header-property-isPanelHeader'>    /**
+</span>     * @property {Boolean} isPanelHeader
+     * `true` in this class to identify an object as an instantiated Header, or a subclass
+     * thereof.
+     * @readonly
+     */
+    isPanelHeader: true,
+
+    config: {
+<span id='Ext-panel-Header-cfg-icon'>        /**
+</span>         * @cfg {String} icon
+         * Path to an image to use as an icon.
+         *
+         * For instructions on how you can use icon fonts including those distributed in
+         * the SDK see {@link #iconCls}.
+         * @accessor
+         */
+        icon: null,
+
+<span id='Ext-panel-Header-cfg-iconAlign'>        /**
+</span>         * @cfg {&#39;top&#39;/&#39;right&#39;/&#39;bottom&#39;/&#39;left&#39;} [iconAlign=&#39;left&#39;]
+         * The side of the title to render the icon.
+         * @accessor
+         */
+        iconAlign: null,
+
+<span id='Ext-panel-Header-cfg-iconCls'>        /**
+</span>         * @cfg {String} iconCls
+         * @accessor
+         * One or more space separated CSS classes to be applied to the icon element.
+         * The CSS rule(s) applied should specify a background image to be used as the
+         * icon.
+         *
+         * An example of specifying a custom icon class would be something like:
+         *
+         *     // specify the property in the config for the class:
+         *     iconCls: &#39;my-home-icon&#39;
+         *
+         *     // css rule specifying the background image to be used as the icon image:
+         *     .my-home-icon {
+         *         background-image: url(../images/my-home-icon.gif) !important;
+         *     }
+         *
+         * In addition to specifying your own classes, you can use the font icons
+         * provided in the SDK using the following syntax:
+         *
+         *     // using Font Awesome
+         *     iconCls: &#39;x-fa fa-home&#39;
+         *
+         *     // using Pictos
+         *     iconCls: &#39;pictos pictos-home&#39;
+         *
+         * Depending on the theme you&#39;re using, you may need include the font icon
+         * packages in your application in order to use the icons included in the
+         * SDK.  For more information see:
+         *
+         *  - [Font Awesome icons](http://fortawesome.github.io/Font-Awesome/cheatsheet/)
+         *  - [Pictos icons](../guides/core_concepts/font_ext.html)
+         *  - [Theming Guide](../guides/core_concepts/theming.html)
+         */
+        iconCls: null,
+
+<span id='Ext-panel-Header-cfg-titleRotation'>        /**
+</span>         * @cfg {&#39;auto&#39;/&#39;90&#39;/&#39;270&#39;/&#39;0&#39;}
+         * The rotation of the {@link #cfg-title}.
+         *
+         * - `&#39;auto&#39;` - use the default rotation, depending on the {@link Ext.Panel#cfg-headerPosition headerPosition}.
+         * - `&#39;0&#39;` - no rotation
+         * - `&#39;90&#39;` - rotate 90 degrees clockwise
+         * - `&#39;270&#39;` - rotate 270 degrees clockwise
+         *
+         * The default behavior of this config depends on the {@link Ext.Panel#cfg-headerPosition headerPosition}:
+         *
+         * - `&#39;top&#39;` or `&#39;bottom&#39;` - `&#39;0&#39;`
+         * - `&#39;right&#39;` - `90`
+         * - `&#39;left&#39;` - `270`
+         */
+        titleRotation: &#39;auto&#39;,
+
+<span id='Ext-panel-Header-cfg-title'>        /**
+</span>         * @cfg {String/Ext.panel.Title}
+         * The title text or config object for the {@link Ext.panel.Title Title} component.
+         * @accessor
+         */
+        title: null,
+
+<span id='Ext-panel-Header-cfg-titleAlign'>        /**
+</span>         * @cfg {&#39;left&#39;/&#39;center&#39;/&#39;right&#39;} [titleAlign=&#39;left&#39;]
+         * The alignment of the title text within the available space between the
+         * icon and the tools.
+         * @accessor
+         */
+        titleAlign: null,
+
+<span id='Ext-panel-Header-cfg-layout'>        layout: {
+</span>            type: &#39;box&#39;,
+            vertical: false,
+            align: &#39;center&#39;
+        },
+
+<span id='Ext-panel-Header-cfg-position'>        /**
+</span>         * @private
+         * Used by the owning panel to inform the header of its position
+         */
+        position: null
+    },
+
+<span id='Ext-panel-Header-cfg-autoSize'>    autoSize: null,
+</span>
+<span id='Ext-panel-Header-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;panelheader&#39;,
+</span><span id='Ext-panel-Header-property-verticalCls'>    verticalCls: Ext.baseCSSPrefix + &#39;vertical&#39;,
+</span><span id='Ext-panel-Header-property-horizontalCls'>    horizontalCls: Ext.baseCSSPrefix + &#39;horizontal&#39;,
+</span><span id='Ext-panel-Header-property-toolEndCls'>    toolEndCls: Ext.baseCSSPrefix + &#39;end&#39;,
+</span><span id='Ext-panel-Header-property-toolStartCls'>    toolStartCls: Ext.baseCSSPrefix + &#39;start&#39;,
+</span>
+<span id='Ext-panel-Header-property-rotationMap'>    rotationMap: {
+</span>        top: &#39;0&#39;,
+        right: &#39;90&#39;,
+        bottom: &#39;0&#39;,
+        left: &#39;270&#39;
+    },
+
+<span id='Ext-panel-Header-property-dockCls'>    dockCls: {
+</span>        top: Ext.baseCSSPrefix + &#39;docked-top&#39;,
+        right: Ext.baseCSSPrefix + &#39;docked-right&#39;,
+        bottom: Ext.baseCSSPrefix + &#39;docked-bottom&#39;,
+        left: Ext.baseCSSPrefix + &#39;docked-left&#39;
+    },
+
+<span id='Ext-panel-Header-cfg-weighted'>    weighted: true,
+</span>
+<span id='Ext-panel-Header-property-vertical'>    vertical: false,
+</span>
+<span id='Ext-panel-Header-property-inheritUi'>    inheritUi: true,
+</span>
+<span id='Ext-panel-Header-method-addTools'>    addTools: function (tools) {
+</span>        var items = Ext.Array.from(tools);
+
+        if (items &amp;&amp; items.length) {
+            items = this.add(items);
+        }
+
+        return items;
+    },
+
+<span id='Ext-panel-Header-method-applyTitle'>    applyTitle: function (newTitle, oldTitle) {
+</span>        var title = oldTitle;
+
+        if (title) {
+            if (!newTitle || typeof newTitle === &#39;string&#39;) {
+                title.setText(newTitle || &#39;&#39;);
+            } else if (newTitle) {
+                title.setConfig(newTitle);
+            }
+        } else {
+            title = Ext.create(this.createTitle(newTitle));
+        }
+
+        return title;
+    },
+
+<span id='Ext-panel-Header-method-createTitle'>    createTitle: function (config) {
+</span>        var panel = this.getRefOwner();
+
+        if (config &amp;&amp; typeof config === &#39;string&#39;) {
+            config = {
+                text: config
+            };
+        }
+
+        return Ext.merge({
+            xtype: &#39;paneltitle&#39;,
+            instanceCls: (panel &amp;&amp; panel.titleCls) || null,
+            flex: &#39;1 1 auto&#39;
+        }, config);
+    },
+
+<span id='Ext-panel-Header-method-onItemAdd'>    onItemAdd: function(item, index) {
+</span>        var me = this,
+            title = me.getTitle(),
+            titleWeight = (title &amp;&amp; title.weight) || -10,
+            itemWeight = item.weight || 0;
+
+        me.callParent([item, index]);
+
+        if (item.isTool) {
+            item.addCls((itemWeight &lt; titleWeight) ? me.toolStartCls : me.toolEndCls);
+        }
+    },
+
+<span id='Ext-panel-Header-method-onItemRemove'>    onItemRemove: function(item, index, destroying) {
+</span>        this.callParent([item, index, destroying]);
+
+        if (item.isTool) {
+            item.removeCls([this.toolStartCls, this.toolEndCls]);
+        }
+    },
+
+<span id='Ext-panel-Header-method-updateIcon'>    updateIcon: function(icon) {
+</span>        this.ensureTitle().setIcon(icon);
+    },
+
+<span id='Ext-panel-Header-method-updateIconAlign'>    updateIconAlign: function(align) {
+</span>        this.ensureTitle().setIconAlign(align);
+    },
+
+<span id='Ext-panel-Header-method-updateIconCls'>    updateIconCls: function(cls) {
+</span>        this.ensureTitle().setIconCls(cls);
+    },
+
+<span id='Ext-panel-Header-method-updateTitle'>    updateTitle: function(title, oldTitle) {
+</span>        if (oldTitle) {
+            oldTitle.setConfig(title);
+        } else {
+            this.add(title);
+        }
+    },
+
+<span id='Ext-panel-Header-method-updateTitleAlign'>    updateTitleAlign: function(align) {
+</span>        this.ensureTitle().setTextAlign(align);
+    },
+
+<span id='Ext-panel-Header-method-updateTitleRotation'>    updateTitleRotation: function(rotation) {
+</span>        var me = this,
+            owner;
+
+        if (rotation === &#39;auto&#39;) {
+            // The panel will call to indicate the header position, so just drop out
+            // now, otherwise we&#39;re calling back into the panel init sequence which
+            // can cause some issues
+            if (me.isConfiguring) {
+                return;
+            }
+
+            owner = me.getRefOwner();
+            //&lt;debug&gt;
+            if (!owner) {
+                Ext.raise(&#39;Cannot use rotation auto without an owning panel.&#39;);
+            }
+            //&lt;/debug&gt;
+            if (owner) {
+                rotation = me.rotationMap[owner.getHeaderPosition()];
+            }
+        }
+        me.rotateTitle(rotation);
+    },
+
+<span id='Ext-panel-Header-method-updatePosition'>    updatePosition: function(position, oldPosition) {
+</span>        var me = this,
+            layout = me.getLayout(),
+            isLeft = (position === &#39;left&#39;),
+            isRight = (position === &#39;right&#39;),
+            vertical = me.vertical = (isLeft || isRight),
+            verticalCls = me.verticalCls,
+            horizontalCls = me.horizontalCls,
+            dockCls = me.dockCls;
+
+        layout.setVertical(vertical);
+        layout.setReverse(isLeft);
+
+        // The header is not a true docked item, but it must have the x-docked-[side]
+        // css cls so that it can participate in border management
+        if (oldPosition) {
+            me.removeCls(dockCls[oldPosition]);
+        }
+
+        if (position) {
+            me.addCls(dockCls[position]);
+        }
+
+        if (vertical) {
+            me.replaceCls(horizontalCls, verticalCls);
+        } else {
+            me.replaceCls(verticalCls, horizontalCls);
+        }
+
+        if (me.getTitleRotation() === &#39;auto&#39;) {
+            me.rotateTitle(me.rotationMap[position]);
+        }
+    },
+
+<span id='Ext-panel-Header-property-privates'>    privates: {
+</span>        clearTools: function () {
+            var items = this.getItems().items,
+                c, i;
+
+            for (i = items.length; i-- &gt; 0; ) {
+                c = items[i];
+
+                if (c.isTool &amp;&amp; !c.$internal) {
+                    this.remove(c);
+                }
+            }
+        },
+
+        ensureTitle: function () {
+            var me = this,
+                title = me.getTitle();
+
+            if (!title) {
+                me.setTitle(&#39;&#39;);
+                title = me.getTitle();
+            }
+
+            return title;
+        },
+
+        isVertical: function() {
+            return this.vertical;
+        },
+
+        rotateTitle: function(rotation) {
+            this.ensureTitle().setRotation(rotation);
+        },
+
+        sortByWeight: function (item1, item2) {
+            return (item1.weight || 0) - (item2.weight || 0);
+        }
+    },
+
+<span id='Ext-panel-Header-property-deprecated'>    deprecated: {
+</span>        &#39;6.5&#39;: {
+            configs: {
+<span id='Ext-panel-Header-cfg-glyph'>                /**
+</span>                 * @cfg {Number/String} glyph
+                 * @removed 6.5.0 Use {@link #iconCls} instead
+                 */
+                glyph: null
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

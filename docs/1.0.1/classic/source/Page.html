@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-virtual-Page'>/**
+</span> * This class manages a page of records in a virtual store&#39;s `PageMap`. It is created
+ * with the page `number` (0-based) and uses the store&#39;s `pageSize` to calculate the
+ * record span covered by it and stores these as `begin` and `end` properties. These
+ * aspects of the `Page` as well as the owning `PageMap` are expected to be immutable
+ * throughout the instance&#39;s life-cycle.
+ *
+ * The normal use for a `Page` is by a `Range`. Ranges acquire and `lock` the pages they
+ * span. As they move on, they `release` these locks. The act of locking pages schedules
+ * them for loading. Unlocking pages allows them to be evicted from the `PageMap` to
+ * reclaim memory for other pages.
+ *
+ * @private
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.data.virtual.Page&#39;, {
+<span id='Ext-data-virtual-Page-property-isVirtualPage'>    isVirtualPage: true,
+</span>
+<span id='Ext-data-virtual-Page-property-begin'>    /**
+</span>     * @property {Number} begin
+     * The start index of the records that this page represents.
+     * Inclusive.
+     * @readonly
+     */
+    begin: 0,
+
+<span id='Ext-data-virtual-Page-property-end'>    /**
+</span>     * @property {Number} end
+     * The end index of the records that this page represents.
+     * Exclusive.
+     * @readonly
+     */
+    end: 0,
+
+<span id='Ext-data-virtual-Page-property-error'>    /**
+</span>     * @property {Error} error
+     * The error instance if the page load `operation` failed. If this property is set,
+     * the `state` will be &quot;error&quot;.
+     * @readonly
+     */
+    error: null,
+
+<span id='Ext-data-virtual-Page-property-locked'>    /**
+</span>     * @property {&quot;active&quot;/&quot;prefetch&quot;} locked
+     * This property is managed by the `lock` and `release` methods. It is set to `null`
+     * if the page is not locked or it will be set to the string describing the type of
+     * the current lock.
+     *
+     * When pages are `locked` for the first time, they are scheduled for loading by the
+     * owning `pageMap`.
+     *
+     * Locked pages are not eligible for removal from the `PageMap`.
+     * @readonly
+     */
+    locked: null,
+
+<span id='Ext-data-virtual-Page-cfg-number'>    /**
+</span>     * @cfg {Number} number
+     * The 0-based page number of this page.
+     * @readonly
+     */
+    number: 0,
+
+<span id='Ext-data-virtual-Page-property-operation'>    /**
+</span>     * @property {Ext.data.operation.Read} operation
+     * The pending read of the records for this page. This property is only set when the
+     * page is in the &quot;loading&quot; `state`.
+     * @readonly
+     */
+    operation: null,
+
+<span id='Ext-data-virtual-Page-property-pageMap'>    /**
+</span>     * @property {Ext.data.virtual.PageMap} pageMap
+     * The owning `PageMap` instance.
+     * @readonly
+     */
+    pageMap: null,
+
+<span id='Ext-data-virtual-Page-property-records'>    /**
+</span>     * @property {Ext.data.Model[]} records
+     * The array of records loaded for this page. The `records[0]` item corresponds to
+     * the record at index `begin` in the overall result set.
+     * @readonly
+     */
+    records: null,
+
+<span id='Ext-data-virtual-Page-property-state'>    /**
+</span>     * @property {&quot;loading&quot;/&quot;loaded&quot;/&quot;error&quot;} state
+     * This property describes the current life-cycle state for this page. At creation,
+     * this property will be `null` for the &quot;initial&quot; state.
+     * @readonly
+     */
+    state: null,
+
+<span id='Ext-data-virtual-Page-method-constructor'>    constructor: function (config) {
+</span>        var me = this,
+            pageSize;
+
+        Ext.apply(me, config);
+
+        pageSize = me.pageMap.store.getPageSize();
+
+        me.begin = me.number * pageSize;
+        me.end = me.begin + pageSize;
+
+        me.locks = {
+            active: 0,
+            prefetch: 0
+        };
+    },
+
+<span id='Ext-data-virtual-Page-method-destroy'>    destroy: function () {
+</span>        var me = this,
+            operation = me.operation;
+
+        me.state = &#39;destroyed&#39;;
+
+        if (operation) {
+            operation.abort();
+        }
+
+        me.callParent();
+    },
+
+<span id='Ext-data-virtual-Page-method-adjustLock'>    /**
+</span>     * Acquires or releases the specified type of lock to this page. If this causes the
+     * `locked` property to transition to a new value, the `pageMap` is informed to
+     * enqueue or dequeue this page from the loading queues.
+     * @param {&quot;active&quot;/&quot;prefetch&quot;} kind The type of lock.
+     * @param {Number} delta A value of `1` to lock or `-1` to release.
+     */
+    adjustLock: function (kind, delta) {
+        var me = this,
+            locks = me.locks,
+            pageMap = me.pageMap,
+            locked = null,
+            lockedWas = me.locked;
+
+        //&lt;debug&gt;
+        if (!(kind in locks)) {
+            Ext.raise(&#39;Bad lock type (expected &quot;active&quot; or &quot;prefetch&quot;): &quot;&#39; + kind + &#39;&quot;&#39;);
+        }
+        if (delta !== 1 &amp;&amp; delta !== -1) {
+            Ext.raise(&#39;Invalid lock count delta (should be 1 or -1): &#39; + delta);
+        }
+        //&lt;/debug&gt;
+
+        locks[kind] += delta;
+
+        if (locks.active) {
+            locked = &#39;active&#39;;
+        }
+        else if (locks.prefetch) {
+            locked = &#39;prefetch&#39;;
+        }
+
+        if (locked !== lockedWas) {
+            me.locked = locked;
+
+            if (pageMap) {
+                pageMap.onPageLockChange(me, locked, lockedWas);
+            }
+        }
+    },
+
+<span id='Ext-data-virtual-Page-method-clearRecords'>    clearRecords: function (out, by) {
+</span>        var me = this,
+            begin = me.begin,
+            records = me.records,
+            i, n;
+
+        // If we don&#39;t have records then fillRecords() could not have filled anything
+        if (records) {
+            n = records.length;
+
+            if (by) {
+                for (i = 0; i &lt; n; ++i) {
+                    delete out[records[i][by]];
+                }
+            }
+            else {
+                for (i = 0; i &lt; n; ++i) {
+                    delete out[begin + i];
+                }
+            }
+        }
+    },
+
+<span id='Ext-data-virtual-Page-method-fillRecords'>    fillRecords: function (out, by, withIndex) {
+</span>        var me = this,
+            records = me.records,
+            begin = me.begin,
+            i, n, record;
+
+        if (records) {
+            // The last page will not likely have a full page worth, so always
+            // limit our loops by the actually available records...
+            n = records.length;
+
+            if (by) {
+                for (i = 0; i &lt; n; ++i) {
+                    record = records[i];
+                    out[record[by]] = withIndex ? begin + i : record;
+                }
+            }
+            else {
+                for (i = 0; i &lt; n; ++i) {
+                    out[begin + i] = records[i];
+                }
+            }
+        }
+    },
+
+<span id='Ext-data-virtual-Page-method-isInitial'>    isInitial: function () {
+</span>        return this.state === null;
+    },
+
+<span id='Ext-data-virtual-Page-method-isLoaded'>    isLoaded: function () {
+</span>        return this.state === &#39;loaded&#39;;
+    },
+
+<span id='Ext-data-virtual-Page-method-isLoading'>    isLoading: function () {
+</span>        return this.state === &#39;loading&#39;;
+    },
+
+<span id='Ext-data-virtual-Page-method-load'>    load: function () {
+</span>        var me = this,
+            operation;
+
+        me.state = &#39;loading&#39;;
+        operation = me.pageMap.store.loadVirtualPage(me, me.onLoad, me);
+
+        // Memory proxy will synchronously load pages...
+        if (me.state === &#39;loading&#39;) {
+            me.operation = operation;
+        }
+    },
+
+<span id='Ext-data-virtual-Page-property-privates'>    privates: {
+</span>        onLoad: function (operation) {
+            var me = this;
+
+            me.operation = null;
+
+            if (!me.destroyed) {
+                if (!(me.error = operation.getError())) {
+                    me.records = operation.getRecords();
+                    me.state = &#39;loaded&#39;;
+                }
+                else {
+                    me.state = &#39;error&#39;;
+                    //TODO fireEvent or something from the store?
+                }
+
+                me.pageMap.onPageLoad(me);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

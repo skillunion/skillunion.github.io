@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-grid-HorizontalGrid'>/**
+</span> * @class Ext.chart.grid.HorizontalGrid
+ * @extends Ext.draw.sprite.Sprite
+ * 
+ * Horizontal Grid sprite. Used in Cartesian Charts.
+ */
+Ext.define(&#39;Ext.chart.grid.HorizontalGrid&#39;, {
+    extend: &#39;Ext.draw.sprite.Sprite&#39;,
+    alias: &#39;grid.horizontal&#39;,
+
+    inheritableStatics: {
+<span id='Ext-chart-grid-HorizontalGrid-static-property-def'>        def: {
+</span>            processors: {
+                x: &#39;number&#39;,
+                y: &#39;number&#39;,
+                width: &#39;number&#39;,
+                height: &#39;number&#39;
+            },
+
+            defaults: {
+                x: 0,
+                y: 0,
+                width: 1,
+                height: 1,
+                strokeStyle: &#39;#DDD&#39;
+            }
+        }
+    },
+
+<span id='Ext-chart-grid-HorizontalGrid-method-render'>    render: function (surface, ctx, rect) {
+</span>        var attr = this.attr,
+            y = surface.roundPixel(attr.y),
+            halfLineWidth = ctx.lineWidth * 0.5;
+
+        ctx.beginPath();
+        ctx.rect(rect[0] - surface.matrix.getDX(), y + halfLineWidth, +rect[2], attr.height);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(rect[0] - surface.matrix.getDX(), y + halfLineWidth);
+        ctx.lineTo(rect[0] + rect[2] - surface.matrix.getDX(), y + halfLineWidth);
+        ctx.stroke();
+    }
+});</pre>
+</body>
+</html>

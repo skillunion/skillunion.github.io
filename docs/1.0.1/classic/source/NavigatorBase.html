@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-navigator-NavigatorBase'>/**
+</span> *
+ */
+Ext.define(&#39;Ext.chart.navigator.NavigatorBase&#39;, {
+    extend: &#39;Ext.chart.CartesianChart&#39;,
+
+<span id='Ext-chart-navigator-NavigatorBase-method-onRender'>    onRender: function () {
+</span>        this.callParent();
+        this.setupEvents();
+    },
+
+<span id='Ext-chart-navigator-NavigatorBase-method-setDocked'>    // Note: &#39;applyDock&#39; and &#39;updateDock&#39; won&#39;t ever be called in Classic.
+</span>    // See the Classic Component&#39;s &#39;setDock&#39; method, which is overridden here.
+    setDocked: function (docked) {
+        var me = this,
+            ownerCt = me.getNavigatorContainer();
+
+        if (!(docked === &#39;top&#39; || docked === &#39;bottom&#39;)) {
+            Ext.raise(&quot;Can only dock to &#39;top&#39; or &#39;bottom&#39;.&quot;);
+        }
+
+        if (docked !== me.dock) {
+            if (ownerCt &amp;&amp; ownerCt.moveDocked) {
+                ownerCt.moveDocked(me, docked);
+            } else {
+                me.dock = docked;
+            }
+        }
+
+        return me;
+    },
+
+<span id='Ext-chart-navigator-NavigatorBase-method-getDocked'>    getDocked: function () {
+</span>        return this.dock;
+    }
+
+});</pre>
+</body>
+</html>

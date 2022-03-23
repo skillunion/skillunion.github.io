@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-RowBody'>/**
+</span> * A body component to be used with Grid Rows. This component should not be used directly.
+ * Always use the Grid row&#39;s {@link Ext.grid.Row#body body} config to create a row body.
+ *
+ * Typically used together with a {@link Ext.grid.plugin.RowExpander Row Expander}
+ */
+Ext.define(&#39;Ext.grid.RowBody&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    xtype: &#39;rowbody&#39;,
+
+    config: {
+<span id='Ext-grid-RowBody-cfg-widget'>        widget: null
+</span>    },
+
+<span id='Ext-grid-RowBody-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;rowbody&#39;,
+</span>
+<span id='Ext-grid-RowBody-property-inheritUi'>    inheritUi: true,
+</span>
+<span id='Ext-grid-RowBody-property-template'>    template: [{
+</span>        reference: &#39;spacerElement&#39;,
+        cls: Ext.baseCSSPrefix + &#39;spacer-el&#39;
+    }, {
+        reference: &#39;contentElement&#39;,
+        cls: Ext.baseCSSPrefix + &#39;content-el&#39;
+    }],
+
+<span id='Ext-grid-RowBody-method-initialize'>    initialize: function() {
+</span>        var me = this,
+            grid, rowExpander;
+
+        me.callParent();
+
+        grid = me.row.getGrid();
+
+        if (grid &amp;&amp; grid.hasRowExpander) {
+            rowExpander = grid.findPlugin(&#39;rowexpander&#39;);
+
+            if (rowExpander) {
+                me.spacerElement.setWidth(rowExpander.getColumn().getWidth());
+            }
+        }
+    },
+
+<span id='Ext-grid-RowBody-method-applyWidget'>    applyWidget: function (widget) {
+</span>        var row = this.row;
+
+        if (widget) {
+            widget = Ext.apply({
+                ownerCmp: row
+            }, widget);
+            widget = Ext.widget(widget);
+        }
+        return widget;
+    },
+
+<span id='Ext-grid-RowBody-method-updateWidget'>    updateWidget: function (widget, oldWidget) {
+</span>        if (oldWidget) {
+            oldWidget.destroy();
+        }
+
+        if (widget) {
+            this.contentElement.appendChild(widget.element);
+        }
+    },
+
+<span id='Ext-grid-RowBody-method-updateRecord'>    updateRecord: function (record, oldRecord) {
+</span>        var tpl = this.getTpl();
+
+        if (tpl) {
+            this.callParent([record, oldRecord]);
+        }
+    },
+
+<span id='Ext-grid-RowBody-method-getInnerHtmlElement'>    getInnerHtmlElement: function() {
+</span>        return this.contentElement;
+    },
+
+<span id='Ext-grid-RowBody-method-doDestroy'>    doDestroy: function () {
+</span>        this.setWidget(null);
+        this.callParent();
+    }
+});
+</pre>
+</body>
+</html>

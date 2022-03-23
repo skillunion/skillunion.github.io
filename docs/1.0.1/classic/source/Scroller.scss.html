@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}scroller {
+    -webkit-overflow-scrolling: touch; // enable momentum scrolling on iOS
+    overflow-anchor: none;             // Chrome 56 enables this by default
+}
+
+.#{$prefix}scroller-spacer {
+    position: absolute;
+    top: 0;             // Positioned using translate3d
+    overflow: hidden;   // Needed for a translated element to stretch scroll range in IE
+    height: 1px;
+    width: 1px;
+    font-size: 0;
+    line-height: 0;
+    pointer-events: none;
+}
+
+.#{$prefix}scroller-snappable {
+    -ms-scroll-snap-type: mandatory;
+    -webkit-scroll-snap-type: mandatory;
+    scroll-snap-type: mandatory;
+}
+
+.#{$prefix}no-scrollbars {
+    -ms-overflow-style: none;
+
+    &amp;::-webkit-scrollbar {
+        width: 0;
+    }
+}
+</pre>
+</body>
+</html>

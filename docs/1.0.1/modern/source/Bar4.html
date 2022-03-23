@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-tab-Bar'>/**
+</span> * Ext.tab.Bar is used internally by {@link Ext.tab.Panel} to create the bar of tabs that appears at the top of the tab
+ * panel. It can also be used as a standalone component to recreate the look and feel of tabs.
+ */
+Ext.define(&#39;Ext.tab.Bar&#39;, {
+    extend: &#39;Ext.Toolbar&#39;,
+    alternateClassName: &#39;Ext.TabBar&#39;,
+    xtype: &#39;tabbar&#39;,
+<span id='Ext-tab-Bar-property-isTabBar'>    isTabBar: true,
+</span>
+    requires: [
+        &#39;Ext.layout.HBox&#39;,
+        &#39;Ext.tab.Tab&#39;
+    ],
+
+    config: {
+<span id='Ext-tab-Bar-cfg-defaultTabUI'>        /**
+</span>         * @cfg {String} defaultTabUI
+         * A default {@link Ext.Component#ui ui} to use for {@link Ext.tab.Tab Tab} items.
+         */
+        defaultTabUI: null,
+
+<span id='Ext-tab-Bar-cfg-animateIndicator'>        /**
+</span>         * @cfg {Boolean} animateIndicator
+         * Determines if the active indicator below the tab should animate or snap
+         */
+        animateIndicator: false
+    },
+
+<span id='Ext-tab-Bar-cfg-defaultType'>    /**
+</span>     * @cfg defaultType
+     * @inheritdoc
+     */
+    defaultType: &#39;tab&#39;,
+
+<span id='Ext-tab-Bar-cfg-layout'>    /**
+</span>     * @cfg layout
+     * @inheritdoc
+     */
+    layout: {
+        type: &#39;hbox&#39;,
+        align: &#39;stretch&#39;
+    },
+
+    eventedConfig: {
+<span id='Ext-tab-Bar-cfg-activeTab'>        /**
+</span>         * @cfg {Number/String/Ext.Component} activeTab
+         * The initially activated tab. Can be specified as numeric index, itemId,
+         * component ID, or as the component instance itself.
+         * @accessor
+         * @evented
+         */
+        activeTab: null
+    },
+
+<span id='Ext-tab-Bar-property-baseCls'>    /**
+</span>     * @property baseCls
+     * @inheritdoc
+     */
+    baseCls: Ext.baseCSSPrefix + &#39;tabbar&#39;,
+
+<span id='Ext-tab-Bar-property-indicatorAnimationSpeed'>    /**
+</span>     * Speed in which the Indicator will move per Tab in milliseconds
+     */
+    indicatorAnimationSpeed: 150,
+
+<span id='Ext-tab-Bar-event-tabchange'>    /**
+</span>     * @event tabchange
+     * Fired when active tab changes.
+     * @param {Ext.tab.Bar} this
+     * @param {Ext.tab.Tab} newTab The new Tab
+     * @param {Ext.tab.Tab} oldTab The old Tab
+     */
+
+    initialize: function() {
+        var me = this;
+        me.callParent();
+
+        me.on({
+            tap: &#39;onTabTap&#39;,
+
+            delegate: &#39;&gt; tab&#39;,
+            scope   : me
+        });
+    },
+
+<span id='Ext-tab-Bar-method-getTemplate'>    getTemplate: function() {
+</span>        var template = this.callParent();
+        template.push({
+            reference: &#39;stripElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;strip-el&#39;
+        });
+
+        return template;
+    },
+
+<span id='Ext-tab-Bar-method-onTabTap'>    /**
+</span>     * @private
+     */
+    onTabTap: function(tab) {
+        this.setActiveTab(tab);
+    },
+
+<span id='Ext-tab-Bar-method-applyActiveTab'>    /**
+</span>     * @private
+     */
+    applyActiveTab: function(newActiveTab, oldActiveTab) {
+        if (!newActiveTab &amp;&amp; newActiveTab !== 0) {
+            return;
+        }
+
+        var newTabInstance = this.parseActiveTab(newActiveTab);
+
+        if (!newTabInstance) {
+            // &lt;debug&gt;
+            if (oldActiveTab) {
+                Ext.Logger.warn(&#39;Trying to set a non-existent activeTab&#39;);
+            }
+            // &lt;/debug&gt;
+            return;
+        }
+        return newTabInstance;
+    },
+
+<span id='Ext-tab-Bar-method-updateDocked'>    /**
+</span>     * @private
+     * Default pack to center when docked to the bottom, otherwise default pack to left
+     */
+    updateDocked: function(newDocked) {
+        var layout = this.getLayout(),
+            initialConfig = this.getInitialConfig(),
+            pack;
+
+        if (!initialConfig.layout || !initialConfig.layout.pack) {
+            pack = (newDocked == &#39;bottom&#39;) ? &#39;center&#39; : &#39;left&#39;;
+            //layout isn&#39;t guaranteed to be instantiated so must test
+            if (layout.isLayout) {
+                layout.setPack(pack);
+            } else {
+                layout.pack = (layout &amp;&amp; layout.pack) ? layout.pack : pack;
+            }
+        }
+
+		this.callParent(arguments);
+    },
+
+<span id='Ext-tab-Bar-method-updateActiveTab'>    /**
+</span>     * @private
+     * Sets the active tab
+     */
+    updateActiveTab: function(newTab, oldTab) {
+        var me = this,
+            animateIndicator = this.getAnimateIndicator();
+
+        if (animateIndicator &amp;&amp; newTab &amp;&amp; oldTab &amp;&amp; oldTab.parent) {
+            me.animateTabIndicator(newTab, oldTab);
+        } else {
+
+            if (newTab) {
+                newTab.setActive(true);
+            }
+
+            //Check if the parent is present, if not it is destroyed
+            if (oldTab &amp;&amp; oldTab.parent) {
+                oldTab.setActive(false);
+                this.previousTab = oldTab;
+            }
+
+        }
+    },
+
+<span id='Ext-tab-Bar-method-updateAnimateIndicator'>    updateAnimateIndicator: function() {
+</span>        var me = this;
+
+        if (me.$animateIndicatorElement) {
+            me.$animateIndicatorElement.destroy();
+        }
+
+        if (me.$indicatorAnimationListeners) {
+            me.$indicatorAnimationListeners.destroy()
+        }
+
+        me.$indicatorAnimationListeners = me.$animateIndicatorElement = null;
+    },
+
+<span id='Ext-tab-Bar-method-animateTabIndicator'>    animateTabIndicator: function(newTab, oldTab) {
+</span>        var me = this,
+            newTabElement = newTab.element,
+            oldTabElement = oldTab.element,
+            oldIndicator = oldTab.activeIndicatorElement,
+            newIndicator = newTab.activeIndicatorElement,
+            tabbarElement = me.element,
+            oldIndicatorProps, newIndicatorProps,
+            animateIndicatorElement;
+
+        newTab.setActive(true);
+        oldIndicatorProps = {
+            transform: {
+                translateX: oldTabElement.getX() - tabbarElement.getX()
+            },
+            width: oldTabElement.getWidth(),
+            height: oldIndicator.getHeight(),
+            &#39;background-color&#39;: oldIndicator.getStyle(&#39;background-color&#39;)
+        };
+
+        newIndicatorProps = {
+            transform: {
+                translateX: newTabElement.getX() - tabbarElement.getX()
+            },
+            width: newTabElement.getWidth(),
+            height: newIndicator.getHeight(),
+            &#39;background-color&#39;: newIndicator.getStyle(&#39;background-color&#39;)
+        };
+        oldTab.setActive(false);
+        newIndicator.hide();
+
+        if (oldIndicatorProps.height || newIndicatorProps.height) {
+
+            animateIndicatorElement = me.$animateIndicatorElement;
+            if (!animateIndicatorElement) {
+                animateIndicatorElement = me.$animateIndicatorElement = me.element.insertFirst({cls: Ext.baseCSSPrefix + &#39;active-indicator-el&#39;});
+            }
+
+            animateIndicatorElement.show();
+            if (me.$indicatorAnimationListeners) {
+                me.$indicatorAnimationListeners.destroy();
+                me.$indicatorAnimationListeners = null;
+            }
+
+            me.$indicatorAnimation = animateIndicatorElement.animate({
+                duration: me.indicatorAnimationSpeed,
+                from: oldIndicatorProps,
+                to: newIndicatorProps
+            });
+
+            me.$indicatorAnimationListeners = me.$indicatorAnimation.on({
+                destroyable: true,
+                animationend: {
+                    fn: function() {
+                        newIndicator.show();
+                        animateIndicatorElement.hide();
+                        me.$indicatorAnimationListeners.destroy();
+                        me.$indicatorAnimation = me.$indicatorAnimationListeners = null
+                    },
+                    single: true
+                }
+            });
+        }
+    },
+
+<span id='Ext-tab-Bar-method-parseActiveTab'>    /**
+</span>     * @private
+     * Parses the active tab, which can be a number or string
+     */
+    parseActiveTab: function(tab) {
+        //we need to call getItems to initialize the items, otherwise they will not exist yet.
+        if (typeof tab == &#39;number&#39;) {
+			return this.getItems().items[tab];
+        }
+        else if (typeof tab == &#39;string&#39;) {
+            tab = this.getComponent(tab) || Ext.getCmp(tab);
+        }
+        return tab;
+    },
+
+<span id='Ext-tab-Bar-method-onItemAdd'>    onItemAdd: function(item, index) {
+</span>        var defaultTabUI = this.getDefaultTabUI();
+
+        if (defaultTabUI &amp;&amp; item.isTab &amp;&amp; (item.getUi() == null)) {
+            item.setUi(defaultTabUI);
+        }
+
+        this.callParent([item, index]);
+    },
+
+<span id='Ext-tab-Bar-property-privates'>    privates: {
+</span><span id='Ext-tab-Bar-method-findNextActivatableTab'>        /**
+</span>         * @private
+         * Determines the next tab to activate when one tab is closed.
+         * @param {Ext.tab.Tab} tabToClose
+         */
+        findNextActivatableTab: function (tabToClose) {
+            var me = this,
+                previousTab = me.previousTab,
+                nextTab;
+
+            if (tabToClose.getActive() &amp;&amp; me.getItems().getCount() &gt; 1) {
+                if (previousTab &amp;&amp; previousTab !== tabToClose &amp;&amp; !previousTab.getDisabled()) {
+                    nextTab = previousTab;
+                }
+                else {
+                    nextTab = tabToClose.next(&#39;tab:not([disabled=true])&#39;) || tabToClose.prev(&#39;tab:not([disabled=true])&#39;);
+                }
+            }
+
+            // If we couldn&#39;t find the next tab to activate, fall back
+            // to the currently active one. We need to have a focused tab
+            // at all times.
+            return nextTab || me.getActiveTab();
+        },
+
+<span id='Ext-tab-Bar-method-closeTab'>        /**
+</span>         * @private
+         * @param {Ext.tab.Tab} tab
+         */
+        closeTab: function(tab) {
+            var me = this,
+                nextActivatableTab = me.findNextActivatableTab(tab),
+                parent = me.parent;
+
+            if (parent &amp;&amp; parent.isTabPanel) {
+                // setting the active card on a tab panel also sets the active tab in the tab bar
+                if (nextActivatableTab) {
+                    parent.setActiveItem(nextActivatableTab.card);
+                }
+                // removing card from tab panel also removes the tab from the tab bar
+                parent.remove(tab.card);
+            } else {
+                if (nextActivatableTab) {
+                    me.setActiveTab(nextActivatableTab);
+                }
+                me.remove(tab);
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

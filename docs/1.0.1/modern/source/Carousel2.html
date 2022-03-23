@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-Carousel'>/**
+</span> * @private
+ */
+Ext.define(&#39;Ext.layout.Carousel&#39;, {
+    extend: &#39;Ext.layout.Auto&#39;,
+    alias: &#39;layout.carousel&#39;,
+
+    requires: [
+        &#39;Ext.Deferred&#39;
+    ],
+
+    config: {
+<span id='Ext-layout-Carousel-cfg-visibleChildren'>        /**
+</span>         * @cfg {Number} [visibleChildren=1] Number of children visible simultaneously
+         * in the container.
+         */
+        visibleChildren: 1,
+
+<span id='Ext-layout-Carousel-cfg-frontIndex'>        /**
+</span>         * @cfg {Number} [frontIndex] Index of the child considered &quot;front&quot;, 0-based.
+         *
+         * Default value is calculated thusly: for layouts with odd number of
+         * {@link #cfg!visibleChildren} the index is calculated to be the center item, for even
+         * number of visible children the index is `visibleChildren / 2`.
+         */
+        frontIndex: {
+            $value: true,
+            lazy: true
+        },
+
+<span id='Ext-layout-Carousel-cfg-animation'>        /**
+</span>         * @cfg {Boolean} [animation=true] Set to `false` to disable animated transitions.
+         */
+        animation: true
+    },
+
+<span id='Ext-layout-Carousel-property-vertical'>    vertical: false,
+</span>
+<span id='Ext-layout-Carousel-property-targetCls'>    targetCls: Ext.baseCSSPrefix + &#39;layout-carousel&#39;,
+</span><span id='Ext-layout-Carousel-property-wrapCls'>    wrapCls: Ext.baseCSSPrefix + &#39;layout-carousel-wrap&#39;,
+</span><span id='Ext-layout-Carousel-property-itemCls'>    itemCls: Ext.baseCSSPrefix + &#39;layout-carousel-item&#39;,
+</span><span id='Ext-layout-Carousel-property-singularCls'>    singularCls: Ext.baseCSSPrefix + &#39;layout-carousel-singular&#39;,
+</span>
+<span id='Ext-layout-Carousel-method-destroy'>    destroy: function() {
+</span>        var container = this.getContainer();
+
+        Ext.destroy(container.carouselElement, this.activeAnim);
+
+        this.callParent();
+    },
+
+<span id='Ext-layout-Carousel-method-updateContainer'>    updateContainer: function(container, oldContainer) {
+</span>        var me = this;
+
+        me.callParent([container, oldContainer]);
+
+        container.bodyElement.addCls(me.wrapCls);
+
+        container.carouselElement = container.getRenderTarget().appendChild({
+            cls: me.targetCls
+        });
+
+        Ext.override(container, {
+            privates: {
+                getRenderTarget: function() {
+                    return this.carouselElement;
+                }
+            }
+        });
+    },
+
+<span id='Ext-layout-Carousel-method-onContainerInitialized'>    onContainerInitialized: function() {
+</span>        var me = this;
+
+        me.callParent();
+
+        // We don&#39;t want to stomp on front seat being set during configuration
+        // but we need to make sure it&#39;s primed if it wasn&#39;t yet.
+        if (!me.frontItem) {
+            me.setFrontItem(me.getFrontIndex(), false);
+        }
+    },
+
+<span id='Ext-layout-Carousel-method-updateVisibleChildren'>    updateVisibleChildren: function(count) {
+</span>        var me = this,
+            target = me.getContainer().getRenderTarget(),
+            pct, items, item, i, len;
+
+        items = me.getLayoutItems();
+        pct = me.calcItemBasis(count) + &#39;%&#39;;
+
+        if (items.length &gt; count) {
+            target.setStyle(&#39;left&#39;, &#39;-&#39; + pct);
+            target.setStyle(&#39;transform&#39;, &#39;translateX(&#39; + pct + &#39;)&#39;);
+        }
+
+        for (i = 0, len = items.length; i &lt; len; i++) {
+            item = items[i];
+
+            item.el.setStyle(&#39;flex-basis&#39;, pct);
+        }
+
+        target.toggleCls(me.singularCls, count === 1);
+    },
+
+<span id='Ext-layout-Carousel-method-applyFrontIndex'>    applyFrontIndex: function(itemIdx) {
+</span>        var count, index;
+
+        if (typeof itemIdx !== &#39;number&#39;) {
+            count = this.getVisibleChildren();
+            index = count - 1;
+
+            itemIdx = !index ? index : index % 2 ? Math.floor(index / 2) + 1 : index / 2;
+        }
+
+        return itemIdx;
+    },
+
+<span id='Ext-layout-Carousel-method-applyDuration'>    applyDuration: function(duration) {
+</span>        if (typeof duration !== &#39;number&#39;) {
+            duration = parseInt(duration, 10) || 500;
+        }
+
+        return duration;
+    },
+
+<span id='Ext-layout-Carousel-method-calcItemBasis'>    calcItemBasis: function(count) {
+</span>        count = count != null ? count : this.getVisibleChildren();
+
+        return count === 1 ? 100 : !(count % 2) ? 100 / count : (100 / count).toFixed(5);
+    },
+
+<span id='Ext-layout-Carousel-method-insertInnerItem'>    insertInnerItem: function(item, index) {
+</span>        var me = this;
+
+        me.callParent([item, index]);
+
+        if (index === 0) {
+            me.frontItem = item;
+        }
+
+        item.el.setStyle(&#39;order&#39;, index + 1);
+        item.el.setStyle(&#39;flex-basis&#39;, me.calcItemBasis() + &#39;%&#39;);
+    },
+
+<span id='Ext-layout-Carousel-method-getLayoutItemCount'>    getLayoutItemCount: function() {
+</span>        return this.getLayoutItems().length;
+    },
+
+<span id='Ext-layout-Carousel-method-getLayoutItems'>    getLayoutItems: function() {
+</span>        return this.getContainer().getInnerItems();
+    },
+
+<span id='Ext-layout-Carousel-method-getItemIndex'>    getItemIndex: function(item) {
+</span>        return this.getContainer().innerIndexOf(item);
+    },
+
+<span id='Ext-layout-Carousel-method-shiftIndex'>    shiftIndex: function(index, increment) {
+</span>        var count = this.getLayoutItemCount();
+
+        index += increment;
+
+        if (increment &lt; 0) {
+            index = index &lt; 0 ? count - 1 : index;
+        } else if (increment &gt; 0) {
+            index = index &gt;= count ? 0 : index;
+        }
+
+        return index;
+    },
+
+<span id='Ext-layout-Carousel-method-getVisibleItems'>    getVisibleItems: function() {
+</span>        return this.visibleItems;
+    },
+
+<span id='Ext-layout-Carousel-method-getEdgeItem'>    getEdgeItem: function(increment) {
+</span>        var items = this.getOrderedLayoutItems();
+        return increment &lt; 0 ? items[0] : items[items.length - 1];
+    },
+
+<span id='Ext-layout-Carousel-method-getFirstVisibleItem'>    getFirstVisibleItem: function() {
+</span>        return this.getVisibleItems()[0];
+    },
+
+<span id='Ext-layout-Carousel-method-getLastVisibleItem'>    getLastVisibleItem: function() {
+</span>        var items = this.getVisibleItems();
+
+        return items[items.length - 1];
+    },
+
+<span id='Ext-layout-Carousel-method-getFrontItem'>    getFrontItem: function() {
+</span>        return this.frontItem;
+    },
+
+<span id='Ext-layout-Carousel-method-getFrontItemIndex'>    getFrontItemIndex: function() {
+</span>        return this.getItemIndex(this.getFrontItem());
+    },
+
+<span id='Ext-layout-Carousel-method-getOrderedLayoutItems'>    getOrderedLayoutItems: function() {
+</span>        var items = Ext.Array.clone(this.getLayoutItems());
+        return items.sort(this.sortByOrder);
+    },
+
+<span id='Ext-layout-Carousel-method-setFrontItem'>    setFrontItem: function(index, animate) {
+</span>        var me = this,
+            container = me.getContainer(),
+            target = container.getRenderTarget(),
+            frontIndex = me.getFrontIndex(),
+            visibleChildren = me.getVisibleChildren(),
+            items, item, frontItem, oldFrontItem, oldFrontIndex,
+            visibleItems, direction, basis, i, len, ret, deferred;
+
+        items = me.getLayoutItems();
+
+        if (items.length &lt; visibleChildren) {
+            return Ext.Deferred.getCachedResolved();
+        }
+
+        if (typeof index !== &#39;number&#39;) {
+            index = items.indexOf(index);
+        }
+
+        basis = me.calcItemBasis();
+        target.setStyle(&#39;left&#39;, &#39;-&#39; + basis + &#39;%&#39;);
+
+        oldFrontItem = me.getFrontItem();
+        me.frontItem = frontItem = items[index];
+
+        // Carousel seats are shifted one position to the left to avoid flickering,
+        // and frontIndex needs to be adjusted accordingly
+        frontIndex++;
+
+        // Normalize items so that desired index is at the beginning
+        items = items.slice(index).concat(items.slice(0, index));
+        oldFrontIndex = items.indexOf(oldFrontItem);
+
+        // Now shift items right to account for front seat index
+        items = items.slice(-frontIndex).concat(items.slice(0, items.length - frontIndex));
+
+        if (animate == null) {
+            animate = me.getAnimation();
+        }
+
+        if (animate) {
+            if (typeof animate === &#39;boolean&#39;) {
+                animate = {};
+            }
+            // If old front item is less than half items away from new front (0 index)
+            // then it was in front before, and we&#39;re moving backwards
+            direction = oldFrontIndex &gt; -1 &amp;&amp; oldFrontIndex &lt;= Math.floor(items.length / 2) ? 1 : -1;
+            Ext.destroy(me.activeAnim);
+
+            deferred = new Ext.Deferred();
+            ret = deferred.promise;
+
+            me.activeAnim = Ext.Animator.run(Ext.apply({
+                element: target,
+                to: {
+                    transform: {
+                        translateX: (basis * direction) + &#39;%&#39;
+                    }
+                },
+                callback: function() {
+                    me.orderItems(items);
+                    deferred.resolve();
+                    me.activeAnim = null;
+                }
+            }, animate));
+        }
+
+        me.visibleItems = visibleItems = [];
+        for (i = 0, len = items.length; i &lt; len; i++) {
+            item = items[i];
+
+            // We always keep one invisible item off the left side
+            // so visible items start at index 1 and end at visibleChildren
+            if (i &gt; 0 &amp;&amp; i &lt;= visibleChildren) {
+                visibleItems.push(item);
+            }
+            item.$carouselOrder = i + 1;
+        }
+
+        if (!animate) {
+            me.orderItems(items);
+            ret = Ext.Deferred.getCachedResolved();
+        }
+
+        visibleItems.sort(me.sortByOrder);
+
+        return ret;
+    },
+
+<span id='Ext-layout-Carousel-method-getMoveItem'>    getMoveItem: function(increment) {
+</span>        var index = this.getFrontItemIndex();
+        index = this.shiftIndex(index, increment);
+        return this.getLayoutItems()[index];
+    },
+
+<span id='Ext-layout-Carousel-method-cancelAnimation'>    cancelAnimation: function() {
+</span>        Ext.destroy(this.activeAnim);
+    },
+
+<span id='Ext-layout-Carousel-method-move'>    move: function(increment, animate) {
+</span>        return this.setFrontItem(this.getMoveItem(increment), animate);
+    },
+
+<span id='Ext-layout-Carousel-method-prev'>    prev: function(animate) {
+</span>        return this.move(-1, animate);
+    },
+
+<span id='Ext-layout-Carousel-method-next'>    next: function(animate) {
+</span>        return this.move(1, animate);
+    },
+
+<span id='Ext-layout-Carousel-property-privates'>    privates: {
+</span>        orderItems: function(items) {
+            var len = items.length,
+                i, item;
+
+            for (i = 0; i &lt; len; ++i) {
+                item = items[i];
+                item.el.setStyle(&#39;order&#39;, item.$carouselOrder + 1);
+            }
+        },
+
+        sortByOrder: function(a, b) {
+            return +a.$carouselOrder - b.$carouselOrder;
+        }
+    }
+});
+</pre>
+</body>
+</html>

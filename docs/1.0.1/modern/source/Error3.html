@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Project    : SU Lib Core
+ * File	      : Error.js
+ * Created on : 29.04.2015 13:36:15
+ */
+
+<span id='SU-Error'>/**
+</span> * @class SU.Error
+ *
+ * Общий класс для ExtJS 4.2+ / Sencha Touch 2.3+
+ *
+ * Класс-оболочка для объекта Error JavaScript, который добавляет
+ * несколько полезных возможностей для обработки ошибок в приложении.
+ *
+ * Полностью перекрывает существующий класс Ext.Error.
+ *
+ * При использовании Ext#raise из любого класса,
+ * который использует систему классов Ext 4.2+ или ST,
+ * автоматически добавляется класс источника и метод, в котором была ошибка.
+ * Он также включает в себя логику для автоматического вывода ошибки на консоль,
+ * с дополнительными метаданными об ошибке.
+ *
+ * SU.Error определяет глобальный метод обработки ошибки #handle,
+ * который может быть изменен в целях обработки ошибки в одном месте на уровне приложения.
+ * При необходимости можно использовать #ingnore для игнорирования обработки ошибок,
+ * хотя в реальном приложении лучше переопределить функцию по обработке ошибок
+ * и вести журнал отчета об ошибках.
+ *
+ * ## Примеры
+ *
+ * ### В самом простом варианте можно просто вызвать ошибку в виде строки из любого места кода:
+ *
+ *     @example
+ *
+ *     throw new SU.Error(&#39;Something bad happened!&#39;);
+ *
+ *
+ * ### Ошибка в виде строки:
+ *
+ *      @example
+ *
+ *		Ext.raise(&#39;A simple string error message&#39;);
+ *
+ * ### Перехват ошибок:
+ *
+ *      @example
+ *
+ *		SU.Error.ignore = false;
+ *		SU.Error.handle = function(e){
+ *		    if(e.name === &#39;ReferenceError&#39;){
+ *		        alert(Ext.String.format(&#39;Name: {0},\nMessage: {1},\nDescription: {2}&#39;, e.name, e.message, e.description));
+ *		        return true;
+ *		    }
+ *		    return SU.Error.ignore;
+ *		}
+ *		try{
+ *		    err+1;
+ *		} catch(e){
+ *		    Ext.raise(e);
+ *		}
+ *
+ *		Ext.raise(&#39;Not handled a simple string  error message&#39;);
+ *
+ * ### Ошибки с локализацией и параметрами:
+ *
+ *      @example
+ *
+ *		Ext.raise({
+ *			etype: &#39;Ext.WebSocketError&#39;,
+ *			msg: [&#39;CAN_NOT_CONNECT&#39;, &#39;ws://example.com&#39;]
+ *		});
+ *
+ * ### Использование `instanceof`:
+ *
+ *      @example
+ *
+ *		SU.Error.handle = function(e){
+ *          alert(
+ *              e.toString()+
+ *              &#39;\n&#39;+
+ *              e.description+
+ *              &#39;\nInstance of Error: &#39;+(e instanceof Error)+                           // TRUE
+ *              &#39;\nInstance of SyntaxError: &#39;+(e instanceof SyntaxError)+               // FALSE
+ *              &#39;\nInstance of Ext.Base: &#39;+(e instanceof Ext.Base)+                     // FALSE
+ *              &#39;\nInstance of Ext.Error: &#39;+(e instanceof Ext.Error)+                   // true
+ *              &#39;\nInstance of SU.Error: &#39;+(e instanceof SU.Error)+                     // true
+ *              &#39;\nInstance of Ext.WebSocketError: &#39;+(e instanceof Ext.WebSocketError)  // true | false
+ *          );
+ *		    return true;
+ *		}
+ *
+ *      try {
+ *          Ext.raise({
+ *              etype: &#39;Ext.WebSocketError&#39;,
+ *              msg: [&#39;CAN_NOT_CONNECT&#39;, &#39;ws://example.com&#39;]
+ *          });
+ *      } catch(e) {
+ *          Ext.raise(e);
+ *      }
+ *
+ *      try {
+ *          eval(&#39;for(&#39;);
+ *      } catch(e) {
+ *          Ext.raise(e);
+ *      }
+ *
+ * Класс полностью поддерживает методику системы классов Sencha, но
+ * его прототипом является класс Error JavaScript. Поддерживаются следующие
+ * instanceof:
+ *
+ * - Error
+ * - Ext.Error
+ * - SU.Error
+ * - классы наследники от SU.Error
+ *
+ * _Не является instanceof класса Ext.Base_
+ *
+ * @history 06.04.2018
+ * Переписана обработка &#39;DOMException&#39;. Раньше был AV.
+ * 
+ * @history 22.08.2017
+ * Описание класса обернуто в самовызывающуюся функцию
+ * для правильной работы в Sencha Touch
+ *
+ * @history 26.07.2017
+ * Изменения в конфигурации при использовании
+ * локализации ошибок
+ *
+ * @history 22.01.2017
+ * Класс переписан, т.к. предыдущий вариант приводил
+ * к ошибке загрузки в отладочном режиме.
+ *
+ * @history 29.04.2015
+ * Создание модуля
+ */
+Ext.define(&#39;SU.Error&#39;, (function(){
+
+    function toString(formated){
+        var me = this,
+            cls = me.sourceClass,
+            method = me.sourceMethod,
+            msg = me.message || me.msg,
+			crlf = formated ? &#39;\n    &#39; : &#39; &#39;;
+
+        if (method) {
+            if (msg) {
+                method += &#39;()&#39;+crlf;
+                method += msg;
+            } else {
+                method += &#39;()&#39;;
+            }
+        }
+
+        if (cls) {
+            method = method ? (cls + &#39;::&#39; + method) : cls;
+        }
+
+        return (formated ? (&#39;[&#39;+me.name+&#39;]&#39;) : (me.name+&#39;:&#39;))
+			+crlf + ( method || msg || &#39;&#39; );
+    };
+
+    return {
+
+
+<span id='SU-Error-cfg-msg'>        /**
+</span>         * @cfg {String/Array} msg
+         * @inheritdoc #cfg-message
+         * @localdoc альтернатива для {@link #cfg-message}
+         */
+
+<span id='SU-Error-property-name'>        /**
+</span>         * Имя класса ошибки
+         */
+        name: &#39;SUError&#39;,
+
+<span id='SU-Error-cfg-message'>        /**
+</span>         * @cfg {String/Array} message (required)
+         * Текст сообщения об ошибке или массив для форматирования сообщения.
+         *
+         * @localdoc В массиве первый элемент используется для формата сообщения,
+         * остальные элементы - параметры сообщения.
+         *
+         * Строковые значения могут являтся ключом локализации и будут заменены
+         * соответствующими значениями.
+         */
+        message: &#39;Empty message&#39;,
+
+<span id='SU-Error-cfg-description'>        /**
+</span>         * @cfg {String/Array/Boolean} description (optional)
+         * Описание ошибки в виде строки или массива для форматирования. Формирование
+         * описания такое же как и для {@link #cfg-message}.
+         *
+         * При значении `false` описание ошибки не создается.
+         *
+         * По умолчанию описание ошибки соответствует вызову #toString.
+         *
+         */
+        description: undefined,
+
+<span id='SU-Error-method-format'>        /**
+</span>         * Локализация и форматирование сообщений
+         * @param {String/Array} message Сообщение
+         * @returns {String} Форматированное сообщение
+         * @protected
+         */
+        format: function( message ){
+            var me = this;
+            if( message ){
+                if( !Ext.isArray(message) ) message = [message];
+                for( var i = 0, ln = message.length; i &lt; ln; i++ ){
+                    try{
+                        if( Ext.isString(message[i]) ){
+                            var o = me, m = null;
+                            while( !!o &amp;&amp; !m ){
+                                m=o.self.locales &amp;&amp; o.self.locales[message[i]];
+                                o=o.superclass;
+                            }
+                            message[i] = m || message[i];
+                        }
+                    } catch (e) {
+                        //
+                    }
+                }
+                return Ext.String.format.apply( me, message );
+            }
+            return message;
+        },
+
+        constructor: function( config ){
+            var me = this,
+                statics = me.statics(),
+                options = config;
+
+            if( config instanceof SU.Error ){
+                // Была перекрыта своя ошибка - ее и вернем
+				Ext.apply(this, config);
+                return;
+
+            } else if( Ext.isString(config) ){
+				// В конфигурации только сообщение
+                options = new Error(config);
+				options.name = me.name || &#39;ExtError&#39;;
+				options.msg = config;
+
+            } else if( config instanceof DOMException ){
+                // Перекрыта ошибка DOMException - пробуем локализовать,
+				// в описании оригинальное исключение
+                options = Ext.applyIf({
+                    name: config.name || this.name,
+                    message: [SU.Error.DOMExceptions[config.code || 0] || &#39;DOM_UNKNOWN&#39;, config.code || 0],
+                    description: toString.call(config)
+                }, config);
+
+            } else if( config instanceof Error ){
+                // Перекрыта ошибка JavaScript,
+				// в описании оригинальное исключение
+                options.name = config.name || me.name;
+                options.message = config.msg || config.message;
+                options.description = Ext.isDefined(config.description)
+					? config.description
+					: toString.call(config, true);
+
+            } else {
+				//
+                options.name = config.name || me.name;
+                options.description = Ext.isDefined(config.description)
+					? config.description
+					: toString.call(config, true);
+//                options.description = me.description !== false
+//					? ( config.description || toString.call(config, true) )
+//					: config.description;
+			}
+
+            // локализация и форматирование сообщений и описания
+            options.msg = me.format( options.msg || options.message );
+            options.description = me.format( options.description );
+
+            Error.call(this, options.msg);
+
+            if( Ext.isObject(config) ){
+				// Возможные дополнительные параметры
+                Ext.apply(this, config);
+            }
+
+			// Присваивание значений
+			// !!!!
+			// Ext.apply использовать нельзя, т.к. у прототипа Error
+			// на некоторые свойства закрыто enumerable
+			//
+            me.name = options.name || me.name || &#39;ExtError&#39;;
+			me.message = options.msg || options.message || me.message;
+			if( options.description !== false &amp;&amp; me.description !== false ){
+                me.description = options.description || toString.call(me, true);
+			}
+
+			me.lineNumber	= me.lineNumber || options.lineNumber;
+			me.columnNumber	= me.columnNumber || options.columnNumber;
+			me.fileName		= me.fileName || options.fileName;
+
+			me.stack = me.stack || options.stack;
+
+			// Для тех кто не выдает стек
+			if( !me.stack ){
+				if (Error.captureStackTrace) {
+					Error.captureStackTrace(me, me.constructor);
+				} else {
+					me.stack = (new Error()).stack;
+				}
+			}
+
+            if( me.stack ){
+				// В FireFox свой чудный стек
+				var stack = me.stack.split(&#39;\n&#39;);
+				Ext.iterate(stack, function(item, index, array){
+					var line = item.split(&#39;@&#39;);
+					line &amp;&amp; line[1] &amp;&amp; (line[1] = &#39;(&#39;+line[1]+&#39;)&#39;);
+					item = line.join(&#39; &#39;);
+					array[index] = item.trim();
+				});
+                me.stack = stack.join(&#39;\n    &#39;);
+
+				// Сведения о месте падения есть не у всех - добавим что сможем
+				if( !me.fileName &amp;&amp; !me.lineNumber ){
+					stack = me.stack.split(&#39;\n&#39;);
+					var line = stack.shift();
+					if( !/:\d+:\d+\)$/.test(line) ){
+						line = stack.shift();
+					}
+					var math = /[\(](.+):(\d+):(\d+)/ig.exec(line);
+					me.fileName = math &amp;&amp; math[1];
+					me.lineNumber = math &amp;&amp; parseInt(math[2]);
+					me.columnNumber = math &amp;&amp; parseInt(math[3]);
+				}
+            }
+
+        },
+
+<span id='SU-Error-method-toString'>		/**
+</span>		 * Возвращает сообщение об ошибке.
+		 *
+		 * @method
+		 * @return {String} сообщение об ошибке
+		 * @protected
+		 */
+		toString: function(){
+			return toString.call(this);
+		},
+
+<span id='SU-Error-method-toFormatedString'>		/**
+</span>		 * Возвращает форматированное сообщение об ошибке с переводами сторки и отступами.
+		 *
+		 * @method
+		 * @return {String} сообщение об ошибке
+		 * @protected
+		 */
+		toFormatedString: function(){
+			return toString.call(this, true);
+		},
+
+        statics:{
+
+<span id='SU-Error-property-ignore'>            /**
+</span>             * Флаг, который может быть использован для глобального
+             * отключения сообщений об ошибках если установлен в `TRUE`.
+             *
+             * В большинстве случаев предпочтительнее установить пользовательскую
+             * функцию #handle для обработки ошибки.
+             */
+            ignore: false,
+
+<span id='SU-Error-static-method-raise'>            /**
+</span>             * Создает исключение JavaScript включающее в себя дополнительные данные
+             * о методе и классе в котором возникла ошибка.
+             *
+             * Может быть переданана строка сообщения об ошибке, либо
+             * объект с атрибутом `msg` или `message`, который будет
+             * использоваться в качестве сообщения об ошибке, либо
+             * перехваченное исключение JavaScript.
+             *
+             * Ошибка в виде строки:
+             *
+             *		SU.Error.raise(&#39;A simple string error message&#39;);
+             *
+             * Перехват исключения JavaScript:
+             *
+             *		SU.Error.ignore = false;
+             *		SU.Error.handle = function(e){
+             *			console.warn(&#39;Name: %s,\nMessage: %s,\nDescription: %s&#39;, e.name, e.message, e.description);
+             *		}
+             *		try{
+             *			err+1;
+             *		} catch(e){
+             *			SU.Error.raise(e);
+             *		}
+             *
+             * Исключение с локализацией и параметрами:
+             *
+             *		SU.Error.raise({
+             *			etype: &#39;Ext.WebSocketError&#39;,
+             *			msg: [&#39;CAN_NOT_CONNECT&#39;, &#39;ws://example.com&#39;]
+             *		});
+             *
+             * @param {String/Object} error Описание ошибки
+			 *
+             * @param {String} [error.etype=SU.Error] (optional)
+             * тип создаваемого исключения
+			 *
+             * @param {String} error.message
+			 * Сообщение об ошибке
+			 *
+             * @param {String} [error.msg]
+			 * Алиас error.message
+			 *
+             * @param {String} [error.description]
+			 * Дополнительное описание
+             *
+             * @static
+             * @deprecated 6.0.0 Use Ext#raise instead.
+             */
+            raise: function(error) {
+                var me = this,
+                    method = me.raise.caller,
+                    msg, name, etype, exception;
+                error = error || {};
+                if( Ext.isString(error) ){
+                    error = { msg: error };
+                }
+
+                if (method === Ext.raise) {
+                    method = method.caller;
+                }
+                if (method) {
+                    if (!error.sourceMethod &amp;&amp; (name = method.$name)) {
+                        error.sourceMethod = name;
+                    }
+                    if (!error.sourceClass &amp;&amp; (name = method.$owner) &amp;&amp; (name = name.$className)) {
+                        error.sourceClass = name;
+                    }
+                }
+
+                etype = error.etype || &#39;SU.Error&#39;;
+                delete error.etype;
+                exception = Ext.create( etype, error );
+
+                if( me.handle(exception) !== true ){
+                    msg = toString.call(exception);
+                    //&lt;debug&gt;
+                    console.error( msg );
+                    //&lt;/debug&gt;
+                    throw exception;
+                }
+            },
+
+<span id='SU-Error-method-handle'>            /**
+</span>             *
+             * Глобальный обработчик ошибок, созданных методом {@link #raise}.
+             *
+             * Возможна индивидуальная обработка различных ошибок.
+             *
+             * Для продолжения выполнения сценария без создания исключения
+             * обработчик должен вернуть `true`.
+             *
+             *     Ext.Error.handle = function(err) {
+             *         if (err.someProperty == &#39;NotReallyAnError&#39;) {
+             *             // например, логгирование ошибок
+             *             return true;
+             *         }
+             *         if (err.name == &#39;WebSocket.Error&#39;){
+             *             // например, логгирование ошибок при отладке
+             *             // без генерации исключений
+             *             //&lt;debug&gt;
+             *             console.warn(&#39;Name: %s,\nMessage: %s,\nDescription: %s&#39;, e.name, e.message, e.description);
+             *             return true;
+             *             //&lt;/debug&gt;
+             *         }
+             *         // Все прочие ошибки приведут к созданию исключения
+             *     }
+             *
+             * @param {SU.Error} err Объект SU.Error
+             * 
+             * @return {Boolean} Результат обработки ошибки
+             * 
+             * @template
+             */
+            handle: function( err ){
+                return this.ignore;
+            },
+
+<span id='SU-Error-property-DOMExceptions'>            /**
+</span>             * Коды исключений для DOMException
+             * @protected
+             */
+            DOMExceptions: [
+                &#39;DOM_UNKNOWN&#39;,
+                &#39;DOM_INDEX_SIZE_ERR&#39;,
+                &#39;DOM_STRING_SIZE_ERR&#39;,
+                &#39;DOM_HIERARCHY_REQUEST_ERR&#39;,
+                &#39;DOM_WRONG_DOCUMENT_ERR&#39;,
+                &#39;DOM_INVALID_CHARACTER_ERR&#39;,
+                &#39;DOM_NO_DATA_ALLOWED_ERR&#39;,
+                &#39;DOM_NO_MODIFICATION_ALLOWED_ERR&#39;,
+                &#39;DOM_NOT_FOUND_ERR&#39;,
+                &#39;DOM_NOT_SUPPORTED_ERR&#39;,
+                &#39;DOM_INUSE_ATTRIBUTE_ERR&#39;,
+                &#39;DOM_INVALID_STATE_ERR&#39;,
+                &#39;DOM_SYNTAX_ERR&#39;,
+                &#39;DOM_INVALID_MODIFICATION_ERR&#39;,
+                &#39;DOM_NAMESPACE_ERR&#39;,
+                &#39;DOM_INVALID_ACCESS_ERR&#39;,
+                &#39;DOM_VALIDATION_ERR&#39;,
+                &#39;DOM_TYPE_MISMATCH_ERR&#39;,
+                &#39;DOM_SECURITY_ERR&#39;,
+                &#39;DOM_NETWORK_ERR&#39;,
+                &#39;DOM_ABORT_ERR&#39;,
+                &#39;DOM_URL_MISMATCH_ERR&#39;,
+                &#39;DOM_QUOTA_EXCEEDED_ERR&#39;
+            ],
+
+<span id='SU-Error-property-locales'>            /**
+</span>             * Локализация исключений DOMException.
+             *
+             * @property {Object} [locales={}]
+             * @property {String} locales.DOM_UNKNOWN
+             * @property {String} locales.DOM_INDEX_SIZE_ERR
+             * @property {String} locales.DOM_STRING_SIZE_ERR
+             * @property {String} locales.DOM_HIERARCHY_REQUEST_ERR
+             * @property {String} locales.DOM_WRONG_DOCUMENT_ERR
+             * @property {String} locales.DOM_INVALID_CHARACTER_ERR
+             * @property {String} locales.DOM_NO_DATA_ALLOWED_ERR
+             * @property {String} locales.DOM_NO_MODIFICATION_ALLOWED_ERR
+             * @property {String} locales.DOM_NOT_FOUND_ERR
+             * @property {String} locales.DOM_NOT_SUPPORTED_ERR
+             * @property {String} locales.DOM_INUSE_ATTRIBUTE_ERR
+             * @property {String} locales.DOM_INVALID_STATE_ERR
+             * @property {String} locales.DOM_SYNTAX_ERR
+             * @property {String} locales.DOM_INVALID_MODIFICATION_ERR
+             * @property {String} locales.DOM_NAMESPACE_ERR
+             * @property {String} locales.DOM_INVALID_ACCESS_ERR
+             * @property {String} locales.DOM_VALIDATION_ERR
+             * @property {String} locales.DOM_TYPE_MISMATCH_ERR
+             * @property {String} locales.DOM_SECURITY_ERR
+             * @property {String} locales.DOM_NETWORK_ERR
+             * @property {String} locales.DOM_ABORT_ERR
+             * @property {String} locales.DOM_URL_MISMATCH_ERR
+             * @property {String} locales.DOM_QUOTA_EXCEEDED_ERR
+             * @protected
+             */
+            locales: {
+                DOM_UNKNOWN: &quot;Unknown Exception Code ({0})&quot;,
+                DOM_INDEX_SIZE_ERR: &quot;Index out of bounds&quot;,
+                DOM_STRING_SIZE_ERR: &quot;The resulting string is too long to fit in a DOMString&quot;,
+                DOM_HIERARCHY_REQUEST_ERR: &quot;The Node can not be inserted at this location&quot;,
+                DOM_WRONG_DOCUMENT_ERR: &quot;The source and the destination Documents are not the same&quot;,
+                DOM_INVALID_CHARACTER_ERR: &quot;The string contains an invalid character&quot;,
+                DOM_NO_DATA_ALLOWED_ERR: &quot;This Node / NodeList does not support data&quot;,
+                DOM_NO_MODIFICATION_ALLOWED_ERR: &quot;This object cannot be modified&quot;,
+                DOM_NOT_FOUND_ERR: &quot;The item cannot be found&quot;,
+                DOM_NOT_SUPPORTED_ERR: &quot;This implementation does not support function&quot;,
+                DOM_INUSE_ATTRIBUTE_ERR: &quot;The Attribute has already been assigned to another Element&quot;,
+                DOM_INVALID_STATE_ERR: &quot;The object is no longer usable&quot;,
+                DOM_SYNTAX_ERR: &quot;An invalid or illegal string was specified&quot;,
+                DOM_INVALID_MODIFICATION_ERR: &quot;Cannot change the type of the object&quot;,
+                DOM_NAMESPACE_ERR: &quot;The namespace declaration is incorrect&quot;,
+                DOM_INVALID_ACCESS_ERR: &quot;The object does not support this function&quot;,
+                DOM_VALIDATION_ERR: &quot;The operation would cause the node to fail validation.&quot;,
+                DOM_TYPE_MISMATCH_ERR: &quot;The node type is incompatible with the expected parameter type.&quot;,
+                DOM_SECURITY_ERR: &quot;The operation is not allowed due to same origin policy restriction.&quot;,
+                DOM_NETWORK_ERR: &quot;A network error occurred.&quot;,
+                DOM_ABORT_ERR: &quot;The user aborted an operation.&quot;,
+                DOM_URL_MISMATCH_ERR: &quot;The specified URL does not match.&quot;,
+                DOM_QUOTA_EXCEEDED_ERR: &quot;The operation would exceed storage limits.&quot;
+
+                //DOM_UNKNOWN						: &quot;Неизвестное исключение. Код ({0})&quot;,
+                //DOM_INDEX_SIZE_ERR				: &quot;Индекс или размер является отрицательным, или больше, чем допустимое значение.&quot;,
+                //DOM_STRING_SIZE_ERR				: &quot;Результирующая строка слишком длинная, чтобы поместиться в DOMString&quot;,
+                //DOM_HIERARCHY_REQUEST_ERR		: &quot;Узел не может быть вставлен в требуемое место&quot;,
+                //DOM_WRONG_DOCUMENT_ERR			: &quot;Узел принадлежит другому документу и не могут быть использован.&quot;,
+                //DOM_INVALID_CHARACTER_ERR		: &quot;Строка содержит недопустимый символ&quot;,
+                //DOM_NO_DATA_ALLOWED_ERR			: &quot;Данные указаны для узла, который не поддерживает данные.&quot;,
+                //DOM_NO_MODIFICATION_ALLOWED_ERR	: &quot;Сделана попытка модифицировать объект, который не может быть изменен.&quot;,
+                //DOM_NOT_FOUND_ERR				: &quot;Элемент не может быть найден&quot;,
+                //DOM_NOT_SUPPORTED_ERR			: &quot;Запрошенная операция не поддерживается.&quot;,
+                //DOM_INUSE_ATTRIBUTE_ERR			: &quot;Указанный атрибут уже используется в другом месте.&quot;,
+                //DOM_INVALID_STATE_ERR			: &quot;Указанный узел не принадлежит документу.&quot;,
+                //DOM_SYNTAX_ERR					: &quot;Указано недопустимое значение строки.&quot;,
+                //DOM_INVALID_MODIFICATION_ERR	: &quot;Невозможно изменить тип объекта&quot;,
+                //DOM_NAMESPACE_ERR				: &quot;Декларация пространства имен некорректна&quot;,
+                //DOM_INVALID_ACCESS_ERR			: &quot;Параметр или операция не поддерживается.&quot;,
+                //DOM_VALIDATION_ERR				: &quot;Операция примененная к узлу не проходит проверку.&quot;,
+                //DOM_TYPE_MISMATCH_ERR			: &quot;Тип узла несовместим с ожидаемым типом параметра.&quot;,
+                //DOM_SECURITY_ERR				: &quot;Операция не допускается в связи с ограничением политики безопасности.&quot;,
+                //DOM_NETWORK_ERR					: &quot;Ошибка в сети.&quot;,
+                //DOM_ABORT_ERR					: &quot;Операция прервана пользователем.&quot;,
+                //DOM_URL_MISMATCH_ERR			: &quot;Указанный URL не соответствует.&quot;,
+                //DOM_QUOTA_EXCEEDED_ERR			: &quot;Операция будет превышать пределы хранения.&quot;
+            }
+
+        }
+    };
+
+})(), function(){
+    var proto = this.prototype;
+    this.prototype = Object.create(Error.prototype);
+    Ext.apply(this.prototype, proto);
+});
+
+Ext.Error = SU.Error;
+
+<span id='Ext-method-raise'>/**
+</span> * @member Ext
+ * @method raise
+ * @alias SU.Error#raise
+ * @inheritdoc SU.Error#raise
+ */
+Ext.raise = function () {
+    SU.Error.raise.apply(SU.Error, arguments);
+};
+
+</pre>
+</body>
+</html>

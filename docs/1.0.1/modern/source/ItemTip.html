@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-plugin-ItemTip'>/**
+</span> * A plugin which is a {@link Ext.tip.ToolTip} which shows itself upon mouseover of a DataView item.
+ *
+ * The associated {@link Ext.data.Model record} is passed into the {@link #setData} method just before
+ * the tip is shown. The record is stored in the `record` property.
+ */
+Ext.define(&#39;Ext.dataview.plugin.ItemTip&#39;, {
+    extend: &#39;Ext.tip.ToolTip&#39;,
+    alias: &#39;plugin.dataviewtip&#39;,
+
+<span id='Ext-dataview-plugin-ItemTip-cfg-anchor'>    anchor: true,
+</span>
+<span id='Ext-dataview-plugin-ItemTip-cfg-showOnTap'>    showOnTap: true,
+</span>
+<span id='Ext-dataview-plugin-ItemTip-property-defaultBindProperty'>    defaultBindProperty: &#39;data&#39;,
+</span>
+    config: {
+<span id='Ext-dataview-plugin-ItemTip-cfg-cmp'>        // So that we can get early access to the owning DataView
+</span>        // in applyBind so we can ensure we have a ViewModel.
+        cmp: null
+    },
+
+<span id='Ext-dataview-plugin-ItemTip-cfg-listeners'>    listeners: {
+</span>        beforeshow: &#39;onBeforeShow&#39;,
+        show: &#39;onShow&#39;,
+        scope: &#39;this&#39;
+    },
+
+<span id='Ext-dataview-plugin-ItemTip-method-init'>    init: Ext.emptyFn,
+</span>
+<span id='Ext-dataview-plugin-ItemTip-method-destroy'>    destroy: function() {
+</span>        // We need to null out the parent very early, otherwise
+        // it will try and call remove() when this isn&#39;t really
+        // a child item.
+        this.parent = null;
+        this.callParent();
+    },
+
+<span id='Ext-dataview-plugin-ItemTip-method-applyData'>    applyData: function(data) {
+</span>        if (data.isEntity) {
+            data = data.getData(true);
+        }
+        return data;
+    },
+
+<span id='Ext-dataview-plugin-ItemTip-method-updateCmp'>    updateCmp: function(dataview) {
+</span>        var me = this;
+
+        me.dataview = me.parent = dataview;
+        dataview.on(&#39;initialize&#39;, &#39;onDataViewInitialized&#39;, me);
+        dataview.getScrollable().on(&#39;scroll&#39;, &#39;onDataViewScroll&#39;, me);
+    },
+
+<span id='Ext-dataview-plugin-ItemTip-method-onDataViewInitialized'>    onDataViewInitialized: function(dataview) {
+</span>        var me = this;
+
+        me.setTarget(dataview.bodyElement);
+        me.itemSelector = dataview.itemSelector;
+
+        if (!me.getDelegate()) {
+            me.setDelegate(me.itemSelector);
+        }
+    },
+
+<span id='Ext-dataview-plugin-ItemTip-method-onBeforeShow'>    onBeforeShow: function() {
+</span>        var me = this,
+            viewModel = me.getViewModel(),
+            location = me.getCmp().getNavigationModel().createLocation(me.currentTarget);
+
+        if (me.getBind()) {
+            viewModel.set(&#39;record&#39;, location.record);
+            viewModel.set(&#39;recordIndex&#39;, me.location.recordIndex);
+
+            // Flush the data now so that the alignment is correct
+            viewModel.notify();
+        } else {
+            me.setData(location.record.data);
+        }
+    },
+
+<span id='Ext-dataview-plugin-ItemTip-method-onShow'>    onShow: function() {
+</span>        // If we are outside the scrolling viewport, then we cannot be anchored
+        // to a visible target, so we must not show.
+        this.checkScrollVisibility();
+    },
+
+<span id='Ext-dataview-plugin-ItemTip-method-onDataViewScroll'>    onDataViewScroll: function() {
+</span>        // If we are outside the scrolling viewport, then we cannot be anchored
+        // to a visible target, so we must hide.
+        this.checkScrollVisibility();
+    },
+
+<span id='Ext-dataview-plugin-ItemTip-property-privates'>    privates: {
+</span>        checkScrollVisibility: function() {
+            var me = this,
+                isInView, testEl;
+
+            if (me.isVisible()) {
+                // Ensure alignment is correct due to this possibly being called in a scroll handler.
+                me.realignToTarget();
+                testEl = me.getAnchor() || me.el;
+
+                isInView = me.dataview.getScrollable().isInView(testEl);
+
+                // If we are not in view, then hide
+                if (!(isInView.x &amp;&amp; isInView.y)) {
+                    me.hide();
+                }
+            }
+        },
+
+        applyBind: function(binds, currentBindings) {
+            var me = this,
+                dataview = me.getCmp(),
+                viewModel = me.getViewModel(),
+                parentViewModel = dataview.lookupViewModel();
+
+            // Ensure we have a connected ViewModel before binding is processed.
+            if (viewModel) {
+                viewModel.setParent(parentViewModel);
+            } else {
+                me.setViewModel(Ext.Factory.viewModel({
+                    parent: parentViewModel,
+                    data: {}
+                }));
+            }
+
+            me.callParent([binds, currentBindings]);
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-draw-sprite-Triangle'>/**
+</span> * A sprite that represents a triangle.
+ *
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;draw&#39;, 
+ *        renderTo: document.body,
+ *        width: 600,
+ *        height: 400,
+ *        sprites: [{
+ *            type: &#39;triangle&#39;,
+ *            size: 50,
+ *            translationX: 100,
+ *            translationY: 100,
+ *            fillStyle: &#39;#1F6D91&#39;
+ *        }]
+ *     });
+ * 
+ */
+Ext.define(&#39;Ext.draw.sprite.Triangle&#39;, {
+    extend: &#39;Ext.draw.sprite.Path&#39;,
+    alias: &#39;sprite.triangle&#39;,
+
+    inheritableStatics: {
+<span id='Ext-draw-sprite-Triangle-static-property-def'>        def: {
+</span>            processors: {
+                x: &#39;number&#39;,
+                y: &#39;number&#39;,
+<span id='Ext-draw-sprite-Triangle-cfg-size'>                /**
+</span>                 * @cfg {Number} [size=4] The size of the sprite.
+                 * Meant to be comparable to the size of a circle sprite with the same radius.
+                 */
+                size: &#39;number&#39;
+            },
+            defaults: {
+                x: 0,
+                y: 0,
+                size: 4
+            },
+            triggers: {
+                x: &#39;path&#39;,
+                y: &#39;path&#39;,
+                size: &#39;path&#39;
+            }
+        }
+    },
+
+<span id='Ext-draw-sprite-Triangle-method-updatePath'>    updatePath: function (path, attr) {
+</span>        var s = attr.size * 2.2,
+            x = attr.x,
+            y = attr.y;
+
+        path.fromSvgString(&#39;M&#39;.concat(x, &#39;,&#39;, y, &#39;m0-&#39;, s * 0.48, &#39;l&#39;, s * 0.5, &#39;,&#39;, s * 0.87, &#39;-&#39;, s, &#39;,0z&#39;));
+    }
+
+});</pre>
+</body>
+</html>

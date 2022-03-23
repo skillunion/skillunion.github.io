@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-sprite-Aggregative'>/**
+</span> *
+ */
+Ext.define(&#39;Ext.chart.series.sprite.Aggregative&#39;, {
+    extend: &#39;Ext.chart.series.sprite.Cartesian&#39;,
+    requires: [
+        &#39;Ext.draw.LimitedCache&#39;,
+        &#39;Ext.draw.SegmentTree&#39;
+    ],
+    inheritableStatics: {
+<span id='Ext-chart-series-sprite-Aggregative-static-property-def'>        def: {
+</span>            processors: {
+<span id='Ext-chart-series-sprite-Aggregative-cfg-dataHigh'>                /**
+</span>                 * @cfg {Number[]} [dataHigh=null] Data items representing the high values of the aggregated data.
+                 */
+                dataHigh: &#39;data&#39;,
+
+<span id='Ext-chart-series-sprite-Aggregative-cfg-dataLow'>                /**
+</span>                 * @cfg {Number[]} [dataLow=null] Data items representing the low values of the aggregated data.
+                 */
+                dataLow: &#39;data&#39;,
+
+<span id='Ext-chart-series-sprite-Aggregative-cfg-dataClose'>                /**
+</span>                 * @cfg {Number[]} [dataClose=null] Data items representing the closing values of the aggregated data.
+                 */
+                dataClose: &#39;data&#39;
+            },
+            aliases: {
+<span id='Ext-chart-series-sprite-Aggregative-cfg-dataOpen'>                /**
+</span>                 * @cfg {Number[]} [dataOpen=null] Data items representing the opening values of the aggregated data.
+                 */
+                dataOpen: &#39;dataY&#39;
+            },
+            defaults: {
+                dataHigh: null,
+                dataLow: null,
+                dataClose: null
+            }
+        }
+    },
+
+    config: {
+<span id='Ext-chart-series-sprite-Aggregative-cfg-aggregator'>        aggregator: {}
+</span>    },
+
+<span id='Ext-chart-series-sprite-Aggregative-method-applyAggregator'>    applyAggregator: function (aggregator, oldAggr) {
+</span>        return Ext.factory(aggregator, Ext.draw.SegmentTree, oldAggr);
+    },
+
+<span id='Ext-chart-series-sprite-Aggregative-method-constructor'>    constructor: function () {
+</span>        this.callParent(arguments);
+    },
+
+<span id='Ext-chart-series-sprite-Aggregative-method-processDataY'>    processDataY: function () {
+</span>        var me = this,
+            attr = me.attr,
+            high = attr.dataHigh,
+            low = attr.dataLow,
+            close = attr.dataClose,
+            open = attr.dataY,
+            aggregator;
+
+        me.callParent(arguments);
+
+        if (attr.dataX &amp;&amp; open &amp;&amp; open.length &gt; 0) {
+            aggregator = me.getAggregator();
+            if (high) {
+                aggregator.setData(attr.dataX, attr.dataY, high, low, close);
+            } else {
+                aggregator.setData(attr.dataX, attr.dataY);
+            }
+        }
+    },
+
+<span id='Ext-chart-series-sprite-Aggregative-method-getGapWidth'>    getGapWidth: function () {
+</span>        return 1;
+    },
+
+<span id='Ext-chart-series-sprite-Aggregative-method-renderClipped'>    renderClipped: function (surface, ctx, dataClipRect, surfaceClipRect) {
+</span>        var me = this,
+            min = Math.min(dataClipRect[0], dataClipRect[2]),
+            max = Math.max(dataClipRect[0], dataClipRect[2]),
+            aggregator = me.getAggregator(),
+            aggregates = aggregator &amp;&amp; aggregator.getAggregation(
+                min, max, (max - min) / surfaceClipRect[2] * me.getGapWidth()
+            );
+
+        if (aggregates) {
+            me.dataStart = aggregates.data.startIdx[aggregates.start];
+            me.dataEnd = aggregates.data.endIdx[aggregates.end - 1];
+
+            me.renderAggregates(aggregates.data, aggregates.start, aggregates.end,
+                surface, ctx, dataClipRect, surfaceClipRect);
+        }
+    }
+});</pre>
+</body>
+</html>

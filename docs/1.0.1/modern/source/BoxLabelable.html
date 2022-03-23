@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-BoxLabelable'>/**
+</span> * @private
+ * A mixin that adds boxLabel capabilities to Checkbox and Slider fields
+ */
+Ext.define(&#39;Ext.field.BoxLabelable&#39;, {
+    extend: &#39;Ext.Mixin&#39;,
+<span id='Ext-field-BoxLabelable-property-mixinConfig'>    mixinConfig: {
+</span>        id: &#39;boxLabelable&#39;,
+        after: {
+            initElement: &#39;afterInitElement&#39;
+        }
+    },
+
+    config: {
+<span id='Ext-field-BoxLabelable-cfg-boxLabel'>        /**
+</span>         * @cfg {String}
+         * An optional label that will appear next to the input within the field body area.
+         * Displays immediately before or after the input depending on {@link #boxLabelAlign}
+         */
+        boxLabel: null,
+
+<span id='Ext-field-BoxLabelable-cfg-boxLabelAlign'>        /**
+</span>         * @cfg {&#39;before&#39;/&#39;after&#39;} [boxLabelAlign=&#39;after&#39;]
+         * The position relative to the input where the {@link #boxLabel} should appear
+         */
+        boxLabelAlign: null
+    },
+
+<span id='Ext-field-BoxLabelable-property-boxLabeledCls'>    boxLabeledCls: Ext.baseCSSPrefix + &#39;box-labeled&#39;,
+</span>
+<span id='Ext-field-BoxLabelable-method-getBodyTemplate'>    getBodyTemplate: function () {
+</span>        return [{
+            reference: &#39;boxWrapElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;box-wrap-el&#39;,
+            children: [{
+                reference: &#39;boxElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;box-el&#39;,
+                children: this.getBoxTemplate()
+            }, {
+                tag: &#39;label&#39;,
+                reference: &#39;boxLabelElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;box-label-el&#39;
+            }]
+        }]
+    },
+
+<span id='Ext-field-BoxLabelable-method-getBoxTemplate'>    getBoxTemplate: Ext.emptyFn,
+</span>
+<span id='Ext-field-BoxLabelable-method-updateBoxLabel'>    updateBoxLabel: function (boxLabel) {
+</span>        this.boxLabelElement.setHtml(boxLabel);
+        this.el.toggleCls(this.boxLabeledCls, !!boxLabel);
+    },
+
+<span id='Ext-field-BoxLabelable-method-updateBoxLabelAlign'>    updateBoxLabelAlign: function (boxLabelAlign, oldBoxLabelAlign) {
+</span>        var me = this,
+            el = me.el;
+
+        if (oldBoxLabelAlign) {
+            el.removeCls(Ext.baseCSSPrefix + &#39;box-label-align-&#39; + oldBoxLabelAlign);
+        }
+
+        if (boxLabelAlign) {
+            el.addCls(Ext.baseCSSPrefix + &#39;box-label-align-&#39; + boxLabelAlign);
+        }
+    },
+
+<span id='Ext-field-BoxLabelable-method-afterInitElement'>    afterInitElement: function() {
+</span>        var inputElement = this.inputElement;
+
+        if (inputElement) {
+            this.boxLabelElement.dom.setAttribute(&#39;for&#39;, inputElement.id);
+        }
+    }
+
+});</pre>
+</body>
+</html>

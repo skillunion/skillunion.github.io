@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Indicator'>/**
+</span> * A component to show indication of an active item.
+ */
+Ext.define(&#39;Ext.Indicator&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    xtype: &#39;indicator&#39;,
+
+    config: {
+<span id='Ext-Indicator-cfg-activeIndex'>        /**
+</span>         * @cfg {Number} activeIndex The index of the active indicator
+         * dot.
+         */
+        activeIndex: null,
+
+<span id='Ext-Indicator-cfg-count'>        /**
+</span>         * @cfg {Number} count The number of indicator dots to show.
+         */
+        count: null,
+
+<span id='Ext-Indicator-cfg-direction'>        /**
+</span>         * @cfg {String} [direction=horizontal] The direction the indicator
+         * will be shown. Can be `horizontal` to have the dots be shown
+         * in a row or `vertical` to have the dots be shown in a column.
+         */
+        direction: &#39;horizontal&#39;,
+
+<span id='Ext-Indicator-cfg-tapMode'>        /**
+</span>         * @cfg {String} [tapMode=direction] Controls what happens when clicked
+         * on. The following are valid options:
+         *
+         * - **`direction`** Depending where the click happened, if on the right
+         * half of the indicator, the next item will be made active else the
+         * previous item will be made active.
+         * - **`item`** If the click was on an indicator dot, the associated item
+         * to that dot will be made active. If the click was not on an indicator
+         * dot, then `direction` mode will be used.
+         */
+        tapMode: &#39;direction&#39;
+    },
+
+<span id='Ext-Indicator-property-activeCls'>    /**
+</span>     * @property {String} [activeCls=active] The CSS class name that will
+     * be added to the active indicator dot.
+     * @protected
+     */
+    activeCls: Ext.baseCSSPrefix + &#39;indicator-active&#39;,
+
+<span id='Ext-Indicator-property-baseCls'>    baseCls: Ext.baseCSSPrefix + &#39;indicator&#39;,
+</span>
+<span id='Ext-Indicator-property-itemCls'>    /**
+</span>     * @property {String} [itemCls=x-indicator-item] The CSS class name
+     * that will be added to the indicator dots.
+     * @protected
+     */
+    itemCls: Ext.baseCSSPrefix + &#39;indicator-item&#39;,
+
+<span id='Ext-Indicator-property-defaultBindProperty'>    defaultBindProperty: &#39;activeIndex&#39;,
+</span>
+<span id='Ext-Indicator-cfg-twoWayBindable'>    twoWayBindable: [
+</span>        &#39;activeIndex&#39;
+    ],
+
+<span id='Ext-Indicator-property-isIndicator'>    /**
+</span>     * @private
+     */
+    isIndicator: true,
+
+<span id='Ext-Indicator-property-indicators'>    /**
+</span>     * @property {Array} indicators An array of indicator dot
+     * elements.
+     * @private
+     */
+
+<span id='Ext-Indicator-event-indicatortap'>    /**
+</span>     * @event indicatortap
+     * Fires when an indicator dot has been tapped and {@link #tapMode}
+     * is set to `item`.
+     * @param {Ext.Indicator} this
+     * @param {Number} index The index of the indicator dot.
+     * @param {Ext.dom.Elemnet} item The indicator dot item.
+     */
+
+<span id='Ext-Indicator-event-next'>    /**
+</span>     * @event next
+     * Fires when this indicator is tapped on the right half
+     * @param {Ext.Indicator} this
+     */
+
+<span id='Ext-Indicator-event-previous'>    /**
+</span>     * @event previous
+     * Fires when this indicator is tapped on the left half
+     * @param {Ext.Indicator} this
+     */
+
+    constructor: function (config) {
+        this.indicators = [];
+
+        this.callParent([config]);
+    },
+
+<span id='Ext-Indicator-method-initialize'>    initialize: function () {
+</span>        this.callParent();
+
+        this.element.on({
+            tap: &#39;onTap&#39;,
+            scope: this
+        });
+    },
+
+<span id='Ext-Indicator-method-doDestroy'>    doDestroy: function () {
+</span>        Ext.destroy(this.indicators);
+
+        this.callParent();
+    },
+
+<span id='Ext-Indicator-method-applyActiveIndex'>    //&lt;debug&gt;
+</span>    applyActiveIndex: function (index) {
+        var indicators = this.indicators,
+            max = indicators.length - 1;
+
+        if (index &gt; max) {
+            Ext.raise(&#39;Cannot set the active index greater than the number of indicators&#39;);
+        }
+
+        return index;
+    },
+<span id='Ext-Indicator-method-updateActiveIndex'>    //&lt;/debug&gt;
+</span>
+    updateActiveIndex: function (index, oldIndex) {
+        var activeCls = this.activeCls,
+            baseCls = this.baseCls,
+            indicators = this.indicators,
+            currentActiveItem = indicators[oldIndex],
+            activeItem = indicators[index];
+
+        if (currentActiveItem) {
+            currentActiveItem.removeCls(activeCls);
+        }
+
+        if (activeItem) {
+            activeItem.addCls(activeCls);
+        }
+    },
+
+<span id='Ext-Indicator-method-updateCount'>    updateCount: function (count) {
+</span>        var indicators = this.indicators;
+
+        while (indicators.length &lt; count) {
+             this.doAdd()
+        }
+
+        while (indicators.length &gt; count) {
+            this.doRemove();
+        }
+    },
+
+<span id='Ext-Indicator-method-applyDirection'>    //&lt;debug&gt;
+</span>    applyDirection: function (direction) {
+        if (direction !== &#39;vertical&#39; &amp;&amp; direction !== &#39;horizontal&#39;) {
+            Ext.raise(&#39;Invalid indicator direction provided: &#39; + direction);
+
+            direction = &#39;horizontal&#39;;
+        }
+
+        return direction;
+    },
+<span id='Ext-Indicator-method-updateDirection'>    //&lt;/debug&gt;
+</span>
+    updateDirection: function (newDirection, oldDirection) {
+        this.element.replaceCls(oldDirection, newDirection, this.baseCls);
+    },
+
+<span id='Ext-Indicator-method-sync'>    /**
+</span>     * Syncs the number of indicators and sets the active index.
+     * @param {Number} count The number of indicators that needs to be shown. If `null`,
+     * will skip syncing the number of indicators
+     * @param {Number} activeIndex If specified, will set the {@link #activeIndex}.
+     * @return {Ext.Indicator} this
+     */
+    sync: function (count, activeIndex) {
+        if (Ext.isNumber(count)) {
+            this.setCount(count);
+        }
+
+        if (Ext.isNumber(activeIndex)) {
+            this.setActiveIndex(activeIndex);
+        }
+
+        return this;
+    },
+
+<span id='Ext-Indicator-method-add'>    /**
+</span>     * Adds an indicator dot at the end.
+     * @return {Ext.Indicator} this
+     */
+    add: function () {
+        var count = this.getCount();
+
+        return this.setCount(++count);
+    },
+
+<span id='Ext-Indicator-method-removeAll'>    /**
+</span>     * Removes all indicator dots.
+     * @return {Ext.Indicator} this
+     */
+    removeAll: function () {
+        return this.setCount(0);
+    },
+
+<span id='Ext-Indicator-method-remove'>    /**
+</span>     * Removes the last indicator dot.
+     * @return {Ext.Indicator} this
+     */
+    remove: function () {
+        var count = this.getCount();
+
+        return this.setCount(--count);
+    },
+
+<span id='Ext-Indicator-method-doAdd'>    /**
+</span>     * Creates an indicator dot and addes it to {@link #indicators}.
+     * @private
+     * @return {Ext.Indicator} this
+     */
+    doAdd: function () {
+        var indicators = this.indicators;
+
+        indicators.push(this.element.createChild({
+            tag: &#39;span&#39;,
+            cls: this.itemCls
+        }));
+
+        return this;
+    },
+
+<span id='Ext-Indicator-method-doRemove'>    /**
+</span>     * Removes and destroys the last indicator dot.
+     * @private
+     * @return {Ext.Indicator} this
+     */
+    doRemove: function () {
+        var indicators = this.indicators,
+            indicator = indicators.pop();
+
+        if (indicator) {
+            indicator.destroy();
+        }
+
+        return this;
+    },
+
+<span id='Ext-Indicator-method-onTap'>    /**
+</span>     * @private
+     */
+    onTap: function (e) {
+        var mode = this.getTapMode();
+
+        if (mode === &#39;item&#39;) {
+            this.onTapItem(e);
+        } else {
+            this.onTapDirection(e);
+        }
+    },
+
+<span id='Ext-Indicator-method-onTapItem'>    /**
+</span>     * Handles the tap when {@link #tapMode} is set to `item`.
+     * @private
+     */
+    onTapItem: function (e) {
+        var me = this,
+            item = e.getTarget(&#39;.&#39; + me.itemCls, 1, true),
+            index;
+
+        if (item) {
+            index = me.indicators.indexOf(item);
+
+            if (index !== -1) {
+                me.fireEvent(&#39;indicatortap&#39;, me, index, item);
+            }
+        } else {
+            //tap wasn&#39;t on a dot, go with direction
+            me.onTapDirection(e);
+        }
+    },
+
+<span id='Ext-Indicator-method-onTapDirection'>    /**
+</span>     * Handles the tap when {@link #tapMode} is set to `direction`.
+     * @private
+     */
+    onTapDirection: function (e) {
+        var me = this,
+            direction = me.getDirection(),
+            touch = e.touch,
+            box = me.element.getBox(),
+            centerX = box.left + (box.width / 2),
+            centerY = box.top + (box.height / 2),
+            event = (direction === &#39;horizontal&#39; &amp;&amp; touch.pageX &gt;= centerX) ||
+                    (direction === &#39;vertical&#39; &amp;&amp; touch.pageY &gt;= centerY) ? &#39;next&#39; : &#39;previous&#39;;
+
+        me.fireEvent(event, me);
+    }
+});
+</pre>
+</body>
+</html>

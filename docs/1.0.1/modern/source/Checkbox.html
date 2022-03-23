@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-Checkbox'>/**
+</span> * The checkbox field is an enhanced version of the native browser checkbox and is great for enabling your user to
+ * choose one or more items from a set (for example choosing toppings for a pizza order). It works like any other
+ * {@link Ext.field.Field field} and is usually found in the context of a form:
+ *
+ * ## Example
+ *
+ *     @example
+ *     var form = Ext.create(&#39;Ext.form.Panel&#39;, {
+ *         fullscreen: true,
+ *         items: [
+ *             {
+ *                 xtype: &#39;checkboxfield&#39;,
+ *                 name : &#39;tomato&#39;,
+ *                 label: &#39;Tomato&#39;,
+ *                 value: &#39;tomato&#39;,
+ *                 checked: true
+ *             },
+ *             {
+ *                 xtype: &#39;checkboxfield&#39;,
+ *                 name : &#39;salami&#39;,
+ *                 label: &#39;Salami&#39;
+ *             },
+ *             {
+ *                 xtype: &#39;toolbar&#39;,
+ *                 docked: &#39;bottom&#39;,
+ *                 items: [
+ *                     { xtype: &#39;spacer&#39; },
+ *                     {
+ *                         text: &#39;getValues&#39;,
+ *                         handler: function() {
+ *                             var form = Ext.ComponentQuery.query(&#39;formpanel&#39;)[0],
+ *                                 values = form.getValues();
+ *
+ *                             Ext.Msg.alert(null,
+ *                                 &quot;Tomato: &quot; + ((values.tomato) ? &quot;yes&quot; : &quot;no&quot;) +
+ *                                 &quot;&lt;br /&gt;Salami: &quot; + ((values.salami) ? &quot;yes&quot; : &quot;no&quot;)
+ *                             );
+ *                         }
+ *                     },
+ *                     { xtype: &#39;spacer&#39; }
+ *                 ]
+ *             }
+ *         ]
+ *     });
+ *
+ *
+ * The form above contains two check boxes - one for Tomato, one for Salami. We configured the Tomato checkbox to be
+ * checked immediately on load, and the Salami checkbox to be unchecked. We also specified an optional text
+ * {@link #value} that will be sent when we submit the form. We can get this value using the Form&#39;s
+ * {@link Ext.form.Panel#getValues getValues} function, or have it sent as part of the data that is sent when the
+ * form is submitted:
+ *
+ *     form.getValues(); //contains a key called &#39;tomato&#39; if the Tomato field is still checked
+ *     form.submit(); //will send &#39;tomato&#39; in the form submission data
+ *
+ */
+Ext.define(&#39;Ext.field.Checkbox&#39;, {
+    extend: &#39;Ext.field.Input&#39;,
+    alternateClassName: &#39;Ext.form.Checkbox&#39;,
+    xtype: [
+        &#39;checkbox&#39;,
+        &#39;checkboxfield&#39;
+    ],
+
+    mixins: [&#39;Ext.field.BoxLabelable&#39;],
+
+<span id='Ext-field-Checkbox-property-qsaLeftRe'>    qsaLeftRe: /[\[]/g,
+</span><span id='Ext-field-Checkbox-property-qsaRightRe'>    qsaRightRe: /[\]]/g,
+</span>
+<span id='Ext-field-Checkbox-cfg-shareableName'>    /**
+</span>     * @cfg shareableName
+     * @inheritdoc
+     */
+    shareableName: true,
+<span id='Ext-field-Checkbox-property-isCheckbox'>    isCheckbox: true,
+</span>
+<span id='Ext-field-Checkbox-property-defaultBindProperty'>    /**
+</span>     * @property defaultBindProperty
+     * @inheritdoc
+     */
+    defaultBindProperty: &#39;checked&#39;,
+
+<span id='Ext-field-Checkbox-cfg-twoWayBindable'>    /**
+</span>     * @cfg twoWayBindable
+     * @inheritdoc
+     */
+    twoWayBindable: {
+        checked: 1
+    },
+
+<span id='Ext-field-Checkbox-cfg-publishes'>    /**
+</span>     * @cfg publishes
+     * @inheritdoc
+     */
+    publishes: {
+        checked: 1
+    },
+
+<span id='Ext-field-Checkbox-event-change'>    /**
+</span>     * @event change
+     * Fires when the field value changes.
+     * @param {Ext.field.Checkbox} this This field.
+     * @param {Boolean} newValue The new value.
+     * @param {Boolean} oldValue The original value.
+     */
+
+<span id='Ext-field-Checkbox-event-check'>    /**
+</span>     * @event check
+     * Fires when the checkbox is checked.
+     * @param {Ext.field.Checkbox} this This checkbox.
+     */
+
+<span id='Ext-field-Checkbox-event-uncheck'>    /**
+</span>     * @event uncheck
+     * Fires when the checkbox is unchecked.
+     * @param {Ext.field.Checkbox} this This checkbox.
+     */
+
+    config: {
+<span id='Ext-field-Checkbox-cfg-value'>        /**
+</span>         * @cfg {String} value
+         * The string value to submit if the item is in a checked state.
+         * @accessor
+         */
+        value: &#39;&#39;,
+
+
+<span id='Ext-field-Checkbox-cfg-checked'>        /**
+</span>         * @cfg {Boolean} checked
+         * `true` if the checkbox should render initially checked.
+         * @accessor
+         */
+        checked: false
+
+<span id='Ext-field-Checkbox-cfg-labelMaskTap'>        /**
+</span>         * @cfg {Boolean} labelMaskTap
+         * @private
+         */
+    },
+    
+<span id='Ext-field-Checkbox-cfg-eventHandlers'>    eventHandlers: {
+</span>        change: &#39;onChange&#39;
+    },
+
+<span id='Ext-field-Checkbox-cfg-inputType'>    inputType: &#39;checkbox&#39;,
+</span>
+<span id='Ext-field-Checkbox-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;checkboxfield&#39;,
+<span id='Ext-field-Checkbox-property-checkedCls'>    checkedCls: Ext.baseCSSPrefix + &#39;checked&#39;,
+</span>
+<span id='Ext-field-Checkbox-method-getBodyTemplate'>    getBodyTemplate: function() {
+</span>        return this.mixins.boxLabelable.getBodyTemplate.call(this);
+    },
+
+<span id='Ext-field-Checkbox-method-getBoxTemplate'>    /**
+</span>     * @private
+     */
+    getBoxTemplate: function() {
+        return [{
+            reference: &#39;iconElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;font-icon &#39; + Ext.baseCSSPrefix + &#39;icon-el&#39;,
+            children: [this.getInputTemplate()]
+        }]
+    },
+
+<span id='Ext-field-Checkbox-method-getInputTemplate'>    getInputTemplate: function() {
+</span>        var template = this.callParent();
+        
+        template.onchange = &#39;return Ext.doEv(this, event);&#39;;
+        
+        return template;
+    },
+
+<span id='Ext-field-Checkbox-method-getSubmitValue'>    /**
+</span>     * Returns the submit value for the checkbox which can be used when submitting forms.
+     * @return {Boolean/String} value The value of {@link #value} or `true`, if {@link #checked}.
+     */
+    getSubmitValue: function() {
+        return (this.getChecked()) ? Ext.isEmpty(this._value) ? true : this._value : null;
+    },
+
+<span id='Ext-field-Checkbox-property-checkedRe'>    /**
+</span>     * @private
+     */
+    checkedRe: /^(true|1|on)/i,
+
+<span id='Ext-field-Checkbox-method-getChecked'>    /**
+</span>     * Returns the `checked` value of this field
+     * @return {Mixed} value The field value
+     */
+    getChecked: function() {
+        return !!this.inputElement.dom.checked;
+    },
+
+<span id='Ext-field-Checkbox-method-applyChecked'>    applyChecked: function(checked) {
+</span>        if (this.isConfiguring) {
+            this.originalState = checked;
+        }
+
+        return !!this.checkedRe.test(String(checked));
+    },
+
+<span id='Ext-field-Checkbox-method-updateChecked'>    updateChecked: function(checked, oldChecked) {
+</span>        var me = this,
+            eventName;
+
+        if (!me.$onChange) {
+            me.inputElement.dom.checked = checked;
+        }
+
+        me.toggleCls(me.checkedCls, checked);
+
+        // only call onChange (which fires events) if the component has been initialized
+        if (me.initialized) {
+            eventName = checked ? &#39;check&#39; : &#39;uncheck&#39;;
+            me.fireEvent(eventName, me);
+            me.fireEvent(&#39;change&#39;, me, checked, oldChecked);
+        }
+    },
+
+<span id='Ext-field-Checkbox-method-isChecked'>    /**
+</span>     * Returns the checked state of the checkbox.
+     * @return {Boolean} `true` if checked, `false` otherwise.
+     */
+    isChecked: function() {
+        return this.getChecked();
+    },
+
+<span id='Ext-field-Checkbox-method-check'>    /**
+</span>     * Set the checked state of the checkbox to `true`.
+     * @return {Ext.field.Checkbox} This checkbox.
+     */
+    check: function() {
+        return this.setChecked(true);
+    },
+
+<span id='Ext-field-Checkbox-method-uncheck'>    /**
+</span>     * Set the checked state of the checkbox to `false`.
+     * @return {Ext.field.Checkbox} This checkbox.
+     */
+    uncheck: function() {
+        return this.setChecked(false);
+    },
+    
+<span id='Ext-field-Checkbox-method-onChange'>    onChange: function(e) {
+</span>        var me = this;
+
+        me.$onChange = true;
+        me.setChecked(!!e.target.checked);
+        delete me.$onChange;
+    },
+
+<span id='Ext-field-Checkbox-method-getSameGroupFields'>    getSameGroupFields: function() {
+</span>        var me = this,
+            component = me.lookupNameHolder(),
+            name = me.name;
+
+        if (!component) {
+            // &lt;debug&gt;
+            Ext.Logger.warn(me.self.$className + &#39; components must always be descendants of an Ext.field.Panel.&#39;);
+            // &lt;/debug&gt;
+
+            // This is to handle ComponentQuery&#39;s lack of handling [name=foo[bar]] properly
+            name = name.replace(me.qsaLeftRe, &#39;\\[&#39;).replace(me.qsaRightRe, &#39;\\]&#39;);
+
+            return Ext.Viewport.query(&#39;checkboxfield[name=&#39; + name + &#39;]&#39;)
+        }
+
+        return component.lookupName(name);
+    },
+
+<span id='Ext-field-Checkbox-method-getGroupValues'>    /**
+</span>     * Returns an array of values from the checkboxes in the group that are checked.
+     * @return {Array}
+     */
+    getGroupValues: function() {
+        var values = [];
+
+        this.getSameGroupFields().forEach(function(field) {
+            if (field.getChecked()) {
+                values.push(field.getValue());
+            }
+        });
+
+        return values;
+    },
+
+<span id='Ext-field-Checkbox-method-setGroupValues'>    /**
+</span>     * Set the status of all matched checkboxes in the same group to checked.
+     * @param {Array} values An array of values.
+     * @return {Ext.field.Checkbox} This checkbox.
+     */
+    setGroupValues: function(values) {
+        this.getSameGroupFields().forEach(function(field) {
+            field.setChecked((values.indexOf(field.getValue()) !== -1));
+        });
+
+        return this;
+    },
+
+<span id='Ext-field-Checkbox-method-resetGroupValues'>    /**
+</span>     * Resets the status of all matched checkboxes in the same group to checked.
+     * @return {Ext.field.Checkbox} This checkbox.
+     */
+    resetGroupValues: function() {
+        this.getSameGroupFields().forEach(function(field) {
+            field.setChecked(field.originalState);
+        });
+
+        return this;
+    },
+
+<span id='Ext-field-Checkbox-method-reset'>    reset: function() {
+</span>        this.setChecked(this.originalState);
+        return this;
+    }
+});
+</pre>
+</body>
+</html>

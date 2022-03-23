@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-ActionSheet'>/**
+</span> * {@link Ext.ActionSheet ActionSheets} are used to display a list of {@link Ext.Button buttons}
+ * in a popup dialog.
+ *
+ * The key difference between ActionSheet and {@link Ext.Sheet} is that ActionSheets are
+ * docked at the bottom of the screen, and the {@link #defaultType} is set to {@link Ext.Button button}.
+ *
+ * ## Example
+ *
+ *     @example preview miniphone
+ *     var actionSheet = Ext.create(&#39;Ext.ActionSheet&#39;, {
+ *         items: [
+ *             {
+ *                 text: &#39;Delete draft&#39;,
+ *                 ui  : &#39;decline&#39;
+ *             },
+ *             {
+ *                 text: &#39;Save draft&#39;
+ *             },
+ *             {
+ *                 text: &#39;Cancel&#39;,
+ *                 ui  : &#39;confirm&#39;
+ *             }
+ *         ]
+ *     });
+ *
+ *     Ext.Viewport.add(actionSheet);
+ *     actionSheet.show();
+ *
+ * ## Edge Menus
+ * Action Sheets can be used with {@link Ext.Viewport#setMenu}. They can be linked with
+ * any side of the screen (top, left, bottom or right). To use this menu you will call various
+ * menu related functions on the {@link Ext.Viewport Viewport} such as {@link Ext.Viewport#showMenu},
+ * {@link Ext.Viewport#hideMenu}, {@link Ext.Viewport#toggleMenu}, {@link Ext.Viewport#hideOtherMenus},
+ * or {@link Ext.Viewport#hideAllMenus}.
+ *
+ *      @example
+ *      var menu = Ext.create({
+ *          xtype: &#39;actionsheet&#39;,
+ *          items: [{
+ *              text: &#39;Settings&#39;,
+ *              iconCls: &#39;settings&#39;
+ *          }, {
+ *              text: &#39;New Item&#39;,
+ *              iconCls: &#39;compose&#39;
+ *          }, {
+ *              text: &#39;Star&#39;,
+ *              iconCls: &#39;star&#39;
+ *          }]
+ *      });
+ *
+ *      Ext.Viewport.add({
+ *          xtype: &#39;panel&#39;,
+ *          html: &#39;Main View Content&#39;
+ *      });
+ *
+ *      Ext.Viewport.setMenu(menu, {
+ *          side: &#39;left&#39;,
+ *          // omitting the reveal config defaults the animation to &#39;cover&#39;
+ *          reveal: true
+ *      });
+ *
+ *      Ext.Viewport.showMenu(&#39;left&#39;);
+ */
+Ext.define(&#39;Ext.ActionSheet&#39;, {
+    extend: &#39;Ext.Sheet&#39;,
+    requires: [&#39;Ext.Button&#39;],
+    xtype: &#39;actionsheet&#39;,
+<span id='Ext-ActionSheet-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;actionsheet&#39;,
+</span><span id='Ext-ActionSheet-cfg-centered'>    centered: false,
+</span><span id='Ext-ActionSheet-cfg-layout'>    layout: &#39;vbox&#39;,
+</span><span id='Ext-ActionSheet-cfg-side'>    side: &#39;bottom&#39;,
+</span><span id='Ext-ActionSheet-cfg-defaultType'>    defaultType: &#39;button&#39;
+</span>});
+</pre>
+</body>
+</html>

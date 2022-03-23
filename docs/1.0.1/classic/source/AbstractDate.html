@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-validator-AbstractDate'>/**
+</span> * Base class for date type validators.
+ *
+ * @abstract
+ */
+Ext.define(&#39;Ext.data.validator.AbstractDate&#39;, {
+    extend: &#39;Ext.data.validator.Validator&#39;,
+
+    config: {
+<span id='Ext-data-validator-AbstractDate-cfg-message'>        /**
+</span>         * @cfg {String} message
+         * The error message to return when not valid.
+         * @locale
+         */
+        message: null,
+
+<span id='Ext-data-validator-AbstractDate-cfg-format'>        /**
+</span>         * @cfg {String/String[]} format
+         * The format(s) to allow. See {@link Ext.Date}.
+         * @locale
+         */
+        format: &#39;&#39;
+    },
+
+<span id='Ext-data-validator-AbstractDate-method-applyFormat'>    applyFormat: function(format) {
+</span>        if (!format) {
+            format = this.getDefaultFormat();
+        }
+
+        if (!Ext.isArray(format)) {
+            format = [format];
+        }
+
+        return format;
+    },
+
+<span id='Ext-data-validator-AbstractDate-method-parse'>    parse: function (value) {
+</span>        if (Ext.isDate(value)) {
+            return value;
+        }
+
+        var me = this,
+            format = me.getFormat(),
+            len = format.length,
+            ret = null,
+            i;
+
+        for (i = 0; i &lt; len &amp;&amp; !ret; ++i) {
+            ret = Ext.Date.parse(value, format[i], true);
+        }
+
+        return ret;
+    },
+
+<span id='Ext-data-validator-AbstractDate-method-validate'>    validate: function(value) {
+</span>        return this.parse(value) ? true : this.getMessage();
+    }
+});</pre>
+</body>
+</html>

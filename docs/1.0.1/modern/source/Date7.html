@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-cell-Date'>/**
+</span> * This class displays a date value in a {@link Ext.grid.Grid grid} cell. This cell type
+ * is typically used by specifying {@link Ext.grid.column.Date} column type.
+ *
+ * {@link Ext.grid.Row Rows} create cells based on the {@link Ext.grid.column.Column#cell}
+ * config. Application code would rarely create cells directly.
+ */
+Ext.define(&#39;Ext.grid.cell.Date&#39;, {
+    extend: &#39;Ext.grid.cell.Text&#39;,
+    xtype: &#39;datecell&#39;,
+
+<span id='Ext-grid-cell-Date-property-isDateCell'>    isDateCell: true,
+</span>
+    requires: [&#39;Ext.Date&#39;],
+
+    config: {
+<span id='Ext-grid-cell-Date-cfg-format'>        /**
+</span>         * @cfg {String} format
+         * A format string as used by {@link Ext.Date#format} to format values for this
+         * column.
+         * @locale
+         */
+        format: &#39;&#39;
+    },
+
+<span id='Ext-grid-cell-Date-method-updateColumn'>    updateColumn: function (column, oldColumn) {
+</span>        var format;
+
+        this.callParent([ column, oldColumn ]);
+
+        if (column &amp;&amp; column.isDateColumn) {
+            format = column.getFormat();
+
+            if (format !== null) {
+                this.setFormat(format);
+            }
+        }
+    },
+
+<span id='Ext-grid-cell-Date-method-applyFormat'>    applyFormat: function (format) {
+</span>        return format || Ext.Date.defaultFormat;
+    },
+
+<span id='Ext-grid-cell-Date-method-updateFormat'>    updateFormat: function (format) {
+</span>        if (!this.isConfiguring) {
+            this.writeValue();
+        }
+    },
+
+<span id='Ext-grid-cell-Date-method-formatValue'>    formatValue: function (value) {
+</span>        return value ? Ext.Date.format(value, this.getFormat()) : &#39;&#39;;
+    }
+});
+</pre>
+</body>
+</html>

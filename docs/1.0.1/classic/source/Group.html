@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-Group'>/**
+</span> * Encapsulates a group of records. Can provide a
+ * {@link #getSummaryRecord} summary record.
+ *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.data.Group&#39;, {
+    extend: &#39;Ext.util.Group&#39;,
+
+<span id='Ext-data-Group-property-store'>    store: null,
+</span>
+<span id='Ext-data-Group-method-getSummaryRecord'>    /**
+</span>     * Returns the summary results for the group.
+     * @return {Ext.data.Model}
+     */
+    getSummaryRecord: function() {
+        var me = this,
+            summaryRecord = me.summaryRecord,
+            store = me.store,
+            generation = store.getData().generation,
+            M, T;
+
+        if (!summaryRecord) {
+            M = store.getModel();
+            T = M.getSummaryModel();
+            me.summaryRecord = summaryRecord = new T();
+        }
+
+        if (!summaryRecord.isRemote &amp;&amp; summaryRecord.summaryGeneration !== generation) {
+            summaryRecord.calculateSummary(me.items);
+            summaryRecord.summaryGeneration = generation;
+        }
+
+        return summaryRecord;
+    }
+});
+</pre>
+</body>
+</html>

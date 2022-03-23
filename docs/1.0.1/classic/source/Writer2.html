@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-data-odata-Writer'>/**
+</span> * 
+ */
+ Ext.define(&#39;SU.data.odata.Writer&#39;, {
+    extend: &#39;Ext.data.JsonWriter&#39;,
+    alternateClassName: [&#39;SU.data.ODataWriter&#39;, &#39;Ext.data.ODataWriter&#39;],
+    alias: &#39;writer.odata&#39;,
+<span id='SU-data-odata-Writer-cfg-allowSingle'>    allowSingle: true,
+</span>
+<span id='SU-data-odata-Writer-method-write'>    write: function (request) {
+</span>        var me = this,
+            records = request.getRecords() || [],
+            record = records[0],
+            url = request.getUrl(),
+            proxy = request.getProxy(),
+            action = request.getAction(),
+            headers = request.getHeaders();
+
+        if (proxy) {
+
+            // remove $inlinecount as listdata.svc complains when sent with anything but GET
+            // this is required for the pager for know how many total records
+            if (url.indexOf(&#39;$inlinecount&#39;) &gt; 0) {
+                url = url.replace(&#39;$inlinecount=allpages&#39;, &#39;&#39;);
+                request.setUrl(url);
+            }
+
+            // for updates, set the if-match header to a matching etag
+            if (action === &#39;update&#39;) {
+                proxy.headers[&#39;If-Match&#39;] = record.data.__metadata.etag;
+            }
+            else {
+                if (headers &amp;&amp; headers[&#39;If-Match&#39;]) {
+                    delete headers[&#39;If-Match&#39;];
+                    request.setHeaders(headers);
+                }
+            }
+        }
+
+        return me.callParent(arguments);
+    }
+
+});
+</pre>
+</body>
+</html>

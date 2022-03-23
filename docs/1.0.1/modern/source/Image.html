@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-draw-sprite-Image'>/**
+</span> * @class Ext.draw.sprite.Image
+ * @extends Ext.draw.sprite.Rect
+ *
+ * A sprite that represents an image.
+ */
+Ext.define(&#39;Ext.draw.sprite.Image&#39;, {
+    extend: &#39;Ext.draw.sprite.Rect&#39;,
+    alias: &#39;sprite.image&#39;,
+<span id='Ext-draw-sprite-Image-property-type'>    type: &#39;image&#39;,
+</span>    statics: {
+<span id='Ext-draw-sprite-Image-static-property-imageLoaders'>        imageLoaders: {}
+</span>    },
+
+    inheritableStatics: {
+<span id='Ext-draw-sprite-Image-static-property-def'>        def: {
+</span>            processors: {
+<span id='Ext-draw-sprite-Image-cfg-src'>                /**
+</span>                 * @cfg {String} [src=&#39;&#39;] The image source of the sprite.
+                 */
+                src: &#39;string&#39;
+<span id='Ext-draw-sprite-Image-cfg-radius'>                /**
+</span>                 * @private
+                 * @cfg {Number} radius
+                 */
+            },
+            triggers: {
+                src: &#39;src&#39;
+            },
+            updaters: {
+                src: &#39;updateSource&#39;
+            },
+            defaults: {
+                src: &#39;&#39;,
+<span id='Ext-draw-sprite-Image-cfg-width'>                /**
+</span>                 * @cfg {Number} [width=null] The width of the image.
+                 * For consistent image size on all devices the width must be explicitly set.
+                 * Otherwise the natural image width devided by the device pixel ratio
+                 * (for a crisp looking image) will be used as the width of the sprite.
+                 */
+                width: null,
+<span id='Ext-draw-sprite-Image-cfg-height'>                /**
+</span>                 * @cfg {Number} [height=null] The height of the image.
+                 * For consistent image size on all devices the height must be explicitly set.
+                 * Otherwise the natural image height devided by the device pixel ratio
+                 * (for a crisp looking image) will be used as the height of the sprite.
+                 */
+                height: null
+            }
+        }
+    },
+
+<span id='Ext-draw-sprite-Image-method-updateSurface'>    updateSurface: function (surface) {
+</span>        if (surface) {
+            this.updateSource(this.attr);
+        }
+    },
+
+<span id='Ext-draw-sprite-Image-method-updateSource'>    updateSource: function (attr) {
+</span>        var me = this,
+            src = attr.src,
+            surface = me.getSurface(),
+            loadingStub = Ext.draw.sprite.Image.imageLoaders[src],
+            width = attr.width,
+            height = attr.height,
+            imageLoader,
+            i;
+
+        if (!surface) {
+            // First time this is called the sprite won&#39;t have a surface yet.
+            return;
+        }
+
+        if (!loadingStub) {
+            imageLoader = new Image();
+            loadingStub = Ext.draw.sprite.Image.imageLoaders[src] = {
+                image: imageLoader,
+                done: false,
+                pendingSprites: [me],
+                pendingSurfaces: [surface]
+            };
+            imageLoader.width = width;
+            imageLoader.height = height;
+            imageLoader.onload = function () {
+                var item;
+                
+                if (!loadingStub.done) {
+                    loadingStub.done = true;
+                    
+                    for (i = 0; i &lt; loadingStub.pendingSprites.length; i++) {
+                        item = loadingStub.pendingSprites[i];
+                        
+                        if (!item.destroyed) {
+                            item.setDirty(true);
+                        }
+                    }
+                    
+                    for (i = 0; i &lt; loadingStub.pendingSurfaces.length; i++) {
+                        item = loadingStub.pendingSurfaces[i];
+                        
+                        if (!item.destroyed) {
+                            item.renderFrame();
+                        }
+                    }
+                }
+            };
+            imageLoader.src = src;
+        } else {
+            Ext.Array.include(loadingStub.pendingSprites, me);
+            Ext.Array.include(loadingStub.pendingSurfaces, surface);
+        }
+    },
+
+<span id='Ext-draw-sprite-Image-method-render'>    render: function (surface, ctx) {
+</span>        var me = this,
+            attr = me.attr,
+            mat = attr.matrix,
+            src = attr.src,
+            x = attr.x,
+            y = attr.y,
+            width = attr.width,
+            height = attr.height,
+            loadingStub = Ext.draw.sprite.Image.imageLoaders[src],
+            image;
+
+        if (loadingStub &amp;&amp; loadingStub.done) {
+            mat.toContext(ctx);
+            image = loadingStub.image;
+            ctx.drawImage(image, x, y,
+                width || (image.naturalWidth || image.width) / surface.devicePixelRatio,
+                height || (image.naturalHeight || image.height) / surface.devicePixelRatio);
+        }
+
+        //&lt;debug&gt;
+        var debug = attr.debug || this.statics().debug || Ext.draw.sprite.Sprite.debug;
+        if (debug) {
+            debug.bbox &amp;&amp; this.renderBBox(surface, ctx);
+        }
+        //&lt;/debug&gt;
+    },
+
+<span id='Ext-draw-sprite-Image-method-isVisible'>    /**
+</span>     * @private
+     */
+    isVisible: function () {
+        var attr = this.attr,
+            parent = this.getParent(),
+            hasParent = parent &amp;&amp; (parent.isSurface || parent.isVisible()),
+            isSeen = hasParent &amp;&amp; !attr.hidden &amp;&amp; attr.globalAlpha;
+
+        return !!isSeen;
+    }
+
+});
+</pre>
+</body>
+</html>

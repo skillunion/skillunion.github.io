@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}layout-center {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.#{$prefix}layout-center-item,
+.#{$prefix}layout-center &gt; .#{$prefix}innerhtml {
+    // use auto margins to center the content instead of align-items/justify-content
+    // so that the entire content is reachable when the container is scrollable.
+    // See https://drafts.csswg.org/css-flexbox-1/#auto-margins
+    margin: auto;
+}
+
+.#{$prefix}layout-center-item.#{$prefix}widthed {
+    flex-shrink: 0;
+}
+</pre>
+</body>
+</html>

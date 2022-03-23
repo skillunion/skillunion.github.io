@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-data-validator-Currency'>/**
+</span> * Validates that the value is a valid U.S. currency value.
+ *
+ */
+Ext.define(&#39;Ext.data.validator.Currency&#39;, {
+    extend: &#39;Ext.data.validator.Number&#39;,
+    alias: &#39;data.validator.currency&#39;,
+
+<span id='Ext-data-validator-Currency-property-type'>    type: &#39;currency&#39;,
+</span>
+    config: {
+<span id='Ext-data-validator-Currency-cfg-symbolAtEnd'>        /**
+</span>         * @cfg {Boolean} symbolAtEnd
+         * `true` to show the currency symbol after the number.
+         * Defaults to {Ext.util.Format#currencyAtEnd}.
+         */
+        symbolAtEnd: undefined,
+
+<span id='Ext-data-validator-Currency-cfg-spacer'>        /**
+</span>         * @cfg {String} spacer
+         * The spacer to show between the number and the currency symbol.
+         * Defaults to {Ext.util.Format#currencySpacer}.
+         */
+        spacer: undefined,
+
+<span id='Ext-data-validator-Currency-cfg-symbol'>        /**
+</span>         * @cfg {String} symbol
+         * The symbol used to denote currency.
+         * Defaults to {Ext.util.Format#currencySign}.
+         */
+        symbol: undefined
+    },
+
+<span id='Ext-data-validator-Currency-cfg-message'>    /**
+</span>     * @cfg {String} message
+     * The error message to return when the value is not a valid currency amount.
+     * @locale
+     */
+    message: &#39;Is not a valid currency amount&#39;,
+
+<span id='Ext-data-validator-Currency-method-applySymbolAtEnd'>    applySymbolAtEnd: function(value) {
+</span>        return value === undefined ? Ext.util.Format.currencyAtEnd : value;
+    },
+
+<span id='Ext-data-validator-Currency-method-updateSymbolAtEnd'>    updateSymbolAtEnd: function() {
+</span>        this.rebuildMatcher();
+    },
+
+<span id='Ext-data-validator-Currency-method-applySpacer'>    applySpacer: function(value) {
+</span>        return value === undefined ? Ext.util.Format.currencySpacer : value;
+    },
+
+<span id='Ext-data-validator-Currency-method-updateSpacer'>    updateSpacer: function() {
+</span>        this.rebuildMatcher();
+    },
+
+<span id='Ext-data-validator-Currency-method-applySymbol'>    applySymbol: function(value) {
+</span>        return value === undefined ? Ext.util.Format.currencySign : value;
+    },
+
+<span id='Ext-data-validator-Currency-method-updateSymbol'>    updateSymbol: function() {
+</span>        this.rebuildMatcher();
+    },
+
+<span id='Ext-data-validator-Currency-property-privates'>    privates: {
+</span>        getMatcherText: function() {
+            var me = this,
+                ret = me.callParent([true]),
+                symbolPart = me.getSymbolMatcher();
+
+            if (me.getSymbolAtEnd()) {
+                ret += symbolPart;
+            } else {
+                ret = symbolPart + ret;
+            }
+
+            return me.getSignPart() + ret;
+        },
+
+        getSymbolMatcher: function() {
+            var symbol = Ext.String.escapeRegex(this.getSymbol()),
+                spacer = Ext.String.escapeRegex(this.getSpacer() || &#39;&#39;),
+                s = this.getSymbolAtEnd() ? (spacer + symbol) : (symbol + spacer);
+
+            return &#39;(?:&#39; + s + &#39;)?&#39;;
+        },
+
+        parseValue: function(v) {
+            // If we&#39;re at the front, replace -/+$1 with -/+1
+            v = v.replace(this.currencyMatcher, this.atEnd ? &#39;&#39; : &#39;$1&#39;);
+            return this.callParent([v]);
+        },
+
+        rebuildMatcher: function() {
+            var me = this,
+                symbolPart, atEnd, sign;
+
+            me.callParent();
+
+            if (!me.isConfiguring) {
+                atEnd = me.getSymbolAtEnd();
+                symbolPart = me.getSymbolMatcher();
+                sign = me.getSignPart();
+
+                me.atEnd = atEnd;
+                me.currencyMatcher = new RegExp(atEnd ? (symbolPart + &#39;$&#39;) : (&#39;^&#39; + sign + symbolPart));
+            }
+        }
+    }
+});</pre>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}panelresizer {
+    position: absolute;
+    @include no-select;
+
+    &amp;.#{$prefix}north {
+        &amp;.#{$prefix}handle {
+            cursor: n-resize;
+        }
+
+        &amp;.#{$prefix}splitter {
+            cursor: row-resize;
+        }
+
+        top: 0;
+        right: 0;
+        left: 0;
+    }
+
+    &amp;.#{$prefix}northeast {
+        cursor: ne-resize;
+        top: 0;
+        right: 0;
+    }
+
+    &amp;.#{$prefix}east {
+        &amp;.#{$prefix}handle {
+            cursor: e-resize;
+        }
+
+        &amp;.#{$prefix}splitter {
+            cursor: col-resize;
+        }
+
+        top: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    &amp;.#{$prefix}southeast {
+        cursor: se-resize;
+        right: 0;
+        bottom: 0;
+    }
+
+    &amp;.#{$prefix}south {
+        &amp;.#{$prefix}handle {
+            cursor: s-resize;
+        }
+
+        &amp;.#{$prefix}splitter {
+            cursor: row-resize;
+        }
+
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+
+    &amp;.#{$prefix}southwest {
+        cursor: sw-resize;
+        bottom: 0;
+        left: 0;
+    }
+
+    &amp;.#{$prefix}west {
+        &amp;.#{$prefix}handle {
+            cursor: w-resize;
+        }
+
+        &amp;.#{$prefix}splitter {
+            cursor: col-resize;
+        }
+
+        top: 0;
+        bottom: 0;
+        left: 0;
+    }
+
+    &amp;.#{$prefix}northwest {
+        cursor: nw-resize;
+        top: 0;
+        left: 0;
+    }
+
+    &amp;.#{$prefix}disabled {
+        &amp;.#{$prefix}handle,
+        &amp;.#{$prefix}splitter {
+            cursor: default;
+        }
+    }
+
+}
+
+.#{$prefix}panelresizer-proxy {
+    z-index: 999999;
+    position: absolute;
+    cursor: default;
+}</pre>
+</body>
+</html>

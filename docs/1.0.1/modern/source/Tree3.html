@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-cell-Tree'>/**
+</span> *
+ */
+Ext.define(&#39;Ext.grid.cell.Tree&#39;, {
+    extend: &#39;Ext.grid.cell.Cell&#39;,
+    xtype: &#39;treecell&#39;,
+    
+<span id='Ext-grid-cell-Tree-property-isTreeCell'>    isTreeCell: true,
+</span>
+<span id='Ext-grid-cell-Tree-property-classCls'>    /**
+</span>     * @property classCls
+     * @inheritdoc
+     */
+    classCls: Ext.baseCSSPrefix + &#39;treecell&#39;,
+
+<span id='Ext-grid-cell-Tree-property-collapsedCls'>    collapsedCls: Ext.baseCSSPrefix + &#39;collapsed&#39;,
+</span><span id='Ext-grid-cell-Tree-property-expandedCls'>    expandedCls: Ext.baseCSSPrefix + &#39;expanded&#39;,
+</span><span id='Ext-grid-cell-Tree-property-leafCls'>    leafCls: Ext.baseCSSPrefix + &#39;leaf&#39;,
+</span><span id='Ext-grid-cell-Tree-property-expandableCls'>    expandableCls: Ext.baseCSSPrefix + &#39;expandable&#39;,
+</span><span id='Ext-grid-cell-Tree-property-withIconCls'>    withIconCls: Ext.baseCSSPrefix + &#39;with-icon&#39;,
+</span><span id='Ext-grid-cell-Tree-property-withoutIconCls'>    withoutIconCls: Ext.baseCSSPrefix + &#39;no-icon&#39;,
+</span><span id='Ext-grid-cell-Tree-property-loadingCls'>    loadingCls: Ext.baseCSSPrefix + &#39;loading&#39;,
+</span><span id='Ext-grid-cell-Tree-property-selectedCls'>    selectedCls: Ext.baseCSSPrefix + &#39;selected&#39;,
+</span>
+    config: {
+<span id='Ext-grid-cell-Tree-cfg-iconClsProperty'>        /**
+</span>         * @cfg {String} iconClsProperty
+         * The property from the associated record to map for the {@link #iconCls} config.
+         */
+        iconClsProperty: &#39;iconCls&#39;,
+
+<span id='Ext-grid-cell-Tree-cfg-iconCls'>        /**
+</span>         * @cfg iconCls
+         * @inheritdoc Ext.panel.Header#cfg-iconCls
+         * @localdoc **Note:** This value is taken from the underlying {@link #node}.
+         */
+        iconCls: null,
+
+<span id='Ext-grid-cell-Tree-cfg-indent'>        indent: null,
+</span>
+<span id='Ext-grid-cell-Tree-cfg-text'>        /**
+</span>         * @cfg {String} text
+         * The text for this item. This value is taken from
+         * the underlying {@link #node}.
+         */
+        text: {
+            lazy: true,
+            $value: &#39;&#39;
+        }
+    },
+
+    // See theme-base/src/grid/cell/Tree.scss when maintaining this structure.
+    // Ancestor classes on containing elements are used to style elements in this structure.
+    // This involves nested child selectors which rely on this structure.
+<span id='Ext-grid-cell-Tree-property-element'>    /**
+</span>     * @property element
+     * @inheritdoc
+     */
+    element: {
+        reference: &#39;element&#39;,
+        children: [{
+            reference: &#39;innerElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;inner-el&#39;,
+            children: [{
+                reference: &#39;indentElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;indent-el&#39;
+            }, {
+                reference: &#39;expanderElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;expander-el &#39; +
+                Ext.baseCSSPrefix + &#39;font-icon&#39;
+            }, {
+                reference: &#39;iconElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;icon-el &#39; +
+                Ext.baseCSSPrefix + &#39;font-icon&#39;
+            }, {
+                reference: &#39;bodyElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;body-el&#39;,
+                uiCls: &#39;body-el&#39;
+            }]
+        }]
+    },
+
+<span id='Ext-grid-cell-Tree-cfg-toolDefaults'>    /**
+</span>     * @cfg toolDefaults
+     * @inheritdoc
+     */
+    toolDefaults: {
+        zone: &#39;tail&#39;
+    },
+
+<span id='Ext-grid-cell-Tree-method-constructor'>    constructor: function (config) {
+</span>        this.callParent([ config ]);
+
+        this.element.on({
+            scope: this,
+            tap: &#39;maybeToggle&#39;
+        });
+    },
+
+<span id='Ext-grid-cell-Tree-method-toggle'>    /**
+</span>     * Expand this tree node if collapse, collapse it if expanded.
+     */
+    toggle: function() {
+        var me = this,
+            record = me.getRecord();
+
+        if (record.isExpanded()) {
+            me.collapse();
+        } else if (record.isExpandable()) {
+            me.expand();
+        }
+    },
+
+<span id='Ext-grid-cell-Tree-method-collapse'>    /**
+</span>     * Collapse this tree node.
+     */
+    collapse: function() {
+        var me = this,
+            record = me.getRecord();
+
+        me.getGrid().fireEventedAction(&#39;nodecollapse&#39;, [me.parent, record, &#39;collapse&#39;], &#39;doToggle&#39;, this);
+    },
+
+<span id='Ext-grid-cell-Tree-method-expand'>    /**
+</span>     * Expand this tree node.
+     */
+    expand: function() {
+        var me = this,
+            record = me.getRecord(),
+            tree = me.getGrid(),
+            siblings, i, len, sibling;
+
+        tree.fireEventedAction(&#39;nodeexpand&#39;, [me.parent, record, &#39;expand&#39;], &#39;doToggle&#39;, me);
+
+        // Collapse any other expanded sibling if tree is singleExpand
+        if (record.isExpanded &amp;&amp; !record.isRoot() &amp;&amp; tree.getSingleExpand()) {
+            siblings = record.parentNode.childNodes;
+            for (i = 0, len = siblings.length; i &lt; len; ++i) {
+                sibling = siblings[i];
+                if (sibling !== record) {
+                    sibling.collapse();
+                }
+            }
+        }
+    },
+
+<span id='Ext-grid-cell-Tree-method-refresh'>    refresh: function (ctx) {
+</span>        this.callParent([ctx]);
+
+        var record = this.getRecord();
+        if (record) {
+            this.doNodeUpdate(record);
+        }
+    },
+
+<span id='Ext-grid-cell-Tree-method-updateIconCls'>    updateIconCls: function (iconCls, oldIconCls) {
+</span>        var me = this,
+            el = me.element,
+            noIcon = !iconCls;
+
+        me.iconElement.replaceCls(oldIconCls, iconCls);
+
+        el.toggleCls(me.withIconCls, !noIcon);
+        el.toggleCls(me.withoutIconCls, noIcon);
+    },
+
+<span id='Ext-grid-cell-Tree-method-updateUi'>    updateUi: function (ui, oldUi) {
+</span>        this.callParent([ui, oldUi]);
+
+        // ensure indent is measured from the dom when syncIndent() is called
+        this._indent = null;
+
+        this.syncIndent();
+    },
+
+<span id='Ext-grid-cell-Tree-property-privates'>    privates: {
+</span><span id='Ext-grid-cell-Tree-method-doNodeUpdate'>        /**
+</span>         * Update properties after a record update.
+         *
+         * @param {Ext.data.TreeModel} record The node.
+         *
+         * @private
+         */
+        doNodeUpdate: function (record) {
+            var me = this,
+                iconClsProperty = me.getIconClsProperty(),
+                el = me.element;
+
+            if (iconClsProperty) {
+                me.setIconCls(record.data[iconClsProperty]);
+            }
+
+            el.toggleCls(me.loadingCls, record.data.loading);
+            el.toggleCls(me.leafCls, record.isLeaf());
+            me.syncExpandCls();
+            me.syncIndent();
+        },
+
+        getGrid: function() {
+            return this.row.grid;
+        },
+
+        syncExpandCls: function () {
+            if (!this.updatingExpandCls) {
+                var me = this,
+                    record = me.getRecord(),
+                    expandable = record.isExpandable(),
+                    element = me.element,
+                    expanded = record.isExpanded(),
+                    expandedCls = me.expandedCls,
+                    collapsedCls = me.collapsedCls;
+
+                me.updatingExpandCls = true;
+
+                element.toggleCls(me.expandableCls, expandable);
+
+                if (expandable) {
+                    element.toggleCls(expandedCls, expanded);
+                    element.toggleCls(collapsedCls, !expanded);
+                } else {
+                    element.removeCls([expandedCls, collapsedCls]);
+                }
+
+                me.updatingExpandCls = false;
+            }
+        },
+
+        syncIndent: function() {
+            var me = this,
+                column = me.getColumn(),
+                indentSize, record, depth;
+
+            if (column) {
+                indentSize = column._indentSize;
+                record = me.getRecord();
+
+                if (!indentSize) {
+                    column._indentSize = indentSize = parseInt(me.el.getStyle(&#39;background-position&#39;), 10);
+                }
+
+                if (record) {
+                    depth = record.getTreeStore().rootVisible ? record.data.depth : record.data.depth - 1;
+                    me.indentElement.dom.style.width = (depth * indentSize)  + &#39;px&#39;;
+                }
+            }
+        },
+
+<span id='Ext-grid-cell-Tree-method-maybeToggle'>        /**
+</span>         * @private
+         */
+        maybeToggle: function(e) {
+            var me = this,
+                record = me.getRecord(),
+                wasExpanded = record.isExpanded();
+
+            if (!record.isLeaf() &amp;&amp; (!me.getGrid().getExpanderOnly() || e.target === me.expanderElement.dom)) {
+                me.toggle();
+            }
+
+            // Toggling click does not continue to bubble the event to the view.
+            // TODO: When NavigationModel implemented, that still has to recieve the events.
+            if (record.isExpanded() !== wasExpanded) {
+                e.nodeToggled = true;
+                e.stopEvent();
+            }
+        },
+
+        doToggle: function(row, record, fn) {
+            record[fn]();
+        }
+    }
+});
+</pre>
+</body>
+</html>

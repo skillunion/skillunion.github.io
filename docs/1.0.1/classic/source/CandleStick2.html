@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-sprite-CandleStick'>/**
+</span> * @class Ext.chart.series.sprite.CandleStick
+ * @extends Ext.chart.series.sprite.Aggregative
+ *
+ * CandleStick series sprite.
+ */
+Ext.define(&#39;Ext.chart.series.sprite.CandleStick&#39;, {
+    alias: &#39;sprite.candlestickSeries&#39;,
+    extend: &#39;Ext.chart.series.sprite.Aggregative&#39;,
+    inheritableStatics: {
+<span id='Ext-chart-series-sprite-CandleStick-static-property-def'>        def: {
+</span>            processors: {
+                raiseStyle: function (n, o) {
+                    return Ext.merge({}, o || {}, n);
+                },
+                dropStyle: function (n, o) {
+                    return Ext.merge({}, o || {}, n);
+                },
+
+<span id='Ext-chart-series-sprite-CandleStick-cfg-barWidth'>                /**
+</span>                 * @cfg {Number} [barWidth=15] The bar width of the candles.
+                 */
+                barWidth: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-CandleStick-cfg-padding'>                /**
+</span>                 * @cfg {Number} [padding=3] The amount of padding between candles.
+                 */
+                padding: &#39;number&#39;,
+
+<span id='Ext-chart-series-sprite-CandleStick-cfg-ohlcType'>                /**
+</span>                 * @cfg {String} [ohlcType=&#39;candlestick&#39;] Determines whether candlestick or ohlc is used.
+                 */
+                ohlcType: &#39;enums(candlestick,ohlc)&#39;
+            },
+            defaults: {
+                raiseStyle: {
+                    strokeStyle: &#39;green&#39;,
+                    fillStyle: &#39;green&#39;
+                },
+                dropStyle: {
+                    strokeStyle: &#39;red&#39;,
+                    fillStyle: &#39;red&#39;
+                },
+                barWidth: 15,
+                padding: 3,
+                lineJoin: &#39;miter&#39;,
+                miterLimit: 5,
+                ohlcType: &#39;candlestick&#39;
+            },
+
+            triggers: {
+                raiseStyle: &#39;raiseStyle&#39;,
+                dropStyle: &#39;dropStyle&#39;
+            },
+
+            updaters: {
+                raiseStyle: function () {
+                    var me = this,
+                        tpl = me.raiseTemplate;
+
+                    if (tpl) {
+                        tpl.setAttributes(me.attr.raiseStyle);
+                    }
+                },
+                dropStyle: function () {
+                    var me = this,
+                        tpl = me.dropTemplate;
+
+                    if (tpl) {
+                        tpl.setAttributes(me.attr.dropStyle);
+                    }
+                }
+            }
+        }
+    },
+
+<span id='Ext-chart-series-sprite-CandleStick-method-candlestick'>    candlestick: function (ctx, open, high, low, close, mid, halfWidth) {
+</span>        var minOC = Math.min(open, close),
+            maxOC = Math.max(open, close);
+
+        // lower stick
+        ctx.moveTo(mid, low);
+        ctx.lineTo(mid, minOC);
+
+        // body rect
+        ctx.moveTo(mid + halfWidth, maxOC);
+        ctx.lineTo(mid + halfWidth, minOC);
+        ctx.lineTo(mid - halfWidth, minOC);
+        ctx.lineTo(mid - halfWidth, maxOC);
+        ctx.closePath();
+
+        // upper stick
+        ctx.moveTo(mid, high);
+        ctx.lineTo(mid, maxOC);
+    },
+
+<span id='Ext-chart-series-sprite-CandleStick-method-ohlc'>    ohlc: function (ctx, open, high, low, close, mid, halfWidth) {
+</span>        ctx.moveTo(mid, high);
+        ctx.lineTo(mid, low);
+        ctx.moveTo(mid, open);
+        ctx.lineTo(mid - halfWidth, open);
+        ctx.moveTo(mid, close);
+        ctx.lineTo(mid + halfWidth, close);
+    },
+
+<span id='Ext-chart-series-sprite-CandleStick-method-constructor'>    constructor: function () {
+</span>        var me = this,
+            Rect = Ext.draw.sprite.Rect;
+
+        me.callParent(arguments);
+        me.raiseTemplate = new Rect({parent: me});
+        me.dropTemplate  = new Rect({parent: me});
+    },
+
+<span id='Ext-chart-series-sprite-CandleStick-method-getGapWidth'>    getGapWidth: function () {
+</span>        var attr = this.attr,
+            barWidth = attr.barWidth,
+            padding = attr.padding;
+
+        return barWidth + padding;
+    },
+
+<span id='Ext-chart-series-sprite-CandleStick-method-renderAggregates'>    renderAggregates: function (aggregates, start, end, surface, ctx, clip) {
+</span>        var me = this,
+            attr = me.attr,
+            ohlcType = attr.ohlcType,
+            series = me.getSeries(),
+
+            matrix = attr.matrix,
+            xx = matrix.getXX(),
+            yy = matrix.getYY(),
+            dx = matrix.getDX(),
+            dy = matrix.getDY(),
+
+            halfWidth = Math.round(attr.barWidth * 0.5),
+
+            dataX = attr.dataX,
+            opens = aggregates.open,
+            closes = aggregates.close,
+            maxYs = aggregates.maxY,
+            minYs = aggregates.minY,
+            startIdxs = aggregates.startIdx,
+
+            pixelAdjust = attr.lineWidth * surface.devicePixelRatio / 2,
+
+            renderer = attr.renderer,
+            rendererConfig = renderer &amp;&amp; {},
+            rendererParams, rendererChanges,
+            open, high, low, close, mid,
+            i, template;
+
+        me.rendererData = me.rendererData || {store: me.getStore()};
+        pixelAdjust -= Math.floor(pixelAdjust);
+
+        // Render raises.
+        ctx.save();
+            template = me.raiseTemplate;
+            template.useAttributes(ctx, clip);
+            if (!renderer) {
+                ctx.beginPath();
+            }
+            for (i = start; i &lt; end; i++) {
+                if (opens[i] &lt;= closes[i]) {
+
+                    open = Math.round(opens[i] * yy + dy) + pixelAdjust;
+                    high = Math.round(maxYs[i] * yy + dy) + pixelAdjust;
+                    low = Math.round(minYs[i] * yy + dy) + pixelAdjust;
+                    close = Math.round(closes[i] * yy + dy) + pixelAdjust;
+                    mid = Math.round(dataX[startIdxs[i]] * xx + dx) + pixelAdjust;
+
+                    if (renderer) {
+                        ctx.save();
+                        ctx.beginPath();
+
+                        rendererConfig.open = open;
+                        rendererConfig.high = high;
+                        rendererConfig.low = low;
+                        rendererConfig.close = close;
+                        rendererConfig.mid = mid;
+                        rendererConfig.halfWidth = halfWidth;
+
+                        rendererParams = [me, rendererConfig, me.rendererData, i];
+                        rendererChanges = Ext.callback(renderer, null, rendererParams, 0, series);
+
+                        Ext.apply(ctx, rendererChanges);
+                    }
+
+                    me[ohlcType](ctx, open, high, low, close, mid, halfWidth);
+
+                    if (renderer) {
+                        ctx.fillStroke(template.attr);
+                        ctx.restore();
+                    }
+                }
+            }
+            if (!renderer) {
+                ctx.fillStroke(template.attr);
+            }
+        ctx.restore();
+
+
+        // Render drops.
+        ctx.save();
+            template = me.dropTemplate;
+            template.useAttributes(ctx, clip);
+
+            if (!renderer) {
+                ctx.beginPath();
+            }
+            for (i = start; i &lt; end; i++) {
+                if (opens[i] &gt; closes[i]) {
+
+                    open = Math.round(opens[i] * yy + dy) + pixelAdjust;
+                    high = Math.round(maxYs[i] * yy + dy) + pixelAdjust;
+                    low = Math.round(minYs[i] * yy + dy) + pixelAdjust;
+                    close = Math.round(closes[i] * yy + dy) + pixelAdjust;
+                    mid = Math.round(dataX[startIdxs[i]] * xx + dx) + pixelAdjust;
+
+                    if (renderer) {
+                        ctx.save();
+                        ctx.beginPath();
+
+                        rendererConfig.open = open;
+                        rendererConfig.high = high;
+                        rendererConfig.low = low;
+                        rendererConfig.close = close;
+                        rendererConfig.mid = mid;
+                        rendererConfig.halfWidth = halfWidth;
+
+                        rendererParams = [me, rendererConfig, me.rendererData, i];
+                        rendererChanges = Ext.callback(renderer, null, rendererParams, 0, me.getSeries());
+                        Ext.apply(ctx, rendererChanges);
+                    }
+
+                    me[ohlcType](ctx, open, high, low, close, mid, halfWidth);
+
+                    if (renderer) {
+                        ctx.fillStroke(template.attr);
+                        ctx.restore();
+                    }
+                }
+            }
+            if (!renderer) {
+                ctx.fillStroke(template.attr);
+            }
+        ctx.restore();
+    }
+});</pre>
+</body>
+</html>

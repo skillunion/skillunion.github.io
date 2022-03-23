@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-listswiper-Stepper'>/**
+</span> * This class is a container used by the {@link Ext.dataview.plugin.ListSwiper listswiper}
+ * plugin to display information and controls when an item is swiped.
+ */
+Ext.define(&#39;Ext.dataview.listswiper.Stepper&#39;, {
+    extend: &#39;Ext.dataview.listswiper.Item&#39;,
+    xtype: &#39;listswiperstepper&#39;,
+
+    requires: [
+        &#39;Ext.fx.easing.EaseOut&#39;,
+        &#39;Ext.util.translatable.CssTransform&#39;
+    ],
+
+    config: {
+<span id='Ext-dataview-listswiper-Stepper-cfg-iconCls'>        /**
+</span>         * @cfg {String} iconCls
+         * One or more space separated CSS classes to be applied to the icon element.
+         * See {@link Ext.Button#iconCls} for details.
+         */
+        iconCls: null,
+
+<span id='Ext-dataview-listswiper-Stepper-cfg-text'>        /**
+</span>         * @cfg {String} text
+         * The swipe action text.
+         */
+        text: null,
+
+<span id='Ext-dataview-listswiper-Stepper-cfg-undo'>        /**
+</span>         * @cfg {Object} undo
+         * A config object for the undo button.
+         */
+        undo: {
+            docked: &#39;right&#39;,
+            ui: &#39;listswiperstepper-trigger&#39;
+        },
+
+<span id='Ext-dataview-listswiper-Stepper-cfg-step'>        /**
+</span>         * @private
+         */
+        step: null,
+
+<span id='Ext-dataview-listswiper-Stepper-cfg-side'>        /**
+</span>         * @private
+         */
+        side: null,
+
+<span id='Ext-dataview-listswiper-Stepper-cfg-animation'>        /**
+</span>         * @cfg {Boolean/Object} animation
+         * `true` for the default animation (`{ duration: 500, easing: &#39;ease-out&#39; }`) or
+         * a standard animation config object to be used for default swipe animations.
+         */
+        animation: true
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;listswiperstepper&#39;,
+</span>
+<span id='Ext-dataview-listswiper-Stepper-cfg-layout'>    layout: {
+</span>        type: &#39;hbox&#39;,
+        align: &#39;center&#39;
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-property-scrollDock'>    scrollDock: null,
+</span>
+<span id='Ext-dataview-listswiper-Stepper-property-sideCls'>    sideCls: {
+</span>        left: Ext.baseCSSPrefix + &#39;side-left&#39;,
+        right: Ext.baseCSSPrefix + &#39;side-right&#39;
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-cfg-tpl'>    tpl: &#39;&lt;div class=&quot;&#39; + Ext.baseCSSPrefix + &#39;listswiperstepper-text&quot;&gt;{text}&lt;/div&gt;&#39;,
+</span>
+<span id='Ext-dataview-listswiper-Stepper-property-template'>    template: [{
+</span>        reference: &#39;bodyElement&#39;,
+        cls: Ext.baseCSSPrefix + &#39;body-el&#39;,
+        uiCls: &#39;body-el&#39;,
+        children: [{
+            reference: &#39;iconWrapElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;icon-wrap-el&#39;,
+            uiCls: &#39;icon-wrap-el&#39;,
+            children: [{
+                reference: &#39;iconElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;icon-el &#39; + Ext.baseCSSPrefix + &#39;font-icon&#39;
+            }]
+        }, {
+            reference: &#39;innerElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;inner-el&#39;,
+            uiCls: &#39;inner-el&#39;
+        }]
+    }],
+
+<span id='Ext-dataview-listswiper-Stepper-method-initialize'>    initialize: function () {
+</span>        this.callParent();
+        this.bodyElement.on(&#39;tap&#39;, &#39;onTap&#39;, this);
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-onRender'>    onRender: function() {
+</span>        this.steps = this.buildSteps();
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-applyAnimation'>    applyAnimation: function(animation) {
+</span>        if (animation === true) {
+            animation = {
+                duration: 500,
+                easing: {
+                    type: &#39;ease-out&#39;
+                }
+            };
+        }
+
+        return animation;
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-updateTranslationTarget'>    updateTranslationTarget: function (target) {
+</span>        this.translatable = Ext.Factory.translatable({ element: target }, &#39;csstransform&#39;);
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-revert'>    revert: function(animate) {
+</span>        var me = this,
+            action = me.getAction();
+
+        me.invokeAction(action, &#39;revert&#39;);
+        me.finalize(animate);
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-dismiss'>    /**
+</span>     * Dismisses the pending action by triggering the `dismiss` event.
+     * See {@link Ext.dataview.plugin.ListSwiper#actionOnDismiss} for details.
+     */
+    dismiss: function(animate) {
+        var me = this,
+            action = me.getAction(),
+            state = me.getState();
+
+        if (state === &#39;undo&#39;) {
+            me.invokeAction(action, &#39;commit&#39;);
+        }
+
+        me.finalize(animate);
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-sortFn'>    sortFn: function(a, b) {
+</span>        return b.x - a.x;
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-buildSteps'>    /**
+</span>     * Builds a lookup tables with effective thresholds (in pixel) to save some calculations
+     * during the multiple drag events. This tables should be invalidated every time the list
+     * is horizontally resized (which should not happen during swipe interactions).
+     * @private
+     */
+    buildSteps: function() {
+        var me = this,
+            item = me.ownerCmp,
+            el = item.el,
+            left = me.getLeftActions() || {},
+            right = me.getRightActions() || {},
+            width = el.getWidth(),
+            steps = {r: [], l: []},
+            totalThreshold = 0,
+            fn = function(side, index, action) {
+                var threshold = Ext.util.Format.defaultValue(action.threshold, &#39;25%&#39;),
+                    number = parseInt(threshold, 10);
+
+                if (isNaN(number)) {
+                    return; // skip this action!
+                }
+
+                if (typeof threshold === &#39;string&#39; &amp;&amp; threshold.indexOf(&#39;%&#39;) !== -1) {
+                    number = width * number / 100;
+                }
+
+                totalThreshold += number;
+
+                steps[side].push({
+                    action: action,
+                    side: side === &#39;r&#39; ? &#39;right&#39; : &#39;left&#39;,
+                    tx: side === &#39;r&#39; ? -width : width,
+                    x: totalThreshold,
+                    key: action.key || index
+                });
+            };
+
+        Ext.Object.each(left, fn.bind(this, &#39;l&#39;));
+        totalThreshold = 0;
+        Ext.Object.each(right, fn.bind(this, &#39;r&#39;));
+
+        return steps;
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-findStep'>    findStep: function(dx, force) {
+</span>        var me = this,
+            res = {step: null, active: true},
+            steps = me.steps[dx &gt; 0 ? &#39;l&#39; : &#39;r&#39;],
+            ilen = steps.length,
+            absDx = Math.abs(dx),
+            step, i;
+
+        for (i = ilen - 1; !res.step &amp;&amp; i &gt;= 0; --i) {
+            step = steps[i];
+            if (step.x &lt; absDx) {
+                res.step = step;
+            }
+        }
+
+        if (!res.step &amp;&amp; force &amp;&amp; ilen &gt; 0) {
+            res.step = steps[0];
+            res.active = false;
+        }
+
+        return res;
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-updateStep'>    updateStep: function(step, oldStep) {
+</span>        var me = this,
+            action = (step &amp;&amp; step.action),
+            oldAction = (oldStep &amp;&amp; oldStep.action),
+            actionCls = action &amp;&amp; action.cls,
+            oldActionCls = oldAction &amp;&amp; oldAction.cls,
+            actionKeyCls = step &amp;&amp; (&#39;swipe-action-&#39; + step.key),
+            oldActionKeyCls = oldStep &amp;&amp; (&#39;swipe-action-&#39; + oldStep.key);
+
+        if (step) {
+            me.setSide(step.side);
+        }
+
+        me.replaceCls(oldActionCls, actionCls);
+        me.replaceCls(oldActionKeyCls, actionKeyCls, Ext.baseCSSPrefix);
+
+        me.syncStep();
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-updateSide'>    updateSide: function(side, oldSide) {
+</span>        var me = this,
+            classes = me.sideCls,
+            layout = me.getLayout();
+
+        me.replaceCls(classes[oldSide], classes[side]);
+        if (layout.setPack) {
+            layout.setPack(side === &#39;right&#39;? &#39;end&#39; : &#39;start&#39;);
+        }
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-onDragStart'>    onDragStart: function(evt) {
+</span>        evt.stopPropagation();
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-onDragMove'>    onDragMove: function(evt) {
+</span>        var me = this,
+            plugin = me.owner,
+            directionLock = plugin.getDirectionLock(),
+            state = me.getState(),
+            step = me.getStep(),
+            translatable = me.translatable,
+            dx = evt.deltaX, res;
+
+        if (state === &#39;undo&#39;) {
+            return;
+        }
+
+        if (state === &#39;consumed&#39;) {
+            me.setState(&#39;reaquired&#39;);
+            translatable.stopAnimation();
+        }
+
+        res = me.findStep(dx, true);
+
+        // Direction Lock causes a friction pull
+        if (directionLock &amp;&amp; (res.step &amp;&amp; step) &amp;&amp; (res.step.side !== step.side)) {
+            me.setState(&#39;overdrag&#39;);
+            res.step = null;
+        } else {
+            me.setState(res.step ? res.active ? &#39;active&#39; : &#39;peek&#39; : &#39;overdrag&#39;);
+            me.setStep(res.step || null);
+        }
+
+        // if there is no action for the current gesture, we still want to allow the user
+        // to swipe the item but with friction to let him know that no action is available.
+        translatable.translateAxis(&#39;x&#39;, res.step ? dx : dx * 0.1);
+
+        evt.stopPropagation();
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-onDragEnd'>    onDragEnd: function(evt) {
+</span>        var me = this,
+            state = me.getState(),
+            step = me.getStep(),
+            dx = evt.deltaX,
+            res;
+
+        if (state === &#39;undo&#39; || state === &#39;consumed&#39;) {
+            return;
+        }
+
+        evt.stopPropagation();
+
+        res = me.findStep(dx, false);
+        if (!res.step || res.step.side !== step.side) {
+            me.finalize(true);
+            return;
+        }
+
+        me.setStep(res.step);
+        me.commit(true);
+    },
+
+
+<span id='Ext-dataview-listswiper-Stepper-method-commit'>    commit: function(animate) {
+</span>        var me = this,
+            step = me.getStep(),
+            action = step.action,
+            plugin = me.owner,
+            translatable = me.translatable,
+            delay, precommitResult, undo;
+
+        me.setAction(action);
+        precommitResult = me.invokeAction(action, &#39;precommit&#39;);
+
+        if (action.undoable) {
+            me.setState(&#39;undo&#39;);
+            undo = me.add(me.getUndo());
+            undo.setHandler(me.onUndoTap.bind(me));
+            me.setSide(undo.getDocked() === &#39;left&#39;? &#39;right&#39; : &#39;left&#39;);
+
+            translatable.translateAxis(&#39;x&#39;, step.tx, me.getAnimation());
+
+            delay = plugin.getCommitDelay();
+            if (delay) {
+                if (precommitResult &amp;&amp; precommitResult.then) {
+                    precommitResult.then(function() {
+                        plugin.dismissAllTask.delay(delay);
+                    });
+                } else {
+                    plugin.dismissAllTask.delay(delay);
+                }
+            }
+        } else {
+            if (precommitResult &amp;&amp; precommitResult.then) {
+                precommitResult.then(me.invokeAction.bind(me, action, &#39;commit&#39;)).then(me.finalize.bind(me, animate));
+            } else {
+                me.invokeAction(action, &#39;commit&#39;);
+                me.finalize(animate);
+            }
+        }
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-finalize'>    finalize: function(animate) {
+</span>        var me = this,
+            animation = me.getAnimation(),
+            translatable = me.translatable;
+
+        translatable.stopAnimation();
+        me.setState(&#39;consumed&#39;);
+
+        if (!animate) {
+            me.doFinalize();
+            return;
+        }
+
+        if (translatable.x !== 0) {
+            translatable.on({
+                animationend: &#39;doFinalize&#39;,
+                single: true,
+                scope: me
+            });
+
+            translatable.translateAxis(&#39;x&#39;, 0, animate &amp;&amp; animation);
+        }
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-doFinalize'>    doFinalize: function() {
+</span>        var me = this,
+            plugin = me.owner,
+            item = me.ownerCmp,
+            state = me.getState(),
+            translatable = me.translatable;
+
+        // if the state is not consumed the user has picked up the swiper
+        // before the close animation finished.
+        if (state === &#39;consumed&#39;) {
+            translatable.translateAxis(&#39;x&#39;, 0, false);
+            if (!me.destroyed &amp;&amp; item) {
+                plugin.destroyItem(item);
+            }
+        }
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-syncStep'>    syncStep: function() {
+</span>        var me = this,
+            item = me.ownerCmp,
+            record = item.getRecord(),
+            step = me.getStep(),
+            ui = null,
+            iconCls = &#39;&#39;,
+            text = &#39;&#39;,
+            action, data;
+
+        if (step) {
+            action = step.action;
+
+            if (action) {
+                ui = action.ui;
+                iconCls = action.iconCls;
+                text = action.text;
+                data = action.data;
+            }
+
+            data = Ext.apply({
+                    text: text
+                }, data,
+                record ?
+                    record.getData(true) :
+                    {});
+
+            this.setUi(ui);
+            this.setIconCls(iconCls);
+            me.setData(data);
+        } else {
+            this.setUi(null);
+            this.setIconCls(null);
+            me.setData(null);
+        }
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-method-updateIconCls'>    updateIconCls: function (iconCls, oldIconCls) {
+</span>        this.iconElement.replaceCls(oldIconCls, iconCls);
+    },
+
+<span id='Ext-dataview-listswiper-Stepper-property-privates'>    privates: {
+</span>        getRenderTarget: function () {
+            return this.innerElement;
+        },
+
+        onTap: function (evt) {
+            var me = this,
+                plugin = me.owner,
+                dimissOnTap = plugin.getDismissOnTap();
+
+            evt.stopPropagation();
+
+            if (dimissOnTap) {
+                me.dismiss();
+            }
+        },
+
+        onUndoTap: function(button, evt) {
+            evt.stopPropagation();
+            this.revert();
+        }
+    }
+});
+</pre>
+</body>
+</html>

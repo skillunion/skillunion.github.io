@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}gridrow {
+    display: block;
+
+    .#{$prefix}cells-el {
+        display: table;
+        table-layout: fixed;
+        // width: 0 allows the cells in a fixed table layout, which are individually sized
+        // in response to header container layout, to be allowed to shrink smaller than
+        // their content.
+        width: 0;
+        // inherit background-color so color of listswiper items doesn&#39;t show through
+        background-color: inherit;
+    }
+}</pre>
+</body>
+</html>

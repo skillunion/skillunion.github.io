@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-ux-google-map-Marker'>/**
+</span> * Provided for convenience, this model exposes the default Google Map Marker options.
+ *
+ * See https://developers.google.com/maps/documentation/javascript/3.exp/reference#MarkerOptions
+ *
+ * ## Fields
+ *
+ * - position {Object} - The marker position (required)
+ * - position.lat {Number} - Latitude in degrees
+ * - position.lng {Number} - Longitude in degrees
+ * - title {String} - The rollover text (default: null)
+ * - animation {String/Number} - The animation to play when the marker is added to the map.
+ *    Can be either null (no animation), a string (&quot;BOUNCE&quot; or &quot;DROP&quot;&quot;) or a value from
+ *   [google.maps.Animation](https://developers.google.com/maps/documentation/javascript/3.exp/reference#Animation)
+ * - clickable {Boolean} - Whether the marker receives mouse and touch events (default: true)
+ * - draggable {Boolean} - Whether the marker can be dragged (default: false)
+ * - draggable {Boolean} - Whether the marker is visible (default: true)
+ *
+ * ## Custom model
+ *
+ * It&#39;s not required to inherit from this model in order to display markers. By providing the
+ * suitable  {@link Ext.ux.google.Map#cfg-markerTemplate markerTemplate}, marker options can
+ * be extracted from any records, for example:
+ *
+ *      Ext.define(&#39;MyApp.model.Office&#39;, {
+ *          extend: &#39;Ext.data.Model&#39;,
+ *          fields: [
+ *              &#39;name&#39;,
+ *              &#39;address&#39;,
+ *              &#39;latitute&#39;,
+ *              &#39;longitude&#39;
+ *          ]
+ *      });
+ *
+ * and the associated view config:
+ *
+ *      {
+ *          xtype: &#39;map&#39;,
+ *          store: &#39;offices&#39;,
+ *          markerTemplate: {
+ *              title: &#39;{name}&#39;,
+ *              position: {
+ *                  lat: &#39;{latitute}&#39;,
+ *                  lng: &#39;{longitude}&#39;
+ *              }
+ *          }
+ *    }
+ *
+ */
+Ext.define(&#39;Ext.ux.google.map.Marker&#39;, {
+    extend: &#39;Ext.data.Model&#39;,
+
+<span id='Ext-ux-google-map-Marker-property-fields'>    fields: [{
+</span>        name: &#39;position&#39;,
+        type: &#39;auto&#39;
+    }, {
+        name: &#39;title&#39;,
+        type: &#39;string&#39;,
+        defaultValue: null
+    },  {
+        name: &#39;animation&#39;,
+        type: &#39;number&#39;,
+        defaultValue: &#39;DROP&#39;,
+        persist: false
+    }, {
+        name: &#39;clickable&#39;,
+        type: &#39;boolean&#39;,
+        defaultValue: true,
+        persist: false
+    }, {
+        name: &#39;draggable&#39;,
+        type: &#39;boolean&#39;,
+        defaultValue: false,
+        persist: false
+    }, {
+        name: &#39;visible&#39;,
+        type: &#39;boolean&#39;,
+        defaultValue: true,
+        persist: false
+    }]
+});
+</pre>
+</body>
+</html>

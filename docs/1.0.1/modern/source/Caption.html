@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-Caption'>/**
+</span> *  Chart captions can be used to place titles, subtitles, credits and other captions
+ *  inside a chart. Please see the chart&#39;s {@link Ext.chart.AbstractChart#captions}
+ *  config documentation for the general description of the way captions work, and
+ *  refer to the documentation of this class&#39; configs for details.
+ */
+Ext.define(&#39;Ext.chart.Caption&#39;, {
+    mixins: [
+        &#39;Ext.mixin.Observable&#39;,
+        &#39;Ext.mixin.Bindable&#39;
+    ],
+
+<span id='Ext-chart-Caption-property-isCaption'>    isCaption: true,
+</span>
+    config: {
+<span id='Ext-chart-Caption-cfg-weight'>        /**
+</span>         * The weight controls the order in which the captions are created.
+         * Captions with lower weights are created first.
+         * This affects chart&#39;s layout. For example, if two captions are docked
+         * to the &#39;top&#39;, the one with the lower weight will end up on top
+         * of the other.
+         */
+        weight: 0,
+
+<span id='Ext-chart-Caption-cfg-text'>        /**
+</span>         * @cfg {String} text
+         * The text displayed by the caption.
+         * Multi-line captions are allowed, e.g.:
+         *
+         *     captions: {
+         *         title: {
+         *             text: &#39;India\&#39;s tiger population\n&#39;
+         *                 + &#39;from 1970 to 2015&#39;
+         *         }
+         *     }
+         *
+         */
+        text: &#39;&#39;,
+
+<span id='Ext-chart-Caption-cfg-align'>        /**
+</span>         * @cfg {&#39;left&#39;/&#39;center&#39;/&#39;right&#39;} [align=&#39;center&#39;]
+         * Determines the horizontal alignment of the caption&#39;s text.
+         */
+        align: &#39;center&#39;,
+
+<span id='Ext-chart-Caption-cfg-alignTo'>        /**
+</span>         * @cfg {&#39;series&#39;/&#39;chart&#39;} [alignTo=&#39;series&#39;]
+         * Whether to align the caption to the &#39;series&#39; (default) or the &#39;chart&#39;.
+         */
+        alignTo: &#39;series&#39;,
+
+<span id='Ext-chart-Caption-cfg-padding'>        /**
+</span>         * @cfg {Number} padding
+         * The uniform padding applied to both top and bottom of the caption&#39;s text.
+         */
+        padding: 0,
+
+<span id='Ext-chart-Caption-cfg-hidden'>        /**
+</span>         * @cfg {Boolean} [hidden=false]
+         * Controls the visibility of the caption.
+         */
+        hidden: false,
+
+<span id='Ext-chart-Caption-cfg-docked'>        /**
+</span>         * @cfg {&#39;top&#39;/&#39;bottom&#39;} [docked=&#39;top&#39;]
+         * The position of the caption in a chart.
+         */
+        docked: &#39;top&#39;,
+
+<span id='Ext-chart-Caption-cfg-style'>        /**
+</span>         * @cfg {Object} style
+         * Style attributes for the caption&#39;s text.
+         * All attributes that are valid {@link Ext.draw.sprite.Text text sprite} attributes
+         * are valid here. However, only font attributes (such as `fontSize`, `fontFamily`, ...),
+         * color attributes (such as `fillStyle`) and `textAlign` attribute are guaranteed to
+         * produce correct behavior. For example, transform attributes are not officially supported.
+         */
+        style: {
+            fontSize: &#39;14px&#39;,
+            fontWeight: &#39;bold&#39;,
+            fontFamily: &#39;Verdana, Aria, sans-serif&#39;
+        },
+
+<span id='Ext-chart-Caption-cfg-chart'>        /**
+</span>         * @private
+         * @cfg {Ext.chart.AbstractChart} chart
+         * The chart the label belongs to.
+         */
+        chart: null,
+
+<span id='Ext-chart-Caption-cfg-sprite'>        /**
+</span>         * @private
+         * The text sprite used to render caption&#39;s text.
+         */
+        sprite: {
+            type: &#39;text&#39;,
+            preciseMeasurement: true,
+            zIndex: 10
+        },
+
+        //&lt;debug&gt;
+<span id='Ext-chart-Caption-cfg-debug'>        /**
+</span>         * @private
+         * @cfg {Boolean} debug
+         * Whether to show the bounding boxes or not.
+         */
+        debug: false,
+        //&lt;/debug&gt;
+
+<span id='Ext-chart-Caption-cfg-rect'>        /**
+</span>         * @private
+         * The logical rect of the caption in the `surfaceName` surface.
+         */
+        rect: null
+    },
+
+<span id='Ext-chart-Caption-property-surfaceName'>    surfaceName: &#39;caption&#39;,
+</span>
+<span id='Ext-chart-Caption-method-constructor'>    constructor: function (config) {
+</span>        var me = this,
+            id;
+
+        if (&#39;id&#39; in config) {
+            id = config.id;
+        } else if (&#39;id&#39; in me.config) {
+            id = me.config.id;
+        } else {
+            id = me.getId();
+        }
+        me.setId(id);
+
+        me.mixins.observable.constructor.call(me, config);
+        me.initBindable();
+    },
+
+<span id='Ext-chart-Caption-method-updateChart'>    updateChart: function () {
+</span>        if (!this.isConfiguring) {
+            // Re-create caption&#39;s sprite in another chart.
+            this.setSprite({
+                type: &#39;text&#39;
+            });
+        }
+    },
+
+<span id='Ext-chart-Caption-method-applySprite'>    applySprite: function (sprite) {
+</span>        var me = this,
+            chart = me.getChart(),
+            surface = me.surface = chart.getSurface(me.surfaceName);
+
+        //&lt;debug&gt;
+        me.rectSprite = surface.add({
+            type: &#39;rect&#39;,
+            fillStyle: &#39;yellow&#39;,
+            strokeStyle: &#39;red&#39;
+        });
+        //&lt;/debug&gt;
+        return sprite &amp;&amp; surface.add(sprite);
+    },
+
+<span id='Ext-chart-Caption-method-updateSprite'>    updateSprite: function (sprite, oldSprite) {
+</span>        if (oldSprite) {
+            oldSprite.destroy();
+        }
+    },
+
+<span id='Ext-chart-Caption-method-updateText'>    updateText: function (text) {
+</span>        this.getSprite().setAttributes({
+            text: text
+        });
+    },
+
+<span id='Ext-chart-Caption-method-updateStyle'>    updateStyle: function (style) {
+</span>        this.getSprite().setAttributes(style);
+    },
+
+<span id='Ext-chart-Caption-method-updateDebug'>    //&lt;debug&gt;
+</span>    updateDebug: function (debug) {
+        var me = this,
+            sprite = me.getSprite();
+
+        if (debug &amp;&amp; !me.rectSprite) {
+            me.rectSprite = me.surface.add({
+                type: &#39;rect&#39;,
+                fillStyle: &#39;yellow&#39;,
+                strokeStyle: &#39;red&#39;
+            });
+        }
+
+        if (sprite) {
+            sprite.setAttributes({
+                debug: debug ? { bbox: true } : null
+            });
+        }
+
+        if (me.rectSprite) {
+            me.rectSprite.setAttributes({
+                hidden: !debug
+            });
+        }
+
+        if (!me.isConfiguring) {
+            me.surface.renderFrame();
+        }
+    },
+<span id='Ext-chart-Caption-method-updateRect'>    //&lt;/debug&gt;
+</span>
+    updateRect: function (rect) {
+        if (this.rectSprite) {
+            this.rectSprite.setAttributes({
+                x: rect[0],
+                y: rect[1],
+                width: rect[2],
+                height: rect[3]
+            });
+        }
+    },
+
+<span id='Ext-chart-Caption-method-updateDocked'>    updateDocked: function () {
+</span>        var chart = this.getChart();
+
+        if (chart &amp;&amp; !this.isConfiguring) {
+            chart.scheduleLayout();
+        }
+    },
+
+<span id='Ext-chart-Caption-method-computeRect'>    /**
+</span>     * @private
+     * Computes and sets the caption&#39;s rect.
+     * Shrinks the given chart rect to accomodate the caption.
+     * The chart rect is [top, left, width, height] in chart&#39;s
+     * body element coordinates.
+     * The shrink rect is {left, top, right, bottom} in `caption`
+     * surface coordinates.
+     */
+    computeRect: function (chartRect, shrinkRect) {
+        if (this.getHidden()) {
+            return null;
+        }
+
+        var rect = [0, 0, chartRect[2], 0],
+            docked = this.getDocked(),
+            padding = this.getPadding(),
+            textSize = this.getSprite().getBBox(),
+            height = textSize.height + padding * 2;
+
+        switch (docked) {
+            case &#39;top&#39;:
+                rect[1] = shrinkRect.top;
+                rect[3] = height;
+
+                chartRect[1] += height;
+                chartRect[3] -= height;
+
+                shrinkRect.top += height;
+                break;
+
+            case &#39;bottom&#39;:
+                chartRect[3] -= height;
+                shrinkRect.bottom -= height;
+
+                rect[1] = shrinkRect.bottom;
+                rect[3] = height;
+                break;
+        }
+
+        this.setRect(rect);
+    },
+
+<span id='Ext-chart-Caption-method-alignRect'>    alignRect: function (seriesRect) {
+</span>        var surfaceRect = this.surface.getRect(),
+            rect = this.getRect();
+
+        rect[0] = seriesRect[0] - surfaceRect[0];
+        rect[2] = seriesRect[2];
+
+        // Slice to trigger the applier/updater.
+        this.setRect(rect.slice());
+    },
+
+<span id='Ext-chart-Caption-method-performLayout'>    performLayout: function () {
+</span>        var me = this,
+            rect = me.getRect(),
+            x = rect[0],
+            y = rect[1],
+            width = rect[2],
+            height = rect[3],
+            sprite = me.getSprite(),
+            tx = sprite.attr.translationX,
+            ty = sprite.attr.translationY,
+            bbox = sprite.getBBox(),
+            align = me.getAlign(),
+            dx, dy;
+
+        switch (align) {
+            case &#39;left&#39;:
+                dx = x - bbox.x;
+                break;
+            case &#39;right&#39;:
+                dx = (x + width) - (bbox.x + bbox.width);
+                break;
+            case &#39;center&#39;:
+                dx = x + (width - bbox.width) / 2 - bbox.x;
+                break;
+        }
+
+        dy = y + (height - bbox.height) / 2 - bbox.y;
+
+        sprite.setAttributes({
+            translationX: tx + dx,
+            translationY: ty + dy
+        });
+    },
+
+<span id='Ext-chart-Caption-method-destroy'>    destroy: function () {
+</span>        var me = this;
+
+        //&lt;debug&gt;
+        if (me.rectSprite) {
+            me.rectSprite.destroy();
+        }
+        //&lt;/debug&gt;
+        me.getSprite().destroy();
+
+        me.callParent();
+    }
+
+});</pre>
+</body>
+</html>

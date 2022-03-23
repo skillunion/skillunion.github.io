@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-google-data-CalendarsProxy'>/**
+</span> * Proxy to access Google **[calendar resources](https://developers.google.com/google-apps/calendar/v3/reference/calendarList)**.
+ */
+Ext.define(&#39;Ext.google.data.CalendarsProxy&#39;, {
+    extend: &#39;Ext.google.data.AbstractProxy&#39;,
+    alias: &#39;proxy.google-calendars&#39;,
+
+    requires: [
+        &#39;Ext.google.data.EventsProxy&#39;
+    ],
+
+<span id='Ext-google-data-CalendarsProxy-property-googleApis'>    googleApis: { &#39;calendar&#39;: { version: &#39;v3&#39; } },
+</span>
+<span id='Ext-google-data-CalendarsProxy-method-buildApiRequests'>    /**
+</span>     * @method buildApiRequests
+     * @protected
+     * @inheritdoc
+     */
+    buildApiRequests: function(request) {
+        var me = this,
+            action = request.getAction();
+
+        switch (action) {
+        case &#39;read&#39;:
+            return me.buildReadApiRequests(request);
+        case &#39;update&#39;:
+            return me.buildUpdateApiRequests(request);
+        default:
+            Ext.raise(&#39;unsupported request: calendars.&#39; + action);
+            return null;
+        }
+    },
+
+<span id='Ext-google-data-CalendarsProxy-method-extractResponseData'>    /**
+</span>     * @method extractResponseData
+     * @protected
+     * @inheritdoc
+     */
+    extractResponseData: function(response) {
+        var me = this,
+            data = me.callParent(arguments),
+            items = [];
+
+        // We assume that the response contains only results of the same kind.
+        Ext.each(data.results, function(result) {
+            switch (result.kind) {
+            case &#39;calendar#calendarList&#39;:
+                items = items.concat(result.items.map(me.fromApiCalendar.bind(me)));
+                break;
+            default:
+                break;
+            }
+        });
+
+        return {
+            items: me.sanitizeItems(items),
+            success: data.success,
+            error: data.error
+        };
+    },
+
+<span id='Ext-google-data-CalendarsProxy-property-privates'>    privates: {
+</span>        // https://developers.google.com/google-apps/calendar/v3/reference/calendarList#resource
+        toApiCalendar: function(data) {
+            var res = {};
+
+            Ext.Object.each(data, function(key, value) {
+                switch (key) {
+                case &#39;id&#39;:
+                    res.calendarId = value;
+                    break;
+                case &#39;hidden&#39;:
+                    res.selected = !value;
+                    break;
+                default:
+                    break;
+                }
+            });
+
+            return res;
+        },
+
+        // https://developers.google.com/google-apps/calendar/v3/reference/calendarList#resource
+        fromApiCalendar: function(data) {
+            var record = {
+                    hidden: !data.selected,
+                    editable: false,
+                    eventStore: {
+                        autoSync: true,
+                        proxy: {
+                            type: &#39;google-events&#39;,
+                            resourceTypes: &#39;events&#39;
+                        }
+                    }
+                };
+
+            Ext.Object.each(data, function(key, value) {
+                switch (key) {
+                case &#39;id&#39;:
+                case &#39;description&#39;:
+                    record[key] = value;
+                    break;
+                case &#39;backgroundColor&#39;:
+                    record.color = value;
+                    break;
+                case &#39;summary&#39;:
+                    record.title = value;
+                    break;
+                case &#39;accessRole&#39;:
+                    record.editable = (value == &#39;owner&#39; || value == &#39;writer&#39;);
+                    break;
+                default:
+                    break;
+                }
+            });
+
+            return record;
+        },
+
+        // https://developers.google.com/google-apps/calendar/v3/reference/calendarList/list
+        buildReadApiRequests: function(request) {
+            return gapi.client.calendar.calendarList.list();
+        },
+
+        // https://developers.google.com/google-apps/calendar/v3/reference/calendarList/patch
+        buildUpdateApiRequests: function(request) {
+            var data = this.toApiCalendar(request.getJsonData());
+            return gapi.client.calendar.calendarList.patch(data);
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-plugin-ColumnResizing'>/**
+</span> * The Column Resizing plugin allows users to adjust the width of the grid columns to suit
+ * their needs.  This functionality can be included by requiring the plugin and adding
+ * it to your grid&#39;s plugins object.
+ *
+ *     @example
+ *     var store = Ext.create(&#39;Ext.data.Store&#39;, {
+ *         data: [
+ *             { &quot;name&quot;: &quot;Lisa&quot;, &quot;email&quot;: &quot;lisa@simpsons.com&quot;, &quot;phone&quot;: &quot;555-111-1224&quot; },
+ *             { &quot;name&quot;: &quot;Bart&quot;, &quot;email&quot;: &quot;bart@simpsons.com&quot;, &quot;phone&quot;: &quot;555-222-1234&quot; },
+ *             { &quot;name&quot;: &quot;Homer&quot;, &quot;email&quot;: &quot;home@simpsons.com&quot;, &quot;phone&quot;: &quot;555-222-1244&quot; },
+ *             { &quot;name&quot;: &quot;Marge&quot;, &quot;email&quot;: &quot;marge@simpsons.com&quot;, &quot;phone&quot;: &quot;555-222-1254&quot; }
+ *         ]
+ *     });
+ *
+ *     Ext.create(&#39;Ext.grid.Grid&#39;, {
+ *         fullscreen: true,
+ *         layout: &#39;fit&#39;,
+ *         store: store,
+ *         plugins: {
+ *             columnresizing: true
+ *         },
+ *         columns: [{
+ *             text: &quot;Name&quot;,
+ *             dataIndex: &quot;name&quot;,
+ *             flex: 1
+ *         },
+ *         {
+ *             text: &quot;Email&quot;,
+ *             dataIndex: &quot;email&quot;,
+ *             flex: 1
+ *         },
+ *         {
+ *             text: &quot;Phone&quot;,
+ *             dataIndex: &quot;phone&quot;,
+ *             flex: 1
+ *         }]
+ *     });
+ *
+ */
+Ext.define(&#39;Ext.grid.plugin.ColumnResizing&#39;, {
+    extend: &#39;Ext.Component&#39;,
+
+    alias: [&#39;plugin.columnresizing&#39;, &#39;plugin.gridcolumnresizing&#39;],
+
+    config: {
+<span id='Ext-grid-plugin-ColumnResizing-cfg-grid'>        grid: null,
+</span>
+<span id='Ext-grid-plugin-ColumnResizing-cfg-realtime'>        /**
+</span>         * @cfg {Boolean} realtime
+         * When true the whole column will resize in real-time as the user drags. When false only the header will resize
+         * until the interaction is done.
+         */
+        realtime: false
+    },
+
+<span id='Ext-grid-plugin-ColumnResizing-property-hasResizingCls'>    hasResizingCls: Ext.baseCSSPrefix + &#39;has-columnresizing&#39;,
+</span><span id='Ext-grid-plugin-ColumnResizing-property-resizingCls'>    resizingCls: Ext.baseCSSPrefix + &#39;resizing&#39;,
+</span><span id='Ext-grid-plugin-ColumnResizing-property-columnSelector'>    columnSelector: &#39;.&#39; + Ext.baseCSSPrefix + &#39;gridcolumn&#39;,
+</span><span id='Ext-grid-plugin-ColumnResizing-property-resizerSelector'>    resizerSelector: &#39;.&#39; + Ext.baseCSSPrefix + &#39;gridcolumn .&#39; + Ext.baseCSSPrefix + &#39;resizer-el&#39;,
+</span>
+<span id='Ext-grid-plugin-ColumnResizing-method-init'>    init: function (grid) {
+</span>        this.setGrid(grid);
+        grid.getHeaderContainer().setTouchAction({ panX: false });
+    },
+
+<span id='Ext-grid-plugin-ColumnResizing-method-updateGrid'>    updateGrid: function (grid, oldGrid) {
+</span>        var me = this,
+            cls = me.hasResizingCls,
+            headerContainer, resizeMarker;
+
+        if (oldGrid) {
+            headerContainer = oldGrid.getHeaderContainer();
+
+            headerContainer.renderElement.un({
+                touchstart: &#39;onContainerTouchStart&#39;,
+                scope: me,
+                priority: 100
+            });
+
+            oldGrid.removeCls(cls);
+        }
+
+        if (grid) {
+            me._resizeMarker = resizeMarker = grid.resizeMarkerElement;
+            me._resizeMarkerParent = resizeMarker.parent();
+
+            headerContainer = grid.getHeaderContainer();
+            headerContainer.renderElement.on({
+                touchstart: &#39;onContainerTouchStart&#39;,
+                scope: me
+            });
+
+            grid.addCls(cls);
+        }
+    },
+
+<span id='Ext-grid-plugin-ColumnResizing-method-onContainerTouchStart'>    onContainerTouchStart: function (e) {
+</span>        var me = this,
+            target = e.getTarget(me.columnSelector),
+            resizer = e.getTarget(me.resizerSelector),
+            column;
+
+        if (resizer &amp;&amp; !e.multitouch &amp;&amp; target &amp;&amp; !me._resizeColumn) {
+            column = Ext.Component.from(target);
+
+            if (column &amp;&amp; column.getResizable()) {
+                me._startColumnWidth = column.getComputedWidth();
+                me._minColumnWidth = column.getMinWidth();
+                me._maxColumnWidth = column.getMaxWidth();
+                me._resizeColumn = column;
+                me._startX = e.getX();
+                column.addCls(me.resizingCls);
+                // Prevent drag and longpress gestures being triggered by this mousedown
+                e.claimGesture();
+
+                if (!this.getRealtime()) {
+                    me._resizeMarker.show();
+                    me._resizeMarker.setLeft(column.el.getOffsetsTo(me._resizeMarkerParent)[0] + me._startColumnWidth);
+                } else {
+                    column.setWidth(me._startColumnWidth);
+                }
+                me.touchListeners = Ext.getBody().on({
+                    touchEnd: &#39;onTouchEnd&#39;,
+                    touchMove: &#39;onTouchMove&#39;,
+                    scope: me,
+                    destroyable: true
+                });
+            }
+        } else if (e.multitouch &amp;&amp; me._resizeColumn) {
+            me.endResize();
+        }
+    },
+
+<span id='Ext-grid-plugin-ColumnResizing-method-onTouchMove'>    onTouchMove: function (e) {
+</span>        // Single touch only
+        if (e.isMultitouch) {
+            this.endResize();
+            return;
+        }
+
+        if (this._resizeColumn) {
+            var column = this._resizeColumn,
+                resizeAmount = e.getX() - this._startX;
+
+            if (column) {
+                this.currentColumnWidth = Math.max(Math.ceil(this._startColumnWidth + resizeAmount), this._minColumnWidth);
+                if (this._maxColumnWidth) {
+                    this.currentColumnWidth = Math.min(this.currentColumnWidth, this._maxColumnWidth);
+                }
+
+                if (this.getRealtime()) {
+                    column.setWidth(this.currentColumnWidth);
+                    column.renderElement.setWidth(this.currentColumnWidth);
+                } else {
+                    this._resizeMarker.setLeft(column.el.getOffsetsTo(this._resizeMarkerParent)[0] + this.currentColumnWidth);
+                }
+
+                e.claimGesture();
+            }
+        }
+    },
+
+<span id='Ext-grid-plugin-ColumnResizing-method-onTouchEnd'>    onTouchEnd: function (e) {
+</span>        var column = this._resizeColumn,
+            hasResized = e.getX() !== this._startX;
+
+        Ext.destroy(this.touchListeners);
+        if (column) {
+            this.endResize();
+
+            // Mouse/touch down then up means a tap on the resizer
+            if (!hasResized) {
+                column.onResizerTap(e);
+            }
+        }
+    },
+
+<span id='Ext-grid-plugin-ColumnResizing-method-endResize'>    endResize: function () {
+</span>        var me = this,
+            column = me._resizeColumn,
+            grid = me.getGrid();
+
+        if (column) {
+            if (!me.getRealtime()) {
+                grid.resizeMarkerElement.hide();
+            }
+            if (me.currentColumnWidth) {
+                column.setFlex(null);
+                column.setWidth(me.currentColumnWidth);
+            }
+            column.removeCls(me.resizingCls);
+            me._resizeColumn = null;
+        }
+    }
+});
+</pre>
+</body>
+</html>

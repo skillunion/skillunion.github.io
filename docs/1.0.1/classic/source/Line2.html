@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-series-Line'>/**
+</span> * @class Ext.chart.series.Line
+ * @extends Ext.chart.series.Cartesian
+ *
+ * Creates a Line Chart. A Line Chart is a useful visualization technique to display quantitative information for different
+ * categories or other real values (as opposed to the bar chart), that can show some progression (or regression) in the dataset.
+ * As with all other series, the Line Series must be appended in the *series* Chart array configuration. See the Chart
+ * documentation for more information. A typical configuration object for the line series could be:
+ *
+ *     @example
+ *     Ext.create({
+ *        xtype: &#39;cartesian&#39;, 
+ *        renderTo: document.body,
+ *        width: 600,
+ *        height: 400,
+ *        insetPadding: 40,
+ *        store: {
+ *            fields: [&#39;name&#39;, &#39;data1&#39;, &#39;data2&#39;],
+ *            data: [{
+ *                &#39;name&#39;: &#39;metric one&#39;,
+ *                &#39;data1&#39;: 10,
+ *                &#39;data2&#39;: 14
+ *            }, {
+ *                &#39;name&#39;: &#39;metric two&#39;,
+ *                &#39;data1&#39;: 7,
+ *                &#39;data2&#39;: 16
+ *            }, {
+ *                &#39;name&#39;: &#39;metric three&#39;,
+ *                &#39;data1&#39;: 5,
+ *                &#39;data2&#39;: 14
+ *            }, {
+ *                &#39;name&#39;: &#39;metric four&#39;,
+ *                &#39;data1&#39;: 2,
+ *                &#39;data2&#39;: 6
+ *            }, {
+ *                &#39;name&#39;: &#39;metric five&#39;,
+ *                &#39;data1&#39;: 27,
+ *                &#39;data2&#39;: 36
+ *            }]
+ *        },
+ *        axes: [{
+ *            type: &#39;numeric&#39;,
+ *            position: &#39;left&#39;,
+ *            fields: [&#39;data1&#39;],
+ *            title: {
+ *                text: &#39;Sample Values&#39;,
+ *                fontSize: 15
+ *            },
+ *            grid: true,
+ *            minimum: 0
+ *        }, {
+ *            type: &#39;category&#39;,
+ *            position: &#39;bottom&#39;,
+ *            fields: [&#39;name&#39;],
+ *            title: {
+ *                text: &#39;Sample Values&#39;,
+ *                fontSize: 15
+ *            }
+ *        }],
+ *        series: [{
+ *            type: &#39;line&#39;,
+ *            style: {
+ *                stroke: &#39;#30BDA7&#39;,
+ *                lineWidth: 2
+ *            },
+ *            xField: &#39;name&#39;,
+ *            yField: &#39;data1&#39;,
+ *            marker: {
+ *                type: &#39;path&#39;,
+ *                path: [&#39;M&#39;, - 4, 0, 0, 4, 4, 0, 0, - 4, &#39;Z&#39;],
+ *                stroke: &#39;#30BDA7&#39;,
+ *                lineWidth: 2,
+ *                fill: &#39;white&#39;
+ *            }
+ *        }, {
+ *            type: &#39;line&#39;,
+ *            fill: true,
+ *            style: {
+ *                fill: &#39;#96D4C6&#39;,
+ *                fillOpacity: .6,
+ *                stroke: &#39;#0A3F50&#39;,
+ *                strokeOpacity: .6,
+ *            },
+ *            xField: &#39;name&#39;,
+ *            yField: &#39;data2&#39;,
+ *            marker: {
+ *                type: &#39;circle&#39;,
+ *                radius: 4,
+ *                lineWidth: 2,
+ *                fill: &#39;white&#39;
+ *            }
+ *        }]
+ *     });
+ *
+ * In this configuration we&#39;re adding two series (or lines), one bound to the `data1`
+ * property of the store and the other to `data3`. The type for both configurations is
+ * `line`. The `xField` for both series is the same, the `name` property of the store.
+ * Both line series share the same axis, the left axis. You can set particular marker
+ * configuration by adding properties onto the marker object. Both series have
+ * an object as highlight so that markers animate smoothly to the properties in highlight
+ * when hovered. The second series has `fill = true` which means that the line will also
+ * have an area below it of the same color.
+ *
+ * **Note:** In the series definition remember to explicitly set the axis to bind the
+ * values of the line series to. This can be done by using the `axis` configuration property.
+ */
+Ext.define(&#39;Ext.chart.series.Line&#39;, {
+    extend: &#39;Ext.chart.series.Cartesian&#39;,
+    alias: &#39;series.line&#39;,
+<span id='Ext-chart-series-Line-property-type'>    type: &#39;line&#39;,
+</span><span id='Ext-chart-series-Line-property-seriesType'>    seriesType: &#39;lineSeries&#39;,
+</span>
+<span id='Ext-chart-series-Line-property-isLine'>    isLine: true,
+</span>
+    requires: [
+        &#39;Ext.chart.series.sprite.Line&#39;
+    ],
+
+    config: {
+<span id='Ext-chart-series-Line-cfg-selectionTolerance'>        /**
+</span>         * @cfg {Number} selectionTolerance
+         * The offset distance from the cursor position to the line series to trigger events (then used for highlighting series, etc).
+         */
+        selectionTolerance: 20,
+
+<span id='Ext-chart-series-Line-cfg-curve'>        /**
+</span>         * @cfg {Object} curve
+         * The type of curve that connects the data points.
+         * Please see {@link Ext.chart.series.sprite.Line#curve line sprite documentation}
+         * for the full description.
+         */
+        curve: {
+            type: &#39;linear&#39;
+        },
+
+<span id='Ext-chart-series-Line-cfg-style'>        /**
+</span>         * @cfg {Object} style
+         * An object containing styles for the visualization lines. These styles will override the theme styles.
+         * Some options contained within the style object will are described next.
+         */
+
+<span id='Ext-chart-series-Line-cfg-smooth'>        /**
+</span>         * @cfg {Boolean} smooth
+         * `true` if the series&#39; line should be smoothed.
+         * Line smoothing only works with gapless data.
+         * @deprecated 6.5.0 Use the {@link #curve} config instead.
+         */
+        smooth: null,
+
+<span id='Ext-chart-series-Line-cfg-step'>        /**
+</span>         * @cfg {Boolean} step
+         * If set to `true`, the line uses steps instead of straight lines to connect the dots.
+         * It is ignored if `smooth` is true.
+         * @deprecated 6.5.0 Use the {@link #curve} config instead.
+         */
+        step: null,
+
+<span id='Ext-chart-series-Line-cfg-nullStyle'>        /**
+</span>         * @cfg {&quot;gap&quot;/&quot;connect&quot;/&quot;origin&quot;} [nullStyle=&quot;gap&quot;]
+         * Possible values:
+         * &#39;gap&#39; - null points are rendered as gaps.
+         * &#39;connect&#39; - non-null points are connected across null points, so that
+         * there is no gap, unless null points are at the beginning/end of the line.
+         * Only the visible data points are connected - if a visible data point
+         * is followed by a series of null points that go off screen and eventually
+         * terminate with a non-null point, the connection won&#39;t be made.
+         * &#39;origin&#39; - null data points are rendered at the origin,
+         * which is the y-coordinate of a point where the x and y axes meet.
+         * This requires that at least the x-coordinate of a point is a valid value.
+         */
+        nullStyle: &#39;gap&#39;,
+
+<span id='Ext-chart-series-Line-cfg-fill'>        /**
+</span>         * @cfg {Boolean} fill
+         * If set to `true`, the area underneath the line is filled with the color defined as follows, listed by priority:
+         * - The color that is configured for this series ({@link Ext.chart.series.Series#colors}).
+         * - The color that is configured for this chart ({@link Ext.chart.AbstractChart#colors}).
+         * - The fill color that is set in the {@link #style} config.
+         * - The stroke color that is set in the {@link #style} config, or the same color as the line.
+         *
+         * Note: Do not confuse `series.config.fill` (which is a boolean) with `series.style.fill&#39; (which is an alias
+         * for the `fillStyle` property and contains a color). For compatibility with previous versions of the API,
+         * if `config.fill` is undefined but a `style.fill&#39; color is provided, `config.fill` is considered true.
+         * So the default value below must be undefined, not false.
+         */
+        fill: undefined,
+
+<span id='Ext-chart-series-Line-cfg-aggregator'>        aggregator: { strategy: &#39;double&#39; }
+</span>    },
+
+<span id='Ext-chart-series-Line-method-themeMarkerCount'>    themeMarkerCount: function () {
+</span>        return 1;
+    },
+
+<span id='Ext-chart-series-Line-method-getDefaultSpriteConfig'>    /**
+</span>     * @private
+     * Override {@link Ext.chart.series.Series#getDefaultSpriteConfig}
+     */
+    getDefaultSpriteConfig: function () {
+        var me = this,
+            parentConfig = me.callParent(arguments),
+            style = Ext.apply({}, me.getStyle()),
+            styleWithTheme,
+            fillArea = false;
+
+        if (me.config.fill !== undefined) {
+            // If config.fill is present but there is no fillStyle, then use the
+            // strokeStyle to fill (and paint the area the same color as the line).
+            if (me.config.fill) {
+                fillArea = true;
+                if (style.fillStyle === undefined) {
+                    if (style.strokeStyle === undefined) {
+                        styleWithTheme = me.getStyleWithTheme();
+                        style.fillStyle = styleWithTheme.fillStyle;
+                        style.strokeStyle = styleWithTheme.strokeStyle;
+                    } else {
+                        style.fillStyle = style.strokeStyle;
+                    }
+                }
+            }
+        } else {
+            // For compatibility with previous versions of the API, if config.fill
+            // is undefined but style.fillStyle is provided, we fill the area.
+            if (style.fillStyle) {
+                fillArea = true;
+            }
+        }
+
+        // If we don&#39;t fill, then delete the fillStyle because that&#39;s what is used by
+        // the Line sprite to fill below the line.
+        if (!fillArea) {
+            delete style.fillStyle;
+        }
+
+        style = Ext.apply(parentConfig || {}, style);
+
+        return Ext.apply(style, {
+            fillArea: fillArea,
+            selectionTolerance: me.config.selectionTolerance
+        });
+    },
+
+<span id='Ext-chart-series-Line-method-updateFill'>    updateFill: function (fill) {
+</span>        this.withSprite(function (sprite) {
+            return sprite.setAttributes({fillArea: fill});
+        });
+    },
+
+<span id='Ext-chart-series-Line-method-updateCurve'>    updateCurve: function (curve) {
+</span>        this.withSprite(function (sprite) {
+            return sprite.setAttributes({curve: curve});
+        });
+    },
+
+<span id='Ext-chart-series-Line-method-getCurve'>    getCurve: function () {
+</span>        return this.withSprite(function (sprite) {
+            return sprite.attr.curve;
+        });
+    },
+
+<span id='Ext-chart-series-Line-method-updateNullStyle'>    updateNullStyle: function (nullStyle) {
+</span>        this.withSprite(function (sprite) {
+            return sprite.setAttributes({nullStyle: nullStyle});
+        });
+    },
+
+<span id='Ext-chart-series-Line-method-updateSmooth'>    updateSmooth: function (smooth) {
+</span>        this.setCurve({
+            type: smooth ? &#39;natural&#39; : &#39;linear&#39;
+        });
+    },
+
+<span id='Ext-chart-series-Line-method-updateStep'>    updateStep: function (step) {
+</span>        this.setCurve({
+            type: step ? &#39;step-after&#39; : &#39;linear&#39;
+        });
+    }
+
+});
+</pre>
+</body>
+</html>

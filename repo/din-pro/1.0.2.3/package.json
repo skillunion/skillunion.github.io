@@ -1,0 +1,49 @@
+{
+  "name": "din-pro",
+  "namespace": "Ext",
+  "format": "1",
+  "version": "1.0.2.3",
+  "compatVersion": "1.0.2",
+  "creator": "skillunion",
+  "summary": "Package wrapper for DINPro Fonts",
+  "detailedDescription": "Sencha Cmd package wrapper for DINPro Fonts",
+  "type": "code",
+  "signatures": [
+    {
+      "name": "skillunion",
+      "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+      "created": "2022-03-22T23:07:57Z",
+      "algorithm": "SHA1withRSA",
+      "nonce": "iPk0G0pYtwQ\u003d",
+      "signature": "tfnvT6vIWwJP52BnIUqCJjwzDx/gmAffPp0WcwP5NNASj0h78TsVHAPyVVg81TPDZpLKMveZPn7ipVSwSMBvTjIfiC5gN7ul5HqHrYFEjO+RVLJloFIOdiQ6jWXFTtcmUpifqagbMI7MY8D3jJ7xCcqLEOErP/Rx9oVGAO8gk76lBztxIYYB0j0Xpj814MSM6oZkP4E2BTOrN17gJTFk6mjgdhDPT+e3Xl2tHGZUgbzTnMP6iI73tsouY3HLXn/thloe0NGfC405mxmn7RwJWhD893v+/lq6/bXyDzxkFwMdLT/+hRvKjqPjgcI0hGXP0EyHhF4H6i0L2sZYGqHeEA\u003d\u003d"
+    }
+  ],
+  "resources": [
+    {
+      "path": "${package.dir}/resources",
+      "output": "shared"
+    }
+  ],
+  "framework": "ext",
+  "output": "${workspace.packages.dir}/build",
+  "resource": {
+    "paths": ""
+  },
+  "sass": {
+    "namespace": "Ext",
+    "etc": "${package.dir}/sass/etc/all.scss",
+    "var": "${package.dir}/sass/var",
+    "src": [
+      "${package.dir}/sass/src",
+      "${package.dir}/sass/src/all.scss"
+    ]
+  },
+  "classpath": "${package.dir}/src",
+  "overrides": "${package.dir}/overrides",
+  "properties": {
+    "skip.slice": 1,
+    "skip.js": 1,
+    "skip.examples": 1,
+    "pkg.build.dir": "${workspace.build.dir}/pkgs"
+  }
+}

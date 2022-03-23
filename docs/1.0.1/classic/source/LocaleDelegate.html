@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-locale-LocaleDelegate'>/**
+</span> * Класс загрузки файла языкового пакета.
+ *
+ */
+Ext.define(&#39;SU.locale.LocaleDelegate&#39;, {
+    requires: [
+        &#39;Ext.Ajax&#39;
+    ],
+
+<span id='SU-locale-LocaleDelegate-property-success'>    /**
+</span>     * Метод, вызываемый при успешной загрузке файла языкового пакета.
+     * @type {Function}
+	 * @param {String} responseText Строка, содержащая текст ответа.
+     * @private
+     */
+    success: undefined,
+
+<span id='SU-locale-LocaleDelegate-property-failure'>    /**
+</span>     * Метод, вызываемый при проблемах в загрузке файла языкового пакета.
+     * @type {Function}
+	 * @param {Object} response Объект XMLHttpRequest, содержащий данные ответа.
+     * @private
+     */
+    failure: undefined,
+
+<span id='SU-locale-LocaleDelegate-property-scope'>    /**
+</span>     * Область видимости при вызове методов {@link #success} и {@link #failure}.
+     *
+     * @private
+     */
+    scope: undefined,
+
+<span id='SU-locale-LocaleDelegate-method-constructor'>    /**
+</span>     * @param {Function} success
+     * @param {Function} failure
+     * @param {Object} scope
+     */
+    constructor: function(success, failure, scope) {
+        this.callParent(arguments);
+
+        this.success = success;
+        this.failure = failure;
+        this.scope = scope;
+    },
+
+<span id='SU-locale-LocaleDelegate-method-loadPropertiesFile'>    /**
+</span>     * Загрузка файла языкового пакета по указанной ссылке.
+     *
+     * @param {String} url - Адрес файла для загрузки
+     */
+    loadPropertiesFile: function(url) {
+        if(!this.success || !this.scope)
+            return;
+
+        Ext.Ajax.request({
+            url: url,
+            success: this.ajaxSuccess,
+            failure: this.ajaxFailure,
+            scope: this
+        });
+    },
+
+<span id='SU-locale-LocaleDelegate-method-ajaxSuccess'>    /**
+</span>     * Обработчик успешного вызова AJAX
+     *
+     * @private
+     * @param {Object} response
+     */
+    ajaxSuccess: function(response) {
+        this.success.call( this.scope, response.responseText );
+    },
+
+<span id='SU-locale-LocaleDelegate-method-ajaxFailure'>    /**
+</span>     * Обработчик ошибок при вызове AJAX
+     *
+     * @private
+     * @param {Object} response
+     */
+    ajaxFailure: function(response) {
+		this.failure.call( this.scope, response );
+    }
+});
+</pre>
+</body>
+</html>

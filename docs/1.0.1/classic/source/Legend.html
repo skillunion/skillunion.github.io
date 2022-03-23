@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-legend-Legend'>/**
+</span> * This class provides a dataview-based chart legend.
+ */
+Ext.define(&#39;Ext.chart.legend.Legend&#39;, {
+    extend: &#39;Ext.chart.legend.LegendBase&#39;,
+    alternateClassName: &#39;Ext.chart.Legend&#39;,
+    xtype: &#39;legend&#39;,
+    alias: &#39;legend.dom&#39;,
+<span id='Ext-chart-legend-Legend-property-type'>    type: &#39;dom&#39;,
+</span><span id='Ext-chart-legend-Legend-property-isLegend'>    isLegend: true,
+</span><span id='Ext-chart-legend-Legend-property-isDomLegend'>    isDomLegend: true,
+</span>
+    config: {
+<span id='Ext-chart-legend-Legend-cfg-rect'>        /**
+</span>         * @cfg {Array}
+         * The rect of the legend relative to its container.
+         */
+        rect: null,
+
+<span id='Ext-chart-legend-Legend-cfg-toggleable'>        /**
+</span>         * @cfg {Boolean} toggleable
+         * `true` to allow series items to have their visibility
+         * toggled by interaction with the legend items.
+         */
+        toggleable: true
+
+<span id='Ext-chart-legend-Legend-cfg-store'>        /**
+</span>         * @cfg {Ext.chart.legend.store.Store} store
+         * The {@link Ext.chart.legend.store.Store} to bind this legend to.
+         * @private
+         */
+    },
+
+<span id='Ext-chart-legend-Legend-cfg-baseCls'>    baseCls: Ext.baseCSSPrefix + &#39;legend&#39;,
+</span>
+<span id='Ext-chart-legend-Legend-property-horizontalCls'>    horizontalCls: Ext.baseCSSPrefix + &#39;legend-horizontal&#39;,
+</span><span id='Ext-chart-legend-Legend-property-verticalCls'>    verticalCls: Ext.baseCSSPrefix + &#39;legend-vertical&#39;,
+</span>
+<span id='Ext-chart-legend-Legend-method-toggleItem'>    toggleItem: function (index) {
+</span>        if (!this.getToggleable()) {
+            return;
+        }
+        var store = this.getStore(),
+            disabledCount = 0, disabled,
+            canToggle = true,
+            i, count, record;
+
+        if (store) {
+            count = store.getCount();
+            for (i = 0; i &lt; count; i++) {
+                record = store.getAt(i);
+                if (record.get(&#39;disabled&#39;)) {
+                    disabledCount++;
+                }
+            }
+            canToggle = count - disabledCount &gt; 1;
+
+            record = store.getAt(index);
+            if (record) {
+                disabled = record.get(&#39;disabled&#39;);
+                if (disabled || canToggle) {
+                    // This will trigger AbstractChart.onLegendStoreUpdate.
+                    record.set(&#39;disabled&#39;, !disabled);
+                }
+            }
+        }
+    }
+
+});
+</pre>
+</body>
+</html>

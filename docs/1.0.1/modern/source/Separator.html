@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-menu-Separator'>/**
+</span> * This component renders a simple line to separate menu items.
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.Panel&#39;, {
+ *         fullscreen: true,
+ *
+ *         items: {
+ *             xtype: &#39;menu&#39;,
+ *             floated: false,
+ *             docked: &#39;top&#39;,
+ *             items: [{
+ *                 text: &#39;Galactus&#39;
+ *             },{
+ *                 xtype: &#39;menuseparator&#39;
+ *             },{
+ *                 text: &#39;Darkseid&#39;
+ *             },{
+ *                 text: &#39;Thanos&#39;
+ *             }]
+ *         }
+ *     });
+ *
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.menu.Separator&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    alias: &#39;widget.menuseparator&#39;,
+
+<span id='Ext-menu-Separator-property-isMenuSeparator'>    isMenuSeparator: true,
+</span>
+<span id='Ext-menu-Separator-property-focusable'>    focusable: false,
+</span>
+<span id='Ext-menu-Separator-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;menuseparator&#39;,
+</span>
+<span id='Ext-menu-Separator-property-ariaRole'>    ariaRole: &#39;separator&#39;
+</span>});
+</pre>
+</body>
+</html>

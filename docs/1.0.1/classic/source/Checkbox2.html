@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-form-field-Checkbox'>/**
+</span> * @class Ext.form.field.Checkbox
+ */
+Ext.define(null, {
+    override: &#39;Ext.form.field.Checkbox&#39;,
+    
+<span id='Ext-form-field-Checkbox-property-compatibility'>    compatibility: Ext.isIE8,
+</span>    
+<span id='Ext-form-field-Checkbox-property-changeEventName'>    // IE8 does not support change event but it has propertychange which is even better
+</span>    changeEventName: &#39;propertychange&#39;,
+    
+<span id='Ext-form-field-Checkbox-method-onChangeEvent'>    onChangeEvent: function(e) {
+</span>        // IE8 propertychange fires for *any* property change but we&#39;re only interested in checked
+        // We also don&#39;t want to react to propertychange fired as the result of assigning
+        // checked property in setRawValue().
+        if (this.duringSetRawValue || e.browserEvent.propertyName !== &#39;checked&#39;) {
+            return;
+        }
+        
+        this.callParent([e]);
+    },
+    
+<span id='Ext-form-field-Checkbox-method-updateCheckedCls'>    updateCheckedCls: function(checked) {
+</span>        var me = this,
+            displayEl = me.displayEl;
+        
+        me.callParent([checked]);
+        
+        // IE8 has a bug with font icons and pseudo-elements
+        if (displayEl &amp;&amp; checked !== me.lastValue) {
+            displayEl.repaint();
+        }
+    }
+});
+</pre>
+</body>
+</html>

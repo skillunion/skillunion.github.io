@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-PulseButton'>/**
+</span> * Плавающая пульсирующая кнопка с качающейся иконкой
+ * 
+ */
+Ext.define(&#39;SU.PulseButton&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    alias: &#39;widget.pulsebutton&#39;,
+
+<span id='SU-PulseButton-cfg-floated'>    floated: true,
+</span><span id='SU-PulseButton-property-baseCls'>    baseCls: &#39;x-pulsebutton&#39;,
+</span>
+    cachedConfig: {
+<span id='SU-PulseButton-cfg-eventHandlers'>        eventHandlers: {
+</span>            click: &#39;onClick&#39;
+        }
+    },
+
+    config: {
+<span id='SU-PulseButton-cfg-iconCls'>        /**
+</span>         * @cfg {String} iconCls
+         * CSS класс иконки
+         */
+        iconCls: null,
+
+<span id='SU-PulseButton-cfg-handler'>        /**
+</span>         * @cfg {String} handler
+         * Обработчик нажатия кнопки
+         */
+        handler: null,
+
+<span id='SU-PulseButton-cfg-scope'>        /**
+</span>         * @cfg {String} scope
+         * `this` для #handler
+         */
+        scope: null
+    },
+
+<span id='SU-PulseButton-cfg-height'>    height: 32,
+</span><span id='SU-PulseButton-cfg-width'>    width: 32,
+</span>
+<span id='SU-PulseButton-property-preventDefaultAction'>    preventDefaultAction: true,
+</span>
+<span id='SU-PulseButton-property-element'>    element:{
+</span>        tag: &#39;a&#39;,
+        reference: &#39;element&#39;
+    },
+
+<span id='SU-PulseButton-property-template'>    template: [
+</span>        {
+            reference: &#39;circleElement&#39;,
+            style: &quot;transform-origin: center;&quot;,
+            cls: &quot;x-pulse-circle&quot;
+        },
+        {
+            reference: &#39;fillElement&#39;,
+            style: &quot;transform-origin: center;&quot;,
+            cls: &quot;x-pulse-circle-fill&quot;
+        },
+        {
+            reference: &#39;innerElement&#39;,
+            style: &quot;transform-origin: center;&quot;,
+            cls: &quot;x-pulse-icon-circle&quot;,
+            onclick: &#39;return Ext.doEv(this, event);&#39;,
+            children: [
+                {
+                    reference: &#39;iconElement&#39;,
+                    style: &quot;transform-origin: center;&quot;,
+                    cls: &quot;x-pulse-icon-circleblock&quot;
+                }
+            ]
+        }
+    ],
+
+<span id='SU-PulseButton-method-updateIconCls'>    updateIconCls: function (iconCls, oldIconCls) {
+</span>        var me = this,
+            element = me.iconElement;
+
+        if (iconCls) {
+            element.replaceCls(oldIconCls, iconCls);
+        } else {
+            element.removeCls(oldIconCls);
+        }
+    },
+
+<span id='SU-PulseButton-method-updateHeight'>    updateHeight: function (height, oldHeight) {
+</span>        var me = this,
+            element = me.iconElement,
+            circle = me.circleElement;
+
+        element.setHeight(height);
+        element.setStyle(&#39;lineHeight&#39;, height + &#39;px&#39;);
+        element.setStyle(&#39;fontSize&#39;, (height * .6) + &#39;px&#39;);
+
+        me.fillElement.setHeight(height * 1.4);
+        me.innerElement.setTop((height * 1.4 - height) / 2);
+        circle.setHeight(height * 2);
+        circle.setTop((height * 1.4 - height * 2) / 2);
+    },
+
+<span id='SU-PulseButton-method-updateWidth'>    updateWidth: function (width, oldWidth) {
+</span>        var me = this,
+            element = me.iconElement,
+            circle = me.circleElement;
+
+        element.setWidth(width);
+        me.fillElement.setWidth(width * 1.4);
+        me.innerElement.setLeft((width * 1.4 - width) / 2);
+        circle.setWidth(width * 2);
+        circle.setLeft((width * 1.4 - width * 2) / 2);
+    },
+
+<span id='SU-PulseButton-method-onClick'>    onClick: function (e) {
+</span>        return this.onTap(e);
+    },
+
+<span id='SU-PulseButton-method-onTap'>    onTap: function (e) {
+</span>        if (this.getDisabled()) {
+            return false;
+        }
+
+        this.fireAction(&#39;tap&#39;, [this, e], &#39;doTap&#39;);
+    },
+
+<span id='SU-PulseButton-method-doTap'>    doTap: function (me, e) {
+</span>        var handler = me.getHandler();
+
+        if (e &amp;&amp; e.preventDefault &amp;&amp; me.preventDefaultAction) {
+            e.preventDefault();
+        }
+
+        if (handler) {
+            Ext.callback(handler, me.getScope(), [me, e], 0, me);
+        }
+    }
+
+});
+</pre>
+</body>
+</html>

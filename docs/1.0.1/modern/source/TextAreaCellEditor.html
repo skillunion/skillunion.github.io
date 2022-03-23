@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-grid-TextAreaCellEditor'>/**
+</span> *
+ */
+Ext.define(&#39;SU.grid.TextAreaCellEditor&#39;, {
+    extend: &#39;Ext.grid.CellEditor&#39;,
+    alias: &#39;widget.textareacelleditor&#39;,
+
+<span id='SU-grid-TextAreaCellEditor-cfg-field'>    field: {
+</span>        xtype: &#39;textareafield&#39;
+    },
+
+<span id='SU-grid-TextAreaCellEditor-method-onSpecialKey'>    onSpecialKey: function (field, event) {
+</span>        var me = this;
+
+        if (event.getKey() === event.TAB &amp;&amp; !event.shiftKey) {
+            event.stopEvent();
+            var el = field.inputElement.dom;
+            if (el.setSelectionRange) {
+                var withIns = el.value.substring(0, el.selectionStart) + &#39;    &#39;;
+                var pos = withIns.length;
+                el.value = withIns + el.value.substring(el.selectionEnd, el.value.length);
+                el.setSelectionRange(pos, pos);
+            }
+            else if (document.selection) {
+                document.selection.createRange().text = &#39;    &#39;;
+            }
+            return false;
+        }
+
+        if (event.getKey() === event.ENTER &amp;&amp; event.shiftKey) {
+            event.stopPropagation();
+            return false;
+        }
+
+        me.callParent(arguments);
+    }
+
+});
+</pre>
+</body>
+</html>

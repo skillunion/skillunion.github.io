@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-field-trigger-Menu'>/**
+</span> * A field trigger that can show a menu aligned to this trigger.
+ */
+Ext.define(&#39;Ext.field.trigger.Menu&#39;, {
+    extend: &#39;Ext.field.trigger.Trigger&#39;,
+    xtype: &#39;menutrigger&#39;,
+    alias: &#39;trigger.menu&#39;,
+
+    cachedConfig: {
+<span id='Ext-field-trigger-Menu-cfg-menuAlign'>        /**
+</span>         * @cfg {String} menuAlign
+         * The position to align the menu to (see {@link Ext.util.Positionable#alignTo} for more details).
+         */
+        menuAlign: &#39;tl-bl?&#39;,
+
+<span id='Ext-field-trigger-Menu-cfg-destroyMenu'>        /**
+</span>         * @cfg {Boolean} [destroyMenu]
+         * Whether or not to destroy any associated menu when this trigger is destroyed.
+         * In addition, a value of `true` for this config will destroy the currently bound menu
+         * when a new menu is set in {@link #setMenu} unless overridden by that method&#39;s destroyMenu
+         * function argument.
+         */
+        destroyMenu: true
+    },
+
+    config: {
+        // @cmd-auto-dependency { defaultType: &quot;Ext.menu.Menu&quot;, requires: [&quot;Ext.menu.Menu&quot;] }
+<span id='Ext-field-trigger-Menu-cfg-menu'>        /**
+</span>         * @cfg {Ext.menu.Menu/String/Object} menu
+         * A menu or menu configuration. This can be a reference to a menu instance, a menu
+         * config object or the `xtype` alias of a {@link Ext.menu.Menu menu}-derived class.
+         */
+        menu: {
+            lazy: true,
+            $value: null
+        }
+    },
+
+<span id='Ext-field-trigger-Menu-method-doDestroy'>    doDestroy: function () {
+</span>        this.setMenu(null);
+
+        this.callParent();
+    },
+
+<span id='Ext-field-trigger-Menu-method-applyMenu'>    applyMenu: function (menu, oldMenu) {
+</span>        if (menu) {
+            if (Ext.isArray(menu)) {
+                menu = {
+                    items: menu
+                };
+            }
+        }
+
+        if (oldMenu &amp;&amp; !this.getDestroyMenu()) {
+            //do not allow Ext.factory to destroy the old menu
+            oldMenu = null;
+        }
+
+        return Ext.factory(menu, Ext.menu.Menu, oldMenu);
+    },
+
+<span id='Ext-field-trigger-Menu-method-updateMenu'>    updateMenu: function (menu, oldMenu) {
+</span>        if (oldMenu &amp;&amp; oldMenu.ownerCmp === this) {
+            delete oldMenu.ownerCmp;
+        }
+
+        if (menu) {
+            menu.ownerCmp = this;
+        }
+    },
+
+<span id='Ext-field-trigger-Menu-method-onClick'>    onClick: function (e) {
+</span>        var menu = this.getMenu();
+
+        if (menu) {
+            this.showMenu(e, menu);
+        } else {
+            this.callParent([e]);
+        }
+    },
+
+<span id='Ext-field-trigger-Menu-method-showMenu'>    showMenu: function (e, menu) {
+</span>        var isPointerEvent = !e || e.pointerType;
+
+        menu = menu || this.getMenu();
+
+        if (menu) {
+            if (menu.isVisible()) {
+                // Click/tap toggles the menu visibility.
+                if (isPointerEvent) {
+                    menu.hide();
+                } else {
+                    menu.focus();
+                }
+            } else {
+                menu.autoFocus = !isPointerEvent;
+
+                if (menu.isMenu) {
+                    menu.showBy(this.element, this.getMenuAlign());
+                } else if (menu.isViewportMenu) {
+                    menu.setDisplayed(!menu.getDisplayed());
+                } else {
+                    menu.show();
+                }
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

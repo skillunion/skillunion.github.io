@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Button'>/**
+</span> * This class provides a push button with several presentation options. There are various
+ * different styles of Button you can create by using the {@link #icon}, {@link #iconCls},
+ * {@link #iconAlign}, {@link #ui}, and {@link #text} configurations.
+ *
+ * ## Simple Button
+ *
+ * Here is a Button in it&#39;s simplest form:
+ *
+ *     @example
+ *     var button = Ext.create(&#39;Ext.Button&#39;, {
+ *         text: &#39;Button&#39;
+ *     });
+ *     Ext.Viewport.add({ xtype: &#39;container&#39;, padding: 10, items: [button] });
+ *
+ * ## Icons
+ *
+ * You can also create a Button with just an icon using the {@link #iconCls} configuration:
+ *
+ *     @example
+ *     var button = Ext.create(&#39;Ext.Button&#39;, {
+ *         iconCls: &#39;refresh&#39;
+ *     });
+ *     Ext.Viewport.add({ xtype: &#39;container&#39;, padding: 10, items: [button] });
+ *
+ * Sencha provides the &quot;Font&quot; and &quot;PNG&quot; icons packs from http://wwww.pictos.cc.
+ * Use icons with the {@link Global_CSS#icon icon} mixin in your Sass.
+ *
+ * ## Badges
+ *
+ * Buttons can also have a badge on them, by using the {@link #badgeText} configuration:
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.Container&#39;, {
+ *         fullscreen: true,
+ *         padding: 10,
+ *         items: {
+ *             xtype: &#39;button&#39;,
+ *             text: &#39;My Button&#39;,
+ *             badgeText: &#39;2&#39;
+ *         }
+ *     });
+ *
+ * ## Menus
+ *
+ * You can assign a menu to a button by using the {@link #cfg!menu} config. This config can be
+ * either a reference to a {@link Ext.menu.Menu menu} instance or a {@link Ext.menu.Menu menu}
+ * config object.
+ *
+ * When assigning a menu to a button, an arrow is automatically added to the button. You can
+ * change the alignment of the arrow using the {@link #cfg!arrowAlign} config.
+ *
+ * Example usage:
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.Button&#39;, {
+ *         text: &#39;Menu button&#39;,
+ *         renderTo: Ext.getBody(),
+ *         arrowAlign: &#39;bottom&#39;,
+ *         menu: [
+ *             { text: &#39;Item 1&#39; },
+ *             { text: &#39;Item 2&#39; },
+ *             { text: &#39;Item 3&#39; },
+ *             { text: &#39;Item 4&#39; }
+ *         ]
+ *     });
+ *
+ * ## UI
+ *
+ * Buttons also come with a range of different default UIs. Here are the included UIs
+ * available (if {@link #$include-button-uis $include-button-uis} is set to `true`):
+ *
+ * - **normal** - a basic gray button
+ * - **back** - a back button
+ * - **forward** - a forward button
+ * - **round** - a round button
+ * - **action** - shaded using the {@link Global_CSS#$active-color $active-color} (dark blue by default)
+ * - **decline** - shaded using the {@link Global_CSS#$alert-color $alert-color} (red by default)
+ * - **confirm** - shaded using the {@link Global_CSS#$confirm-color $confirm-color} (green by default)
+ *
+ * You can also append `-round` to each of the last three UI&#39;s to give it a round shape:
+ *
+ * - **action-round**
+ * - **decline-round**
+ * - **confirm-round**
+ *
+ * And setting them is very simple:
+ *
+ *     var uiButton = Ext.create(&#39;Ext.Button&#39;, {
+ *         text: &#39;My Button&#39;,
+ *         ui: &#39;action&#39;
+ *     });
+ *
+ * And how they look:
+ *
+ *     @example
+ *     Ext.create(&#39;Ext.Container&#39;, {
+ *         fullscreen: true,
+ *         padding: 4,
+ *         defaults: {
+ *             xtype: &#39;button&#39;,
+ *             margin: 5
+ *         },
+ *         layout: {
+ *             type: &#39;vbox&#39;,
+ *             align: &#39;center&#39;
+ *         },
+ *         items: [
+ *             { ui: &#39;normal&#39;, text: &#39;normal&#39; },
+ *             { ui: &#39;round&#39;, text: &#39;round&#39; },
+ *             { ui: &#39;action&#39;, text: &#39;action&#39; },
+ *             { ui: &#39;decline&#39;, text: &#39;decline&#39; },
+ *             { ui: &#39;confirm&#39;, text: &#39;confirm&#39; }
+ *         ]
+ *     });
+ *
+ * Note that the default {@link #ui} is **normal**.
+ *
+ * You can also use the {@link #sencha-button-ui sencha-button-ui} CSS Mixin to create your own UIs.
+ *
+ * ## Example
+ *
+ * This example shows a bunch of icons on the screen in two toolbars. When you click on the center
+ * button, it switches the {@link #iconCls} on every button on the page.
+ *
+ *     @example
+ *     Ext.createWidget(&#39;container&#39;, {
+ *         fullscreen: true,
+ *         layout: {
+ *             type: &#39;vbox&#39;,
+ *             pack:&#39;center&#39;,
+ *             align: &#39;center&#39;
+ *         },
+ *         items: [
+ *             {
+ *                 xtype: &#39;button&#39;,
+ *                 text: &#39;Change iconCls&#39;,
+ *                 handler: function() {
+ *                     // classes for all the icons to loop through.
+ *                     var availableIconCls = [
+ *                         &#39;action&#39;, &#39;add&#39;, &#39;arrow_down&#39;, &#39;arrow_left&#39;,
+ *                         &#39;arrow_right&#39;, &#39;arrow_up&#39;, &#39;compose&#39;, &#39;delete&#39;,
+ *                         &#39;organize&#39;, &#39;refresh&#39;, &#39;reply&#39;, &#39;search&#39;,
+ *                         &#39;settings&#39;, &#39;star&#39;, &#39;trash&#39;, &#39;maps&#39;, &#39;locate&#39;,
+ *                         &#39;home&#39;
+ *                     ];
+ *                     // get the text of this button,
+ *                     // so we know which button we don&#39;t want to change
+ *                     var text = this.getText();
+ *
+ *                     // use ComponentQuery to find all buttons on the page
+ *                     // and loop through all of them
+ *                     Ext.Array.forEach(Ext.ComponentQuery.query(&#39;button&#39;), function(button) {
+ *                         // if the button is the change iconCls button, continue
+ *                         if (button.getText() === text) {
+ *                             return;
+ *                         }
+ *
+ *                         // get the index of the new available iconCls
+ *                         var index = availableIconCls.indexOf(button.getIconCls()) + 1;
+ *
+ *                         // update the iconCls of the button with the next iconCls, if one exists.
+ *                         // if not, use the first one
+ *                         button.setIconCls(availableIconCls[(index === availableIconCls.length) ? 0 : index]);
+ *                     });
+ *                 }
+ *             },
+ *             {
+ *                 xtype: &#39;toolbar&#39;,
+ *                 docked: &#39;top&#39;,
+ *                 items: [
+ *                     { xtype: &#39;spacer&#39; },
+ *                     { iconCls: &#39;action&#39; },
+ *                     { iconCls: &#39;add&#39; },
+ *                     { iconCls: &#39;arrow_down&#39; },
+ *                     { iconCls: &#39;arrow_left&#39; },
+ *                     { iconCls: &#39;arrow_up&#39; },
+ *                     { iconCls: &#39;compose&#39; },
+ *                     { iconCls: &#39;delete&#39; },
+ *                     { iconCls: &#39;organize&#39; },
+ *                     { iconCls: &#39;refresh&#39; },
+ *                     { xtype: &#39;spacer&#39; }
+ *                 ]
+ *             },
+ *             {
+ *                 xtype: &#39;toolbar&#39;,
+ *                 docked: &#39;bottom&#39;,
+ *                 ui: &#39;light&#39;,
+ *                 items: [
+ *                     { xtype: &#39;spacer&#39; },
+ *                     { iconCls: &#39;reply&#39; },
+ *                     { iconCls: &#39;search&#39; },
+ *                     { iconCls: &#39;settings&#39; },
+ *                     { iconCls: &#39;star&#39; },
+ *                     { iconCls: &#39;trash&#39; },
+ *                     { iconCls: &#39;maps&#39; },
+ *                     { iconCls: &#39;locate&#39; },
+ *                     { iconCls: &#39;home&#39; },
+ *                     { xtype: &#39;spacer&#39; }
+ *                 ]
+ *             }
+ *         ]
+ *     });
+ *
+ */
+Ext.define(&#39;Ext.Button&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    xtype: &#39;button&#39;,
+
+<span id='Ext-Button-property-isButton'>    isButton: true,
+</span>
+<span id='Ext-Button-event-tap'>    /**
+</span>     * @event tap
+     * @preventable
+     * Fires whenever a button is tapped.
+     * @param {Ext.Button} this The item added to the Container.
+     * @param {Ext.EventObject} e The event object.
+     */
+
+<span id='Ext-Button-event-release'>    /**
+</span>     * @event release
+     * @preventable
+     * Fires whenever the button is released.
+     * @param {Ext.Button} this The item added to the Container.
+     * @param {Ext.EventObject} e The event object.
+     */
+
+    cachedConfig: {
+<span id='Ext-Button-cfg-buttonType'>        /**
+</span>         * @cfg {String} buttonType
+         * By default, all buttons have `type=&quot;button&quot;`. If a button is intended to be invoked as
+         * the default action button inside an {@link Ext.form.Panel}, then setting this to `&#39;submit&#39;`
+         * will cause the button to be clicked whenever the `ENTER` key is pressed.
+         *
+         * @since 6.5.0
+         */
+        buttonType: &#39;button&#39;,
+
+<span id='Ext-Button-cfg-iconCls'>        /**
+</span>         * @cfg {String} iconCls
+         * One or more space separated CSS classes to be applied to the icon element.
+         * The CSS rule(s) applied should specify a background image to be used as the
+         * icon.
+         *
+         * An example of specifying a custom icon class would be something like:
+         *
+         *     // specify the property in the config for the class:
+         *     iconCls: &#39;my-home-icon&#39;
+         *
+         *     // css rule specifying the background image to be used as the icon image:
+         *     .my-home-icon {
+         *         background-image: url(../images/my-home-icon.gif) !important;
+         *     }
+         *
+         * In addition to specifying your own classes, you can use the font icons
+         * provided in the SDK using the following syntax:
+         *
+         *     // using Font Awesome
+         *     iconCls: &#39;x-fa fa-home&#39;
+         *
+         *     // using Pictos
+         *     iconCls: &#39;pictos pictos-home&#39;
+         *
+         * Depending on the theme you&#39;re using, you may need include the font icon
+         * packages in your application in order to use the icons included in the
+         * SDK.  For more information see:
+         *
+         *  - [Font Awesome icons](http://fontawesome.io/cheatsheet/)
+         *  - [Pictos icons](../guides/core_concepts/font_ext.html)
+         *  - [Theming Guide](../guides/core_concepts/theming.html)
+         * @accessor
+         */
+        iconCls: null,
+
+<span id='Ext-Button-cfg-textAlign'>        /**
+</span>         * @cfg {&quot;left&quot;/&quot;right&quot;/&quot;center&quot;} [textAlign=&quot;center&quot;]
+         * @since 6.0.1
+         */
+        textAlign: null,
+
+<span id='Ext-Button-cfg-menuAlign'>        /**
+</span>         * @cfg {String} menuAlign
+         * The position to align the menu to (see {@link Ext.util.Positionable#alignTo} for more details).
+         */
+        menuAlign: &#39;tl-bl?&#39;,
+
+<span id='Ext-Button-cfg-destroyMenu'>        /**
+</span>         * @cfg {Boolean} destroyMenu
+         * Whether or not to destroy any associated menu when this button is destroyed.
+         * In addition, a value of `true` for this config will destroy the currently bound menu
+         * when a new menu is set in {@link #setMenu} unless overridden by that method&#39;s destroyMenu
+         * function argument.
+         */
+        destroyMenu: true,
+
+<span id='Ext-Button-cfg-stretchMenu'>        /**
+</span>         * @cfg {Boolean} stretchMenu
+         * Configure as `true` if the cfg of this button&#39;s. {@link #cfg!menu} should
+         * at least match the width of this button. An {@link #minWidth} explicit `minWidth` on
+         * the menu will override this.
+         * @since 6.5.1
+         */
+        stretchMenu: false,
+
+<span id='Ext-Button-cfg-eventHandlers'>        /**
+</span>         * @cfg eventHandlers
+         * @inheritdoc
+         */
+        eventHandlers: {
+            click: &#39;onClick&#39;
+        }
+    },
+
+    config: {
+<span id='Ext-Button-cfg-allowDepress'>        /**
+</span>         * @cfg {Boolean} allowDepress
+         * `true` to allow user interaction to set {@link #pressed} to `false` when
+         * the button is in the {@link #pressed} state. Only valid when {@link #pressed}
+         * is configured.
+         *
+         * @since 6.0.2
+         */
+        allowDepress: true,
+
+<span id='Ext-Button-cfg-badgeText'>        /**
+</span>         * @cfg {String} badgeText
+         * Optional badge text.  Badges appear as small numbers, letters, or icons that sit on top of your button.  For instance, a small red number indicating how many updates are available.
+         * @accessor
+         */
+        badgeText: null,
+
+<span id='Ext-Button-cfg-text'>        /**
+</span>         * @cfg {String} text
+         * The Button text.
+         * @accessor
+         */
+        text: null,
+
+<span id='Ext-Button-cfg-icon'>        /**
+</span>         * @cfg {String} icon
+         * Url to the icon image to use if you want an icon to appear on your button.
+         * @accessor
+         */
+        icon: false,
+
+<span id='Ext-Button-cfg-iconAlign'>        /**
+</span>         * @cfg {&#39;top&#39;/&#39;right&#39;/&#39;bottom&#39;/&#39;left&#39;} iconAlign
+         * The position of the icon relative to the button text
+         */
+        iconAlign: &#39;left&#39;,
+
+<span id='Ext-Button-cfg-pressedDelay'>        /**
+</span>         * @cfg {Number/Boolean} pressedDelay
+         * The amount of delay between the `mousedown` or `touchstart` and the moment the
+         * button receives &quot;pressed&quot; styling.
+         * Settings this to `true` defaults to 100ms.
+         */
+        pressedDelay: 0,
+
+        // @cmd-auto-dependency { defaultType: &quot;Ext.menu.Menu&quot;, requires: [&quot;Ext.menu.Menu&quot;] }
+<span id='Ext-Button-cfg-menu'>        /**
+</span>         * @cfg {Ext.menu.Menu/String/Object} menu
+         * A menu or menu configuration. This can be a reference to a menu instance, a menu
+         * config object or the `xtype` alias of a {@link Ext.menu.Menu menu}-derived class.
+         */
+        menu: {
+            lazy: true,
+            $value: null
+        },
+
+<span id='Ext-Button-cfg-arrow'>        /**
+</span>         * @cfg {Boolean} [arrow=true]
+         * By default, if the button has a {@link #cfg!menu}, an arrow icon is shown to indicate this.
+         *
+         * Configure `arrow: false` to hide the menu arrow.
+         */
+        arrow: null,
+
+<span id='Ext-Button-cfg-arrowAlign'>        /**
+</span>         * @cfg {&quot;right&quot;/&quot;bottom&quot;} arrowAlign
+         * The side of the Button box to render the arrow if the button has an associated
+         * {@link #cfg!menu}.
+         */
+        arrowAlign: &#39;right&#39;,
+
+<span id='Ext-Button-cfg-handler'>        /**
+</span>         * @cfg {Function} handler
+         * @cfg {Ext.Button} handler.button This Button.
+         * @cfg {Ext.event.Event} handler.e The triggering event.
+         * The handler function to run when the Button is tapped on.
+         * @accessor
+         */
+        handler: null,
+
+<span id='Ext-Button-cfg-toggleHandler'>        /**
+</span>         * @cfg {Function} toggleHandler
+         * @cfg {Ext.Button} toggleHandler.button This Button.
+         * @cfg {Boolean} toggleHandler.pressed This Button&#39;s new pressed state.
+         * The handler function to run when the Button is toggled. Supplying this
+         * configuration implies `{@link #cfg!enableToggle}` is `true`.
+         * @accessor
+         */
+        toggleHandler: null,
+
+<span id='Ext-Button-cfg-scope'>        /**
+</span>         * @cfg {Object} scope
+         * The scope (`this` refeence) in which the configured {@link #handler} will be executed,
+         * unless the scope is a ViewController method nmame.
+         * @accessor
+         */
+        scope: null,
+
+<span id='Ext-Button-cfg-autoEvent'>        /**
+</span>         * @cfg {String} autoEvent
+         * Optional event name that will be fired instead of `tap` when the Button is tapped on.
+         * @accessor
+         */
+        autoEvent: null,
+
+<span id='Ext-Button-cfg-ui'>        /**
+</span>         * @cfg {String} ui
+         * The ui style to render this button with. The valid default options are:
+         *
+         * - `null` - a basic gray button (default).
+         * - `&#39;back&#39;` - a back button.
+         * - `&#39;forward&#39;` - a forward button.
+         * - `&#39;round&#39;` - a round button.
+         * - `&#39;plain&#39;`
+         * - `&#39;action&#39;` - shaded using the {@link Global_CSS#$active-color $active-color} (dark blue by default).
+         * - `&#39;decline&#39;` - shaded using the {@link Global_CSS#$alert-color $alert-color} (red by default).
+         * - `&#39;confirm&#39;` - shaded using the {@link Global_CSS#$confirm-color $confirm-color} (green by default).
+         *
+         * You can also append `-round` to each of the last three UI&#39;s to give it a round shape:
+         *
+         * - **action-round**
+         * - **decline-round**
+         * - **confirm-round**
+         *
+         * @accessor
+         */
+        ui: null,
+
+<span id='Ext-Button-cfg-html'>        /**
+</span>         * @cfg {String} html The HTML to put in this button.
+         *
+         * If you want to just add text, please use the {@link #text} configuration.
+         */
+
+<span id='Ext-Button-cfg-enableToggle'>        /**
+</span>         * @cfg {Boolean} enableToggle
+         * Allows this button to have the pressed state toggled via user
+         * interaction.
+         *
+         * @since 6.0.2
+         */
+        enableToggle: false,
+
+<span id='Ext-Button-cfg-value'>        /**
+</span>         * @cfg {String/Number} value
+         * The value of this button.  Only applicable when used as an item of a {@link Ext.SegmentedButton Segmented Button}.
+         */
+        value: null
+    },
+
+    eventedConfig: {
+<span id='Ext-Button-cfg-pressed'>        /**
+</span>         * @cfg {Boolean} pressed
+         * Sets the pressed state of the button.
+         *
+         * @since 6.0.2
+         */
+        pressed: false
+    },
+
+<span id='Ext-Button-property-preventDefaultAction'>    /**
+</span>     * @private
+     */
+    preventDefaultAction: true,
+
+<span id='Ext-Button-property-isMenuOwner'>    isMenuOwner: true,
+</span>
+<span id='Ext-Button-property-baseCls'>    /**
+</span>     * @property baseCls
+     * @inheritdoc
+     */
+    baseCls: Ext.baseCSSPrefix + &#39;button&#39;,
+<span id='Ext-Button-property-hasMenuCls'>    hasMenuCls: Ext.baseCSSPrefix + &#39;has-menu&#39;,
+</span><span id='Ext-Button-property-hoveredCls'>    hoveredCls: Ext.baseCSSPrefix + &#39;hovered&#39;,
+</span><span id='Ext-Button-property-pressedCls'>    pressedCls: Ext.baseCSSPrefix + &#39;pressed&#39;,
+</span><span id='Ext-Button-property-pressingCls'>    pressingCls: Ext.baseCSSPrefix + &#39;pressing&#39;,
+</span><span id='Ext-Button-property-hasBadgeCls'>    hasBadgeCls: Ext.baseCSSPrefix + &#39;has-badge&#39;,
+</span><span id='Ext-Button-property-hasIconCls'>    hasIconCls: Ext.baseCSSPrefix + &#39;has-icon&#39;,
+</span><span id='Ext-Button-property-hasTextCls'>    hasTextCls: Ext.baseCSSPrefix + &#39;has-text&#39;,
+</span><span id='Ext-Button-property-hasArrowCls'>    hasArrowCls: Ext.baseCSSPrefix + &#39;has-arrow&#39;,
+</span><span id='Ext-Button-property-noArrowCls'>    noArrowCls: Ext.baseCSSPrefix + &#39;no-arrow&#39;,
+</span>
+<span id='Ext-Button-property-defaultBindProperty'>    /**
+</span>     * @property defaultBindProperty
+     * @inheritdoc
+     */
+    defaultBindProperty: &#39;text&#39;,
+    
+<span id='Ext-Button-cfg-publishes'>    /**
+</span>     * @cfg publishes
+     * @inheritdoc
+     */
+    publishes: [&#39;pressed&#39;],
+
+<span id='Ext-Button-property-element'>    /**
+</span>     * @property element
+     * @inheritdoc
+     */
+    element: {
+        reference: &#39;element&#39;,
+        onclick: &#39;return Ext.doEv(this, event);&#39;
+    },
+
+<span id='Ext-Button-property-focusable'>    /**
+</span>     * @property focusable
+     * @inheritdoc
+     */
+    focusable: true,
+    
+<span id='Ext-Button-property-focusEl'>    /**
+</span>     * @property focusEl
+     * @inheritdoc
+     */
+    focusEl: &#39;buttonElement&#39;,
+    
+<span id='Ext-Button-property-ariaEl'>    /**
+</span>     * @property ariaEl
+     * @inheritdoc
+     */
+    ariaEl: &#39;buttonElement&#39;,
+<span id='Ext-Button-property-backgroundColorEl'>    backgroundColorEl: &#39;innerElement&#39;,
+</span>    
+<span id='Ext-Button-property-focusClsEl'>    /**
+</span>     * @property focusClsEl
+     * @inheritdoc
+     */
+    focusClsEl: &#39;el&#39;,
+
+<span id='Ext-Button-method-initialize'>    initialize: function() {
+</span>        var me = this,
+            el = me.el;
+
+        me.callParent();
+
+        // The menu config is lazy
+        if (me.getConfig(&#39;menu&#39;, true)) {
+            me.addCls(me.hasMenuCls);
+        }
+
+        el.on({
+            scope: me,
+            touchstart: &#39;onPress&#39;
+        });
+
+        el.addClsOnOver(me.hoveredCls, me.isEnabled, me);
+    },
+
+<span id='Ext-Button-method-getTemplate'>    getTemplate: function() {
+</span>        return [{
+            reference: &#39;innerElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;inner-el&#39;,
+            children: [{
+                reference: &#39;bodyElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;body-el&#39;,
+                children: [{
+                    cls: Ext.baseCSSPrefix + &#39;icon-el &#39; + Ext.baseCSSPrefix + &#39;font-icon&#39;,
+                    reference: &#39;iconElement&#39;
+                }, {
+                    reference: &#39;textElement&#39;,
+                    cls: Ext.baseCSSPrefix + &#39;text-el&#39;
+                }]
+            }, {
+                reference: &#39;arrowElement&#39;,
+                cls: Ext.baseCSSPrefix + &#39;arrow-el &#39; + Ext.baseCSSPrefix + &#39;font-icon&#39;
+            }]
+        }, {
+            reference: &#39;badgeElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;badge-el&#39;
+        },
+            this.getButtonTemplate()];
+    },
+
+<span id='Ext-Button-method-getButtonTemplate'>    /**
+</span>     * @private
+     * Returns a for an absolutely positioned transparent button element that overlays the
+     * entire component and captures tabs and clicks for accessibility purposes.
+     *
+     * Overridden by {@link Ext.field.FileButton} to replace the `&lt;button` element with
+     * an `&lt;input type=&quot;file&quot;&gt;` element.
+     */
+    getButtonTemplate: function() {
+        return {
+            tag: &#39;button&#39;,
+            reference: &#39;buttonElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;button-el&#39;,
+            onfocus: &#39;return Ext.doEv(this, event);&#39;,
+            onblur: &#39;return Ext.doEv(this, event);&#39;
+        };
+    },
+
+<span id='Ext-Button-method-shouldRipple'>    /**
+</span>     * @private
+     * Intercept ripple config to return unbound ripples for icon only buttons
+     */
+    shouldRipple: function(e) {
+        var me = this,
+            ui = me.getUi(),
+            ripple = me.getRipple(),
+            isFab = ui ? ui.split(&quot; &quot;).indexOf(&quot;fab&quot;) &gt;= 0 : false,
+            text, icon;
+
+
+        if (!isFab &amp;&amp; ripple &amp;&amp; ripple.bound === undefined) {
+            text = me.getText();
+            icon = me.getIconCls();
+
+            if ((!text || text.length === 0) &amp;&amp; icon) {
+                ripple = Ext.clone(ripple);
+                ripple.bound = false;
+                ripple.measureSelector = &#39;x-icon-el&#39;;
+            }
+        }
+
+        return ripple;
+    },
+
+<span id='Ext-Button-method-isPressed'>    /**
+</span>     * `true` if this button is currently in a pressed state. See {@link #pressed}.
+     * @return {Boolean} The pressed state.
+     *
+     * @since 6.0.2
+     */
+    isPressed: function() {
+        return Boolean(this.getPressed());
+    },
+
+<span id='Ext-Button-method-toggle'>    /**
+</span>     * Toggles the {@link #pressed} state.
+     *
+     * @since 6.0.2
+     */
+    toggle: function() {
+        this.setPressed(!this.isPressed());
+    },
+
+<span id='Ext-Button-method-updateBadgeText'>    updateBadgeText: function(badgeText) {
+</span>        var me = this,
+            el = me.el,
+            badgeElement = me.badgeElement,
+            hasBadgeCls = me.hasBadgeCls;
+
+        if (badgeText) {
+            badgeElement.setText(badgeText);
+            el.addCls(hasBadgeCls);
+        } else {
+            el.removeCls(hasBadgeCls);
+        }
+    },
+
+<span id='Ext-Button-method-updateButtonType'>    updateButtonType: function(buttonType) {
+</span>        this.buttonElement.dom.setAttribute(&#39;type&#39;, buttonType);
+    },
+
+<span id='Ext-Button-method-updateText'>    updateText: function(text) {
+</span>        this.textElement.setHtml(text);
+        this.toggleCls(this.hasTextCls, !!text);
+    },
+
+<span id='Ext-Button-method-updateHtml'>    updateHtml: function(html) {
+</span>        this.setText(html);
+    },
+
+<span id='Ext-Button-method-applyPressed'>    applyPressed: function(pressed) {
+</span>        return Boolean(pressed);
+    },
+
+<span id='Ext-Button-method-updatePressed'>    updatePressed: function(pressed) {
+</span>        var me = this,
+            toggleHandler = me.getToggleHandler();
+
+        if (toggleHandler &amp;&amp; !me.isConfiguring) {
+            Ext.callback(toggleHandler, me.getScope(), [me, pressed], 0, me);
+        }
+        me.element.toggleCls(me.pressedCls, pressed);
+    },
+
+<span id='Ext-Button-method-updateIcon'>    updateIcon: function(icon) {
+</span>        var me = this,
+            element = me.iconElement,
+            hasIconCls = me.hasIconCls;
+
+        if (icon) {
+            me.addCls(hasIconCls);
+            element.setStyle(&#39;background-image&#39;, &#39;url(&#39; + icon + &#39;)&#39;);
+        } else {
+            element.setStyle(&#39;background-image&#39;, &#39;&#39;);
+            if (!me.getIconCls()) {
+                me.removeCls(hasIconCls);
+            }
+        }
+    },
+
+<span id='Ext-Button-method-updateIconCls'>    updateIconCls: function(iconCls, oldIconCls) {
+</span>        var me = this,
+            element = me.iconElement,
+            hasIconCls = me.hasIconCls;
+
+        if (iconCls) {
+            me.addCls(hasIconCls);
+            element.replaceCls(oldIconCls, iconCls);
+        } else {
+            element.removeCls(oldIconCls);
+            if (!me.getIcon()) {
+                me.removeCls(hasIconCls);
+            }
+        }
+    },
+
+<span id='Ext-Button-method-updateIconAlign'>    updateIconAlign: function(iconAlign, oldIconAlign) {
+</span>        var el = this.el,
+            prefix = Ext.baseCSSPrefix + &#39;icon-align-&#39;;
+
+        el.removeCls(prefix + oldIconAlign);
+        el.addCls(prefix + iconAlign);
+    },
+
+<span id='Ext-Button-property-_textAlignCls'>    _textAlignCls: {
+</span>        left: Ext.baseCSSPrefix + &#39;text-align-left&#39;,
+        right: Ext.baseCSSPrefix + &#39;text-align-right&#39;,
+        center: &#39;&#39;
+    },
+
+<span id='Ext-Button-method-updateTextAlign'>    updateTextAlign: function(textAlign, oldTextAlign) {
+</span>        var textAlignClasses = this._textAlignCls,
+            add = textAlignClasses[textAlign || &#39;center&#39;],
+            remove = textAlignClasses[oldTextAlign || &#39;center&#39;];
+
+        this.replaceCls(remove, add);
+    },
+
+<span id='Ext-Button-method-updateArrowAlign'>    updateArrowAlign: function(align, oldAlign) {
+</span>        var element = this.element,
+            cls = Ext.baseCSSPrefix + &#39;arrow-align-&#39;;
+
+        if (oldAlign) {
+            element.removeCls(cls + oldAlign);
+        }
+
+        element.addCls(cls + align);
+    },
+
+<span id='Ext-Button-method-applyMenu'>    applyMenu: function(menu) {
+</span>        if (menu) {
+            if (!menu.isMenu) {
+                if (Ext.isArray(menu)) {
+                    menu = {
+                        items: menu
+                    };
+                }
+
+                if (!menu.xtype) {
+                    menu.xtype = &#39;menu&#39;;
+                }
+
+                menu.ownerCmp = this;
+                menu = Ext.widget(menu);
+            }
+
+            this.menuMinWidth = menu.getMinWidth();
+        }
+
+        return menu;
+    },
+
+<span id='Ext-Button-method-updateMenu'>    updateMenu: function(menu, oldMenu) {
+</span>        var listener = {
+            scope: this,
+            hide: &#39;onMenuHide&#39;
+        };
+
+        if (oldMenu &amp;&amp; !oldMenu.destroyed) {
+            if (this.getDestroyMenu()) {
+                oldMenu.destroy();
+            } else if (oldMenu.isMenu) {
+                oldMenu.un(listener);
+            }
+        }
+
+        this.toggleCls(this.hasMenuCls, !!menu);
+
+        if (menu &amp;&amp; menu.isMenu) {
+            menu.on(listener);
+        }
+    },
+
+<span id='Ext-Button-method-updateArrow'>    updateArrow: function(arrow) {
+</span>        this.toggleCls(this.noArrowCls, !arrow);
+        this.toggleCls(this.hasArrowCls, !!arrow);
+    },
+
+<span id='Ext-Button-method-applyAutoEvent'>    applyAutoEvent: function(autoEvent) {
+</span>        var me = this;
+
+        if (typeof autoEvent == &#39;string&#39;) {
+            autoEvent = {
+                name: autoEvent,
+                scope: me.scope || me
+            };
+        }
+
+        return autoEvent;
+    },
+
+<span id='Ext-Button-method-updateAutoEvent'>    updateAutoEvent: function(autoEvent) {
+</span>        var name = autoEvent.name,
+            scope = autoEvent.scope;
+
+        this.setHandler(function() {
+            scope.fireEvent(name, scope, this);
+        });
+
+        this.setScope(scope);
+    },
+
+<span id='Ext-Button-method-applyPressedDelay'>    applyPressedDelay: function(delay) {
+</span>        if (Ext.isNumber(delay)) {
+            return delay;
+        }
+        return (delay) ? 100 : 0;
+    },
+
+<span id='Ext-Button-method-enableFocusable'>    enableFocusable: function() {
+</span>        this.buttonElement.dom.disabled = false;
+
+        this.callParent();
+    },
+
+<span id='Ext-Button-method-disableFocusable'>    disableFocusable: function() {
+</span>        this.callParent();
+
+        this.buttonElement.dom.disabled = true;
+    },
+
+<span id='Ext-Button-method-onPress'>    /**
+</span>     * @private
+     */
+    onPress: function(e) {
+        var me = this,
+            element = me.element,
+            pressedDelay = me.getPressedDelay(),
+            pressingCls = me.pressingCls;
+
+        // Do not react if disabled, or it&#39;s a contextmenu event (right click)
+        if (!me.getDisabled() &amp;&amp; !e.button) {
+            if (pressedDelay &gt; 0) {
+                me.pressedTimeout = Ext.defer(function() {
+                    delete me.pressedTimeout;
+                    if (element) {
+                        element.addCls(pressingCls);
+                    }
+                }, pressedDelay);
+            } else {
+                element.addCls(pressingCls);
+            }
+            Ext.GlobalEvents.setPressedComponent(me, e);
+        }
+    },
+
+<span id='Ext-Button-method-onRelease'>    /**
+</span>     * Called by {@link Ext.GlobalEvents#setPressedComponent} when the global
+     * mouseup event fires and there&#39;s a registered pressed component.
+     * @private
+     */
+    onRelease: function(e) {
+        this.fireAction(&#39;release&#39;, [this, e], &#39;doRelease&#39;);
+    },
+
+<span id='Ext-Button-method-doRelease'>    /**
+</span>     * @private
+     */
+    doRelease: function(me, e) {
+        if (!me.getDisabled()) {
+            if (me.hasOwnProperty(&#39;pressedTimeout&#39;)) {
+                Ext.undefer(me.pressedTimeout);
+                delete me.pressedTimeout;
+            } else {
+                me.element.removeCls(me.pressingCls);
+            }
+        }
+    },
+
+<span id='Ext-Button-method-onClick'>    onClick: function(e) {
+</span>        return this.onTap(e);
+    },
+
+<span id='Ext-Button-method-onTap'>    /**
+</span>     * @private
+     */
+    onTap: function(e) {
+        if (this.getDisabled()) {
+            return false;
+        }
+
+        this.fireAction(&#39;tap&#39;, [this, e], &#39;doTap&#39;);
+    },
+
+<span id='Ext-Button-method-doTap'>    /**
+</span>     * @private
+     */
+    doTap: function(me, e) {
+        var menu = me.getMenu(),
+            handler = me.getHandler();
+
+        // this is done so if you hide the button in the handler, the tap event will not fire
+        // on the new element where the button was.
+        if (e &amp;&amp; e.preventDefault &amp;&amp; me.preventDefaultAction) {
+            e.preventDefault();
+        }
+
+        if (menu) {
+            me.toggleMenu(e, menu);
+        }
+        else {
+            if ((me.getToggleHandler() || me.getEnableToggle()) &amp;&amp; (me.getAllowDepress() || !me.isPressed())) {
+                me.toggle();
+            }
+
+            if (handler) {
+                Ext.callback(handler, me.getScope(), [me, e], 0, me);
+            }
+        }
+    },
+
+<span id='Ext-Button-method-onEnterKey'>    onEnterKey: function(e) {
+</span>        this.onTap(e);
+
+        e.stopEvent();
+
+        return false;
+    },
+
+<span id='Ext-Button-method-onDownKey'>    onDownKey: function(e) {
+</span>        var menu = this.getMenu();
+
+        if (menu &amp;&amp; !this.getDisabled()) {
+            this.showMenu(e, menu);
+
+            e.stopEvent();
+
+            return false;
+        }
+    },
+
+<span id='Ext-Button-method-onEscKey'>    onEscKey: function(e) {
+</span>        var menu = this.getMenu();
+
+        if (menu &amp;&amp; !this.getDisabled() &amp;&amp; menu.isVisible()) {
+            menu.hide();
+
+            e.stopEvent();
+
+            return false;
+        }
+    },
+
+<span id='Ext-Button-method-onFocus'>    onFocus: function(e) {
+</span>        if (!this.keyHandlersAdded) {
+            this.setKeyMap({
+                scope: &#39;this&#39;,
+                SPACE: &#39;onEnterKey&#39;,
+                ENTER: &#39;onEnterKey&#39;,
+                DOWN: &#39;onDownKey&#39;,
+                ESC: &#39;onEscKey&#39;
+            });
+            this.keyHandlersAdded = true;
+        }
+        this.callParent([e]);
+    },
+
+<span id='Ext-Button-method-onMenuHide'>    onMenuHide: function (menu) {
+</span>        if (menu.isMenu &amp;&amp; !this.$buttonWasPressed) {
+            this.setPressed(false);
+        }
+    },
+
+<span id='Ext-Button-method-toggleMenu'>    toggleMenu: function (e, menu) {
+</span>        var me = this;
+
+        menu = menu || me.getMenu();
+
+        if (menu) {
+            if (menu.isVisible()) {
+                me.hideMenu(e, menu);
+            } else {
+                me.showMenu(e, menu);
+            }
+        }
+    },
+
+<span id='Ext-Button-method-hideMenu'>    hideMenu: function (e, menu) {
+</span>        menu = menu || this.getMenu();
+
+        if (menu) {
+            menu.hide();
+        }
+    },
+
+<span id='Ext-Button-method-showMenu'>    showMenu: function(e, menu) {
+</span>        var me = this,
+            isPointerEvent = !e || e.pointerType,
+            pressed;
+
+        menu = menu || me.getMenu();
+
+        me.setupMenuStretch(menu);
+
+        if (menu) {
+            if (menu.isVisible()) {
+                // Click/tap toggles the menu visibility.
+                if (isPointerEvent) {
+                    menu.hide();
+                }
+                else {
+                    menu.focus();
+                }
+            }
+            else {
+                menu.autoFocus = !isPointerEvent;
+
+                if (menu.isMenu) {
+                    /*
+                     * We need to keep track if this button was already
+                     * pressed when the menu was being shown so when the
+                     * menu hides, we don&#39;t unpress the button when it should
+                     * stay pressed.
+                     */
+                    me.$buttonWasPressed = pressed = me.getPressed();
+
+                    menu.showBy(me.element, me.getMenuAlign());
+
+                    if (!pressed) {
+                        me.setPressed(true);
+                    }
+                } else if (menu.isViewportMenu) {
+                    menu.setDisplayed(!menu.getDisplayed());
+                } else {
+                    menu.show();
+                }
+            }
+        }
+    },
+
+<span id='Ext-Button-method-doDestroy'>    doDestroy: function() {
+</span>        var me = this;
+
+        if (me.hasOwnProperty(&#39;pressedTimeout&#39;)) {
+            Ext.undefer(me.pressedTimeout);
+        }
+
+        me.setMenu(null);
+
+        me.callParent();
+    },
+
+<span id='Ext-Button-method-getFocusClsEl'>    getFocusClsEl: function() {
+</span>        return this.element;
+    },
+
+<span id='Ext-Button-property-privates'>    privates: {
+</span>        setupMenuStretch: function(menu) {
+            var me = this;
+            // Only stretch to our width if the menu doesn&#39;t already have a minWidth
+            if (!me.menuMinWidth) {
+                if (me.getStretchMenu()) {
+                    menu.setMinWidth(me.el.measure(&#39;w&#39;));
+                } else {
+                    menu.setMinWidth(null);
+                }
+            }
+        }
+    }
+});
+</pre>
+</body>
+</html>

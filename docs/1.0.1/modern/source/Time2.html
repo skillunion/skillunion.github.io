@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-axis-segmenter-Time'>/**
+</span> * @class Ext.chart.axis.segmenter.Time
+ * @extends Ext.chart.axis.segmenter.Segmenter
+ * 
+ * Time data type.
+ */
+Ext.define(&#39;Ext.chart.axis.segmenter.Time&#39;, {
+    extend: &#39;Ext.chart.axis.segmenter.Segmenter&#39;,
+    alias: &#39;segmenter.time&#39;,
+
+    config: {
+<span id='Ext-chart-axis-segmenter-Time-cfg-step'>        /**
+</span>         * @cfg {Object} step
+         * @cfg {String} step.unit The unit of the step (Ext.Date.DAY, Ext.Date.MONTH, etc).
+         * @cfg {Number} step.step The number of units for the step (1, 2, etc).
+         * If specified, will override the result of {@link #preferredStep}.
+         * For example:
+         *     
+         *     step: {
+         *         unit: Ext.Date.HOUR,
+         *         step: 1
+         *     }
+         */
+        step: null
+    },
+
+<span id='Ext-chart-axis-segmenter-Time-method-renderer'>    renderer: function (value, context) {
+</span>        var ExtDate = Ext.Date;
+        switch (context.majorTicks.unit) {
+            case &#39;y&#39;:
+                return ExtDate.format(value, &#39;Y&#39;);
+            case &#39;mo&#39;:
+                return ExtDate.format(value, &#39;Y-m&#39;);
+            case &#39;d&#39;:
+                return ExtDate.format(value, &#39;Y-m-d&#39;);
+        }
+        return ExtDate.format(value, &#39;Y-m-d\nH:i:s&#39;);
+    },
+
+<span id='Ext-chart-axis-segmenter-Time-method-from'>    from: function (value) {
+</span>        return new Date(value);
+    },
+
+<span id='Ext-chart-axis-segmenter-Time-method-diff'>    diff: function (min, max, unit) {
+</span>        if (isFinite(min)) {
+            min = new Date(min);
+        }
+        if (isFinite(max)) {
+            max = new Date(max);
+        }
+        return Ext.Date.diff(min, max, unit);
+    },
+
+<span id='Ext-chart-axis-segmenter-Time-method-updateStep'>    updateStep: function () {
+</span>        var axis = this.getAxis();
+
+        if (axis &amp;&amp; !this.isConfiguring) {
+            axis.performLayout();
+        }
+    },
+
+<span id='Ext-chart-axis-segmenter-Time-method-align'>    align: function (date, step, unit) {
+</span>        if (unit === &#39;d&#39; &amp;&amp; step &gt;= 7) {
+            date = Ext.Date.align(date, &#39;d&#39;, step);
+            date.setDate(date.getDate() - date.getDay() + 1);
+            return date;
+        } else {
+            return Ext.Date.align(date, unit, step);
+        }
+    },
+
+<span id='Ext-chart-axis-segmenter-Time-method-add'>    add: function (value, step, unit) {
+</span>        return Ext.Date.add(new Date(value), unit, step);
+    },
+
+<span id='Ext-chart-axis-segmenter-Time-property-timeBuckets'>    timeBuckets: [
+</span>        {
+            unit: Ext.Date.YEAR,
+            steps: [1, 2, 5, 10, 20, 50, 100, 200, 500]
+        },
+        {
+            unit: Ext.Date.MONTH,
+            steps: [1, 3, 6]
+        },
+        {
+            unit: Ext.Date.DAY,
+            steps: [1, 7, 14]
+        },
+        {
+            unit: Ext.Date.HOUR,
+            steps: [1, 6, 12]
+        },
+        {
+            unit: Ext.Date.MINUTE,
+            steps: [1, 5, 15, 30]
+        },
+        {
+            unit: Ext.Date.SECOND,
+            steps: [1, 5, 15, 30]
+        },
+        {
+            unit: Ext.Date.MILLI,
+            steps: [1, 2, 5, 10, 20, 50, 100, 200, 500]
+        }
+    ],
+
+<span id='Ext-chart-axis-segmenter-Time-method-getTimeBucket'>    /**
+</span>     * @private
+     * Takes a time interval and figures out what is the smallest nice number of which
+     * units (years, months, days, etc.) that can fully encompass that interval.
+     * @param {Date} min
+     * @param {Date} max
+     * @return {Object}
+     * @return {String} return.unit The unit.
+     * @return {Number} return.step The number of units.
+     */
+    getTimeBucket: function (min, max) {
+        var buckets = this.timeBuckets,
+            unit, unitCount,
+            steps, step,
+            result,
+            i, j;
+
+        for (i = 0; i &lt; buckets.length; i++) {
+            unit = buckets[i].unit;
+            unitCount = this.diff(min, max, unit);
+
+            if (unitCount &gt; 0) {
+                steps = buckets[i].steps;
+                for (j = 0; j &lt; steps.length; j++) {
+                    step = steps[j];
+                    if (unitCount &lt;= step) {
+                        break;
+                    }
+                }
+                result = {
+                    unit: unit,
+                    step: step
+                };
+                break;
+            }
+        }
+        // If the interval is smaller then one millisecond ...
+        if (!result) {
+            // ... we can&#39;t go smaller than one millisecond.
+            result = {
+                unit: Ext.Date.MILLI,
+                step: 1
+            };
+        }
+        return result;
+    },
+
+<span id='Ext-chart-axis-segmenter-Time-method-preferredStep'>    preferredStep: function (min, estStepSize) {
+</span>        var step = this.getStep();
+
+        return step ? step : this.getTimeBucket(
+            new Date(+min),
+            new Date(+min + Math.ceil(estStepSize))
+        );
+    }
+});</pre>
+</body>
+</html>

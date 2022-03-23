@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='SU-widgets-Avatar'>/**
+</span> * 
+ * Example usage:
+ * 
+ *     @example
+ *     
+ *     Ext.create({ 
+ *         xtype: &#39;container&#39;, 
+ *         fullscreen: true, 
+ *         padding: 10,
+ *     
+ *         items: [
+ *             {
+ *                 xtype: &#39;container&#39;,
+ *                 layout: &#39;hbox&#39;,
+ *                 defaults: { style: &#39;margin: 20px;&#39; },
+ *                 items: [
+ *                     {
+ *                         xtype: &#39;avatar&#39;,
+ *                         userName: &#39;Пупкин Василий Эдмундович&#39;
+ *                     },
+ *                     {
+ *                         xtype: &#39;avatar&#39;,
+ *                         ui: &#39;plain&#39;,
+ *                         userName: &#39;Иванов Антон&#39;
+ *                     },
+ *                     {
+ *                         xtype: &#39;avatar&#39;,
+ *                         userName: &#39;Вася Пупкин&#39;,
+ *                         image: &#39;https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50&#39;
+ *                     }
+ *                 ]
+ *             },
+ *             {
+ *                 xtype: &#39;container&#39;,
+ *                 layout: &#39;hbox&#39;,
+ *                 defaults: { style: &#39;margin: 10px;&#39; },
+ *                 items: [
+ *                     {
+ *                         xtype: &#39;avatar&#39;,
+ *                         proportions: 80,
+ *                         userName: &#39;Петя Васечкин&#39;
+ *                     },
+ *                     {
+ *                         xtype: &#39;avatar&#39;,
+ *                         ui: &#39;plain&#39;,
+ *                         proportions: 80,
+ *                         userName: &#39;Иванов Антон&#39;
+ *                     },
+ *                     {
+ *                         xtype: &#39;avatar&#39;,
+ *                         proportions: 80,
+ *                         userName: &#39;Вася Пупкин&#39;,
+ *                         image: &#39;https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50&#39;
+ *                     }
+ *                 ]
+ *             }
+ *         ], 
+ *         renderTo: Ext.getBody() 
+ *     });
+ *     
+ *   
+ *   
+ */
+Ext.define(&#39;SU.widgets.Avatar&#39;, {
+    extend: &#39;Ext.Widget&#39;,
+    alternateClassName: [&#39;Ext.Avatar&#39;],
+    alias: &#39;widget.avatar&#39;,
+
+    config: {
+
+<span id='SU-widgets-Avatar-cfg-proportions'>        /**
+</span>         * @cfg {Number} proportions
+         * Высота и ширина
+         */
+        proportions: 60,
+
+<span id='SU-widgets-Avatar-cfg-userName'>        /**
+</span>         * @cfg {String} userName
+         * ФИО пользователя, при отсутствии #image
+         * отображает 2 буквы из ФИО
+         */
+        userName: undefined,
+
+<span id='SU-widgets-Avatar-cfg-image'>        /**
+</span>         * @cfg {String} image
+         * ССылка на изображение
+         */
+        image: undefined
+
+<span id='SU-widgets-Avatar-cfg-height'>        /**
+</span>         * @cfg {Number} height
+         * @hide
+         */
+
+<span id='SU-widgets-Avatar-cfg-width'>        /**
+</span>         * @cfg {Number} width
+         * @hide
+         */
+    },
+
+<span id='SU-widgets-Avatar-property-baseCls'>    baseCls: &#39;x-avatar&#39;,
+</span>
+<span id='SU-widgets-Avatar-property-element'>    element: {
+</span>        reference: &#39;element&#39;,
+        children: [
+            {
+                reference: &#39;innerElement&#39;,
+                cls: &#39;x-avatar-inner&#39;
+            }
+        ]
+    },
+
+<span id='SU-widgets-Avatar-method-updateProportions'>    updateProportions: function (size) {
+</span>        this.element.setStyle(&#39;font-size&#39;, size * 0.35 + &#39;px&#39;);
+        this.setHeight(size);
+        this.setWidth(size);
+    },
+
+<span id='SU-widgets-Avatar-method-updateUserName'>    updateUserName: function (name) {
+</span>        var me = this;
+
+        if (me.getImage() || !name) {
+            me.innerElement.dom.setAttribute(&#39;data-content&#39;, &#39;&#39;);
+            return;
+        }
+
+        name = name
+            .split(&#39; &#39;)
+            .filter(function (s) {
+                return s.length &gt; 3;
+            })
+            .map(function (s) {
+                return s.substr(0, 1);
+            })
+            .slice(0, 2)
+            .join(&#39;&#39;);
+
+        me.innerElement.dom.setAttribute(&#39;data-content&#39;, name);
+    },
+
+<span id='SU-widgets-Avatar-method-updateImage'>    updateImage: function (image) {
+</span>        var me = this,
+            bg = image ? &#39;url(&#39; + image + &#39;)&#39; : &#39;none&#39;;
+
+        me.element.setStyle(&#39;background-image&#39;, bg);
+
+        //if (bg) {
+        me.updateUserName(me.getUserName());
+        //}
+    }
+
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-form-Borders'>/**
+</span> * A mixin that contains functionality common to {@link Ext.field.Panel} and
+ * {@link Ext.form.FieldSet}.
+ *
+ * @private
+ * @since 6.5.0
+ */
+Ext.define(&#39;Ext.form.Borders&#39;, {
+<span id='Ext-form-Borders-property-mixinId'>    mixinId: &#39;formborders&#39;,
+</span>
+    config: {
+<span id='Ext-form-Borders-cfg-fieldSeparators'>        /**
+</span>         * @cfg {Boolean} [fieldSeparators=false]
+         * Set to `true` to show separators between the fields in this form.  Typically
+         * used together with {@link #inputBorders} to create iOS-like forms
+         *
+         * Defaults to `true` in the iOS theme
+         */
+        fieldSeparators: null,
+
+<span id='Ext-form-Borders-cfg-inputBorders'>        /**
+</span>         * @cfg {Boolean} [inputBorders=true]
+         *
+         * `false` to suppress borders on the input elements of fields in this form.
+         * Typically used together with {@link #fieldSeparators} to create iOS-like forms.
+         *
+         * Defaults to `false` in the iOS theme
+         */
+        inputBorders: null
+    },
+
+<span id='Ext-form-Borders-property-fieldSeparatorsCls'>    fieldSeparatorsCls: Ext.baseCSSPrefix + &#39;form-field-separators&#39;,
+</span><span id='Ext-form-Borders-property-noInputBordersCls'>    noInputBordersCls: Ext.baseCSSPrefix + &#39;form-no-input-borders&#39;,
+</span>
+<span id='Ext-form-Borders-method-updateFieldSeparators'>    updateFieldSeparators: function(fieldSeparators, oldFieldSeparators) {
+</span>        var bodyElement = this.bodyElement,
+            cls = this.fieldSeparatorsCls;
+
+        if (fieldSeparators) {
+            bodyElement.addCls(cls);
+        } else if (oldFieldSeparators) {
+            bodyElement.removeCls(cls);
+        }
+    },
+
+<span id='Ext-form-Borders-method-updateInputBorders'>    updateInputBorders: function(inputBorders, oldInputBorders) {
+</span>        var bodyElement = this.bodyElement,
+            cls = this.noInputBordersCls;
+
+        if (inputBorders === false) {
+            bodyElement.addCls(cls);
+        } else if (oldInputBorders === false) {
+            bodyElement.removeCls(cls);
+        }
+    }
+});
+</pre>
+</body>
+</html>

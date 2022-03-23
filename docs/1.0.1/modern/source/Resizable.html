@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-Panel'>/**
+</span> * @class Ext.Panel
+ */
+
+Ext.define(&#39;Ext.panel.Resizable&#39;, {
+    override: &#39;Ext.Panel&#39;,
+
+    config: {
+<span id='Ext-Panel-cfg-resizable'>        /**
+</span>         * @cfg {Object} [resizable]
+         * A configuration for a {@link Ext.panel.Resizer Resizer}.
+         *
+         * @since 6.5.0
+         */
+        resizable: null
+    },
+
+<span id='Ext-Panel-event-beforeresizedragstart'>    /**
+</span>     * @event beforeresizedragstart
+     * Fires before resize starts. Return `false` to cancel dragging.
+     * @param {Ext.Panel} this
+     * @param {Object} context
+     * @param {String} context.edge The edge being resized.
+     * @param {Ext.event.Event} context.event The event.
+     *
+     * @since 6.5.0
+     */
+    
+<span id='Ext-Panel-event-resizedragstart'>    /**
+</span>     * @event resizedragstart
+     * Fires when the resize starts.
+     * @param {Ext.Panel} this
+     * @param {Object} context
+     * @param {String} context.edge The edge being resized.
+     * @param {Ext.event.Event} context.event The event.
+     *
+     * @since 6.5.0
+     */
+    
+<span id='Ext-Panel-event-resizedrag'>    /**
+</span>     * @event resizedrag
+     * Fires for each tick while a drag is active.
+     * @param {Ext.Panel} this
+     * @param {Object} context
+     * @param {String} context.edge The edge being resized.
+     * @param {Ext.event.Event} context.event The event.
+     * @param {Number} context.width The current resized width in pixels.
+     * @param {Number} context.height The current resized height in pixels.
+     *
+     * @since 6.5.0
+     */
+    
+<span id='Ext-Panel-event-resizedragend'>    /**
+</span>     * @event resizedragend
+     * Fires when the drag resize is complete.
+     * @param {Ext.Panel} this
+     * @param {Object} context
+     * @param {String} context.edge The edge being resized.
+     * @param {Ext.event.Event} context.event The event.
+     * @param {Number} context.width The final resized width in pixels.
+     * @param {Number} context.height The final resized height in pixels.
+     *
+     * @since 6.5.0
+     */
+    
+<span id='Ext-Panel-event-resizedragcancel'>    /**
+</span>     * @event resizedragcancel
+     * Fires when the drag resize is cancelled.
+     * @param {Ext.Panel} this
+     * @param {Object} context
+     * @param {String} context.edge The edge being resized.
+     * @param {Ext.event.Event} context.event The event.
+     *
+     * @since 6.5.0
+     */
+
+<span id='Ext-Panel-property-hasResizable'>     /**
+</span>      * @property {Boolean} hasResizable
+      * `true` if this panel has the resizable override added.
+      *
+      * @since 6.5.0
+      */
+    hasResizable: true,
+
+<span id='Ext-Panel-property-defaultResizerCls'>    defaultResizerCls: &#39;Ext.panel.Resizer&#39;,
+</span>
+<span id='Ext-Panel-method-applyResizable'>    applyResizable: function(resizable) {
+</span>        if (resizable) {
+            if (resizable === true) {
+                resizable = {};
+            }
+            resizable = Ext.create(Ext.apply({
+                xclass: this.defaultResizerCls,
+                target: this,
+                ui: this.getUi()
+            }, resizable));
+        }
+        return resizable;
+    },
+
+<span id='Ext-Panel-method-updateResizable'>    updateResizable: function(resizable, oldResizable) {
+</span>        if (oldResizable) {
+            oldResizable.destroy();
+        }
+    },
+
+<span id='Ext-Panel-method-doDestroy'>    doDestroy: function() {
+</span>        this.setResizable(null);
+        this.callParent();
+    },
+
+<span id='Ext-Panel-property-privates'>    privates: {
+</span>        onResizableUiChange: function(ui, oldUi) {
+            var resizable = this.getResizable();
+            if (resizable) {
+                resizable.setUi(ui);
+            }
+        }
+    }
+});</pre>
+</body>
+</html>

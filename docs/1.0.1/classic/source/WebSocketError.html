@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*
+ * Project    : SU Lib Core
+ * File	      : WebSocketError.js
+ * Created on : 29.04.2015 13:36:15
+ */
+
+/* global Ext */
+
+<span id='SU-WebSocketError'>/**
+</span> * Общий класс для ExtJS 4.2+ / Sencha Touch 2.3+
+ *
+ * Класс обработки ошибок SU.WebSocket.
+ *
+ * @history 26.07.2017
+ * Изменения локализации, связанные с изменениями SU.Error
+ *
+ * @history 29.04.2015
+ * Создание модуля
+ */
+Ext.define(&#39;SU.WebSocketError&#39;, {
+	alternateClassName: [&#39;Ext.WebSocketError&#39;],
+
+	extend: &#39;SU.Error&#39;,
+<span id='SU-WebSocketError-property-name'>	name: &#39;WebSocketError&#39;,
+</span>
+<span id='SU-WebSocketError-method-constructor'>	constructor: function (config) {
+</span>		config = config || {};
+		config.name = config.name || this.name;
+		this.callParent(arguments);
+	},
+
+	statics: {
+<span id='SU-WebSocketError-static-property-locales'>		/**
+</span>		 * @inheritdoc SU.Error#locales
+		 * @localdoc Локализация исключений Ext.WebSocket.
+		 *
+		 * @property {Object} [locales={}]
+		 * @property {String} locales.ALREADY_ESTABLISHED
+		 * @property {String} locales.NOT_CONNECTED
+		 * @property {String} locales.CAN_NOT_CONNECT
+		 * @property {String} locales.INVALID_SCHEME
+		 * @property {String} locales.INVALID_ADDRESS
+		 * @property {String} locales.LOGIN_NOT_DEFINED
+		 * @property {String} locales.LOGIN_ERROR
+		 * @property {String} locales.LOGIN_CUSTOM
+		 * @property {String} locales.LOGIN_UNKNOWN
+		 * @property {String} locales.LOGIN_INV_METHOD
+		 * @property {String} locales.AUTHORIZE_ERROR
+		 *
+		 * @protected
+		 */
+		locales: {
+			ALREADY_ESTABLISHED: &#39;The connection is already established.&#39;,
+			NOT_CONNECTED: &#39;The connection is not established.&#39;,
+			CAN_NOT_CONNECT: &#39;Can not connect to {0}&#39;,
+			DISCONNECT: &#39;Connecting to {0} has been interrupted.&#39;,
+			INVALID_SCHEME: &#39;Invalid schema \&#39;{0}\&#39; for WebSocket&#39;,
+			INVALID_ADDRESS: &#39;Invalid address \&#39;{0}\&#39; for WebSocket&#39;,
+			LOGIN_NOT_DEFINED: &#39;Not defined for automatic login user authorization.&#39;,
+			LOGIN_ERROR: &#39;Login failed (Code {0}).\n\n{1}&#39;,
+			LOGIN_CUSTOM: &#39;Invalid username or password.&#39;,
+			LOGIN_UNKNOWN: &#39;Username or password unidentified.&#39;,
+			LOGIN_INV_METHOD: &#39;Authorization is prohibited by the system administrator.&#39;,
+			AUTHORIZE_ERROR: &#39;Runtime error authorization request.&#39;
+
+			//ALREADY_ESTABLISHED		: &#39;Соединение уже установлено.&#39;,
+			//NOT_CONNECTED				: &#39;Соединение не установлено.&#39;,
+			//CAN_NOT_CONNECT			: &#39;Невозможно установить соединение с {0}&#39;,
+			//DISCONNECT				: &#39;Соединение с {0} было прервано.&#39;,
+			//INVALID_SCHEME			: &#39;Неверная схема \&#39;{0}\&#39; для WebSocket&#39;,
+			//INVALID_ADDRESS			: &#39;Неверный адрес \&#39;{0}\&#39; для WebSocket&#39;,
+			//LOGIN_NOT_DEFINED			: &#39;Не определен логин для автоматической авторизации пользователя.&#39;,
+			//LOGIN_ERROR				: &#39;Ошибка входа в систему ({0}).\n\n{1}&#39;,
+			//LOGIN_CUSTOM				: &#39;Неверный логин или пароль&#39;,
+			//LOGIN_UNKNOWN				: &#39;Имя пользователя или пароль неопознаны.&#39;,
+			//LOGIN_INV_METHOD			: &#39;Авторизация запрещена администратором системы.&#39;,
+			//AUTHORIZE_ERROR			: &#39;Ошибка выполнения запроса авторизации.&#39;
+		}
+	}
+
+});
+</pre>
+</body>
+</html>

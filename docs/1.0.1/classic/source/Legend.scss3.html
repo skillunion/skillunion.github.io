@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">.#{$prefix}legend-inner {
+    display: table; // for IE8 vertical centering
+    text-align: center;
+    padding: $chart-legend-padding;
+}
+
+.#{$prefix}legend-horizontal {
+    .#{$prefix}legend-inner {
+        min-width: 100%;
+    }
+}
+
+.#{$prefix}legend-vertical {
+    .#{$prefix}legend-inner {
+        min-height: 100%;
+    }
+}
+
+.#{$prefix}legend-container {
+    display: table-cell;     // for IE8 vertical centering
+    vertical-align: middle;  // for IE8 vertical centering
+    white-space: nowrap;
+
+    line-height: 0;
+    background: $chart-legend-background-color;
+
+    @if (lightness($chart-legend-background-color) &gt; 30) {
+        @include box-shadow(rgba(#fff, .6) 0 1px 1px);
+    } @else {
+        @include box-shadow(rgba(#fff, .2) 0 1px 0);
+    }
+}</pre>
+</body>
+</html>

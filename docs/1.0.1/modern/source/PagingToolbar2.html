@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-plugin-PagingToolbar'>/**
+</span> * The Paging Toolbar is a specialized toolbar that is
+ * bound to a `Ext.data.Store` and provides automatic paging control.
+ *
+ *     @example
+ *     var store = Ext.create(&#39;Ext.data.Store&#39;, {
+ *         fields: [&#39;fname&#39;, &#39;lname&#39;, &#39;talent&#39;],
+ *         pageSize: 3,
+ *         data: [
+ *             { &#39;fname&#39;: &#39;Barry&#39;,  &#39;lname&#39;: &#39;Allen&#39;,      &#39;talent&#39;: &#39;Speedster&#39; },
+ *             { &#39;fname&#39;: &#39;Oliver&#39;, &#39;lname&#39;: &#39;Queen&#39;,      &#39;talent&#39;: &#39;Archery&#39;  },
+ *             { &#39;fname&#39;: &#39;Kara&#39;,   &#39;lname&#39;: &#39;Zor-El&#39;,     &#39;talent&#39;: &#39;All&#39;  },
+ *             { &#39;fname&#39;: &#39;Helena&#39;, &#39;lname&#39;: &#39;Bertinelli&#39;, &#39;talent&#39;: &#39;Weapons Expert&#39;  },
+ *             { &#39;fname&#39;: &#39;Hal&#39;,    &#39;lname&#39;: &#39;Jordan&#39;,     &#39;talent&#39;: &#39;Willpower&#39;  },
+ *         ]
+ *     });
+ *
+ *     Ext.create(&#39;Ext.grid.Grid&#39;, {
+ *         title: &#39;DC Personnel&#39;,
+ *
+ *         store: store,
+ *         plugins: {
+ *             pagingtoolbar: true
+ *         },
+ *
+ *         columns: [
+ *             { text: &#39;First Name&#39;, dataIndex: &#39;fname&#39;,  flex: 1 },
+ *             { text: &#39;Last Name&#39;,  dataIndex: &#39;lname&#39;,  flex: 1 },
+ *             { text: &#39;Talent&#39;,     dataIndex: &#39;talent&#39;, flex: 1 }
+ *         ],
+ *
+ *         height: 230,
+ *         layout: &#39;fit&#39;,
+ *         fullscreen: true
+ *     });
+ */
+Ext.define(&#39;Ext.grid.plugin.PagingToolbar&#39;, {
+    extend: &#39;Ext.plugin.Abstract&#39;,
+    alias: [&#39;plugin.pagingtoolbar&#39;, &#39;plugin.gridpagingtoolbar&#39;],
+    mixins: [&#39;Ext.mixin.Hookable&#39;],
+
+    requires: [
+        &#39;Ext.grid.PagingToolbar&#39;,
+        &#39;Ext.util.DelayedTask&#39;
+    ],
+
+    config: {
+<span id='Ext-grid-plugin-PagingToolbar-cfg-grid'>        /**
+</span>         * @cfg grid
+         * @private
+         */
+        grid: null,
+<span id='Ext-grid-plugin-PagingToolbar-cfg-currentPage'>        currentPage: 1,
+</span>
+<span id='Ext-grid-plugin-PagingToolbar-cfg-pageSize'>        /**
+</span>         * @cfg pageSize
+         * @inheritdoc Ext.data.AbstractStore#cfg!pageSize
+         */
+        pageSize: 0,
+
+<span id='Ext-grid-plugin-PagingToolbar-cfg-totalCount'>        totalCount: 0,
+</span><span id='Ext-grid-plugin-PagingToolbar-cfg-totalPages'>        totalPages: 0,
+</span><span id='Ext-grid-plugin-PagingToolbar-cfg-loadPages'>        loadPages: null,
+</span>
+<span id='Ext-grid-plugin-PagingToolbar-cfg-buffer'>        /**
+</span>         * @cfg {Number|&#39;dragend&#39;} buffer
+         * If a number, this is the number of milliseconds to delay after dragging stops
+         * but the drag has not ended. If it is &#39;dragend&#39;, fetches from the remote server
+         * will be suspended until dragging is completed.
+         */
+        buffer: 250,
+
+<span id='Ext-grid-plugin-PagingToolbar-cfg-toolbar'>        toolbar: {
+</span>            xtype: &#39;pagingtoolbar&#39;,
+            docked: &#39;bottom&#39;
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-init'>    init: function(grid) {
+</span>        this.setGrid(grid);
+        grid.add(this.getToolbar());
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-destroy'>    destroy: function(){
+</span>        this.setBuffer(null);
+        this.setGrid(null);
+        this.callParent();
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-updateGrid'>    updateGrid: function(grid, oldGrid) {
+</span>        var me = this;
+
+        me.gridListeners = me.storeListeners = me.scrollListeners = Ext.destroy(me.gridListeners, me.storeListeners, me.scrollListeners);
+
+        if (grid) {
+            me.gridListeners = grid.on({
+                updatevisiblecount: &#39;onUpdateVisibleCount&#39;,
+                storechange: &#39;onStoreChanged&#39;,
+                destroyable: true,
+                scope: me
+            });
+            me.scrollListeners = grid.getScrollable().on({
+                scrollend: &#39;checkPageChange&#39;,
+                buffer: 100,
+                scope: me
+            });
+
+            me.bindStore(grid.getStore());
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-bindStore'>    bindStore: function(store){
+</span>        var me = this;
+
+        Ext.destroy(me.storeListeners);
+        me.getToolbar().setDisabled(!!store);
+
+        if(!store){
+            return;
+        }
+
+        me.storeListeners = store.on({
+            add: &#39;onTotalCountChange&#39;,
+            remove: &#39;onTotalCountChange&#39;,
+            refresh: &#39;onTotalCountChange&#39;,
+            clear: &#39;onTotalCountChange&#39;,
+            destroyable: true,
+            scope: me
+        });
+
+        /* we have two scenarios:
+         1. pageSize = 0, which means that we have the entire data in the store
+         and we just need to show current page in the toolbar
+
+         2. we have pageSize &gt; 0 which means that we probably don&#39;t have the
+         entire data in the store and we need to load it page by page
+         */
+        me.setLoadPages(store.pageSize &gt; 0);
+
+        me.cancelBufferTask();
+
+        if(store.isLoaded()){
+            me.onTotalCountChange(store);
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-onStoreChanged'>    onStoreChanged: function(grid, store){
+</span>        this.bindStore(store);
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-getPageData'>    /**
+</span>     * @private
+     */
+    getPageData: function() {
+        var grid = this.getGrid(),
+            store = grid.getStore(),
+            totalCount = store.getTotalCount() || store.getCount(),
+            pageSize = this.getLoadPages() ? store.pageSize : grid.visibleCount,
+            pageCount = Math.ceil(totalCount / pageSize);
+
+        return {
+            totalCount : totalCount,
+            totalPages: Ext.Number.isFinite(pageCount) ? pageCount : 1,
+            currentPage : store.currentPage,
+            pageSize: pageSize
+        };
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-checkPageChange'>    checkPageChange: function() {
+</span>        var me = this,
+            grid = me.getGrid(),
+            pageSize = me.getPageSize(),
+            currentPage = me.getCurrentPage(),
+            topVisibleIndex = grid.topVisibleIndex,
+            newPage = Math.ceil( (topVisibleIndex + pageSize) / pageSize); // on the first page topVisibleIndex is 0
+
+        if (grid.getStore() &amp;&amp; !me.getLoadPages() &amp;&amp; newPage &gt; 0 &amp;&amp; newPage !== currentPage) {
+            me.preventGridScroll = true;
+            me.setCurrentPage(newPage);
+            me.preventGridScroll = false;
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-updateBuffer'>    updateBuffer: function(buffer) {
+</span>        var me = this,
+            bufferTask = me.bufferTask;
+
+        if (Ext.isNumber(buffer)) {
+            me.bufferTask = bufferTask || new Ext.util.DelayedTask(me.bufferTaskRun, me)
+            me.cancelBufferTask();
+        }
+        else if (bufferTask) {
+            bufferTask.cancel();
+            me.bufferTask = null;
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-cancelBufferTask'>    cancelBufferTask: function() {
+</span>        if (this.bufferTask) {
+            this.bufferTask.cancel();
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-loadCurrentPage'>    loadCurrentPage: function() {
+</span>        this.getGrid().getStore().loadPage(this.getCurrentPage());
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-bufferTaskRun'>    bufferTaskRun: function() {
+</span>        this.loadCurrentPage();
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-applyToolbar'>    applyToolbar: function(toolbar, oldToolbar) {
+</span>        return Ext.factory(toolbar, Ext.Toolbar, oldToolbar);
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-updateToolbar'>    updateToolbar: function(toolbar) {
+</span>        var me = this;
+
+        if (toolbar) {
+            toolbar.getSliderField().on({
+                change: &#39;onPageChange&#39;,
+                dragstart: &#39;onPageSliderDrag&#39;,
+                drag: &#39;onPageSliderDrag&#39;,
+                dragend: &#39;onPageSliderDragEnd&#39;,
+                scope: me
+            });
+
+            toolbar.getNextButton().on({
+                tap: &#39;onNextPageTap&#39;,
+                scope: me
+            });
+
+            toolbar.getPrevButton().on({
+                tap: &#39;onPreviousPageTap&#39;,
+                scope: me
+            });
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-onPageChange'>    onPageChange: function(field, value) {
+</span>        this.setCurrentPage(value);
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-onPageSliderDrag'>    onPageSliderDrag: function(field, slider, value) {
+</span>        this.isDragging = true;
+        this.setCurrentPage(Ext.isArray(value) ? value[0] : value);
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-onPageSliderDragEnd'>    onPageSliderDragEnd: function() {
+</span>        var me = this;
+
+        me.isDragging = false;
+        if (me.getBuffer() === &#39;dragend&#39; || me.bufferTask.Id) {
+            me.cancelBufferTask();
+            me.loadCurrentPage();
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-onNextPageTap'>    onNextPageTap: function() {
+</span>        var nextPage = this.getCurrentPage() + 1;
+        if (nextPage &lt;= this.getTotalPages()) {
+            this.setCurrentPage(nextPage);
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-onPreviousPageTap'>    onPreviousPageTap: function() {
+</span>        var previousPage = this.getCurrentPage() - 1;
+        if (previousPage &gt; 0) {
+            this.setCurrentPage(previousPage);
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-onTotalCountChange'>    onTotalCountChange: function(store) {
+</span>        var me = this,
+            data = me.getPageData();
+
+        me.bulkConfigs = true;
+        me.setConfig(data);
+        me.bulkConfigs = false;
+        me.syncSummary();
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-onUpdateVisibleCount'>    onUpdateVisibleCount: function(grid, visibleCount) {
+</span>        var store = grid.getStore(),
+            totalCount;
+
+        if(store &amp;&amp; !this.getLoadPages()){
+            visibleCount -= 1;
+            this.setPageSize(visibleCount);
+            totalCount = store.getTotalCount() || store.getCount();
+            this.setTotalPages( Math.ceil(totalCount / visibleCount) );
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-updateTotalPages'>    updateTotalPages: function() {
+</span>        if(!this.isConfiguring) {
+            this.syncSummary();
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-updateCurrentPage'>    updateCurrentPage: function(page) {
+</span>        var me = this,
+            isDragging = me.isDragging,
+            bufferTask = me.bufferTask,
+            buffer = me.getBuffer();
+
+        if(!me.isConfiguring) {
+            if(me.getLoadPages()){
+                if (bufferTask &amp;&amp; Ext.isNumber(buffer) &amp;&amp; isDragging) {
+                    bufferTask.delay(buffer);
+                }
+                else if (buffer !== &#39;dragend&#39; || !isDragging) {
+                    me.getGrid().getStore().loadPage(page);
+                }
+            }
+            else{
+                me.syncSummary();
+            }
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-updateTotalCount'>    updateTotalCount: function(totalCount) {
+</span>        if(!this.isConfiguring) {
+            this.syncSummary();
+        }
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-method-getPageTopRecord'>    getPageTopRecord: function(page) {
+</span>        var grid = this.getGrid(),
+            store = grid &amp;&amp; grid.getStore(),
+            pageSize = this.getPageSize(),
+            pageTopRecordIndex = (page - 1) * pageSize;
+
+        return store &amp;&amp; store.getAt(pageTopRecordIndex);
+    },
+
+<span id='Ext-grid-plugin-PagingToolbar-property-privates'>    privates: {
+</span>        syncSummary: function() {
+            var me = this,
+                grid = me.getGrid(),
+                toolbar = me.getToolbar(),
+                sliderField = toolbar.getSliderField(),
+                currentPage = me.getCurrentPage(),
+                totalPages = me.getTotalPages(),
+                pageTopRecord;
+
+            if(me.bulkConfigs){
+                return;
+            }
+
+            // TODO: Calling setHtml causes a performance issue while live scrolling,
+            // this might be worth looking into.
+            toolbar.getSummaryComponent().element.dom.innerHTML = currentPage + &#39; / &#39; + totalPages;
+
+            sliderField.setMaxValue(totalPages || 1);
+            sliderField.setValue(currentPage);
+            sliderField.setDisabled(totalPages &lt;= 1);
+
+            pageTopRecord = me.getPageTopRecord(currentPage);
+            if (grid &amp;&amp; !me.preventGridScroll &amp;&amp; pageTopRecord) {
+                grid.scrollToRecord(pageTopRecord);
+            }
+
+            toolbar.getNextButton().setDisabled(currentPage === totalPages);
+            toolbar.getPrevButton().setDisabled(currentPage === 1);
+        }
+    }
+});
+</pre>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-chart-axis-sprite-Axis3D'>/**
+</span> * @private
+ * @class Ext.chart.axis.sprite.Axis3D
+ * @extends Ext.chart.axis.sprite.Axis
+ *
+ * The {@link Ext.chart.axis.Axis3D 3D axis} sprite.
+ * Only 3D cartesian axes are rendered with this sprite.
+ */
+
+Ext.define(&#39;Ext.chart.axis.sprite.Axis3D&#39;, {
+    extend: &#39;Ext.chart.axis.sprite.Axis&#39;,
+    alias: &#39;sprite.axis3d&#39;,
+<span id='Ext-chart-axis-sprite-Axis3D-property-type'>    type: &#39;axis3d&#39;,
+</span>
+    inheritableStatics: {
+<span id='Ext-chart-axis-sprite-Axis3D-static-property-def'>        def: {
+</span>            processors: {
+                depth: &#39;number&#39;
+            },
+
+            defaults: {
+                depth: 0
+            },
+
+            triggers: {
+                depth: &#39;layout&#39;
+            }
+        }
+    },
+
+    config: {
+<span id='Ext-chart-axis-sprite-Axis3D-cfg-animation'>        animation: {
+</span>            customDurations: {
+                depth: 0
+            }
+        }
+    },
+
+<span id='Ext-chart-axis-sprite-Axis3D-method-layoutUpdater'>    layoutUpdater: function () {
+</span>        var me = this,
+            chart = me.getAxis().getChart();
+        if (chart.isInitializing) {
+            return;
+        }
+        var attr = me.attr,
+            layout = me.getLayout(),
+            depth = layout.isDiscrete ? 0 : attr.depth,
+            isRtl = chart.getInherited().rtl,
+            min = attr.dataMin + (attr.dataMax - attr.dataMin) * attr.visibleMin,
+            max = attr.dataMin + (attr.dataMax - attr.dataMin) * attr.visibleMax,
+            context = {
+                attr: attr,
+                segmenter: me.getSegmenter(),
+                renderer: me.defaultRenderer
+            };
+
+        if (attr.position === &#39;left&#39; || attr.position === &#39;right&#39;) {
+            attr.translationX = 0;
+            attr.translationY = max * (attr.length - depth) / (max - min) + depth;
+            attr.scalingX = 1;
+            attr.scalingY = (-attr.length + depth) / (max - min);
+            attr.scalingCenterY = 0;
+            attr.scalingCenterX = 0;
+            me.applyTransformations(true);
+        } else if (attr.position === &#39;top&#39; || attr.position === &#39;bottom&#39;) {
+            if (isRtl) {
+                attr.translationX = attr.length + min * attr.length / (max - min) + 1;
+            } else {
+                attr.translationX = -min * attr.length / (max - min);
+            }
+            attr.translationY = 0;
+            attr.scalingX = (isRtl ? -1 : 1) * (attr.length - depth) / (max - min);
+            attr.scalingY = 1;
+            attr.scalingCenterY = 0;
+            attr.scalingCenterX = 0;
+            me.applyTransformations(true);
+        }
+
+        if (layout) {
+            layout.calculateLayout(context);
+            me.setLayoutContext(context);
+        }
+    },
+
+<span id='Ext-chart-axis-sprite-Axis3D-method-renderAxisLine'>    renderAxisLine: function (surface, ctx, layout, clipRect) {
+</span>        var me = this,
+            attr = me.attr,
+            halfLineWidth = attr.lineWidth * 0.5,
+            layout = me.getLayout(),
+            depth = layout.isDiscrete ? 0 : attr.depth,
+            docked = attr.position,
+            position, gaugeAngles;
+
+        if (attr.axisLine &amp;&amp; attr.length) {
+            switch (docked) {
+                case &#39;left&#39;:
+                    position = surface.roundPixel(clipRect[2]) - halfLineWidth;
+                    ctx.moveTo(position, -attr.endGap + depth);
+                    ctx.lineTo(position, attr.length + attr.startGap);
+                    break;
+                case &#39;right&#39;:
+                    ctx.moveTo(halfLineWidth, -attr.endGap);
+                    ctx.lineTo(halfLineWidth, attr.length + attr.startGap);
+                    break;
+                case &#39;bottom&#39;:
+                    ctx.moveTo(-attr.startGap, halfLineWidth);
+                    ctx.lineTo(attr.length - depth + attr.endGap, halfLineWidth);
+                    break;
+                case &#39;top&#39;:
+                    position = surface.roundPixel(clipRect[3]) - halfLineWidth;
+                    ctx.moveTo(-attr.startGap, position);
+                    ctx.lineTo(attr.length + attr.endGap, position);
+                    break;
+                case &#39;angular&#39;:
+                    ctx.moveTo(attr.centerX + attr.length, attr.centerY);
+                    ctx.arc(attr.centerX, attr.centerY, attr.length, 0, Math.PI * 2, true);
+                    break;
+                case &#39;gauge&#39;:
+                    gaugeAngles = me.getGaugeAngles();
+                    ctx.moveTo(attr.centerX + Math.cos(gaugeAngles.start) * attr.length,
+                        attr.centerY + Math.sin(gaugeAngles.start) * attr.length);
+                    ctx.arc(attr.centerX, attr.centerY, attr.length, gaugeAngles.start, gaugeAngles.end, true);
+                    break;
+            }
+        }
+    }
+
+});</pre>
+</body>
+</html>

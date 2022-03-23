@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-layout-overflow-Scroller'>/**
+</span> * Overflow scroller enables scrolling within a box layout.
+ *
+ * Desktop devices use arrows by default. These arrows scroll the content.
+ * Mobile devices use touch scrolling by default.
+ *
+ * For example usage see {@link Ext.layout.Box#overflow}.
+ */
+Ext.define(&#39;Ext.layout.overflow.Scroller&#39;, {
+    alias: &#39;layout.overflow.scroller&#39;,
+
+    mixins: [
+        &#39;Ext.mixin.Factoryable&#39;
+    ],
+
+    requires: [
+        &#39;Ext.Tool&#39;,
+        &#39;Ext.util.ClickRepeater&#39;
+    ],
+
+    config: {
+
+<span id='Ext-layout-overflow-Scroller-cfg-arrows'>        /**
+</span>         * @cfg {Boolean}
+         * `true` to show the scroller arrow tools
+         */
+        arrows: Ext.os.is.Desktop,
+
+<span id='Ext-layout-overflow-Scroller-cfg-backwardTool'>        /**
+</span>         * @cfg {Object/Ext.Tool}
+         */
+        backwardTool: {
+            xtype: &#39;tool&#39;,
+            ui: &#39;boxscroller&#39;,
+            focusable: false
+        },
+
+<span id='Ext-layout-overflow-Scroller-cfg-animation'>        /**
+</span>         * @cfg {Boolean/Object} [animation=false]
+         * Animation to use when scrolling using the scroller tools
+         */
+        animation: true,
+
+<span id='Ext-layout-overflow-Scroller-cfg-forwardTool'>        /**
+</span>         * @cfg {Object/Ext.Tool}
+         */
+        forwardTool: {
+            xtype: &#39;tool&#39;,
+            ui: &#39;boxscroller&#39;,
+            focusable: false
+        },
+
+<span id='Ext-layout-overflow-Scroller-cfg-toolAlign'>        /**
+</span>         * @cfg {&#39;stretch&#39;/&#39;center&#39;/&#39;start&#39;/&#39;end&#39;}
+         * The alignment of the {@link #forwardTool forward} and {@link #backwardTool backward}
+         * tools on the box layout&#39;s cross axis
+         */
+        toolAlign: &#39;stretch&#39;,
+
+<span id='Ext-layout-overflow-Scroller-cfg-increment'>        /**
+</span>         * @cfg {Number/&#39;item&#39;/&#39;page&#39;}
+         * The number of pixels to scroll when a scroller tool is clicked
+         * Also can be the string &#39;item&#39; to scroll the next tab into view or &#39;page&#39;
+         * to scroll the next full page of items into view.
+         * Default is &#39;item&#39;
+         */
+        increment: &#39;item&#39;,
+
+<span id='Ext-layout-overflow-Scroller-cfg-repeatInterval'>        /**
+</span>         * @cfg {Number}
+         * The time (in milliseconds) to repeat a click when a scroller tool is pressed down
+         */
+        repeatInterval: 500,
+
+<span id='Ext-layout-overflow-Scroller-cfg-mouseWheel'>        /**
+</span>         * @cfg {Boolean}
+         * `true` to allow horizontal scrolling in response to vertical mouse wheel events
+         */
+        mouseWheel: true,
+
+<span id='Ext-layout-overflow-Scroller-cfg-wheelIncrement'>        /**
+</span>         * @cfg {Number}
+         * The number of pixels to scroll on each mouse `wheel` event when mouse wheel
+         * scrolling is {@link #mouseWheel enabled}.
+         */
+        wheelIncrement: 10,
+
+<span id='Ext-layout-overflow-Scroller-cfg-vertical'>        /**
+</span>         * @private
+         */
+        vertical: null,
+
+<span id='Ext-layout-overflow-Scroller-cfg-owner'>        /**
+</span>         * @private
+         * The owning {@link Ext.layout.Box Box Layout}
+         */
+        owner: null,
+
+<span id='Ext-layout-overflow-Scroller-cfg-container'>        /**
+</span>         * @private
+         * The owning {@link Ext.layout.Box Box Layout}&#39;s Container
+         */
+        container: null,
+
+<span id='Ext-layout-overflow-Scroller-cfg-wrap'>        /**
+</span>         * @private
+         * @readonly
+         */
+        wrap: true
+    },
+
+<span id='Ext-layout-overflow-Scroller-property-cls'>    cls: Ext.baseCSSPrefix + &#39;boxscroller&#39;,
+</span><span id='Ext-layout-overflow-Scroller-property-bodyCls'>    bodyCls: Ext.baseCSSPrefix + &#39;boxscroller-body&#39;,
+</span>
+<span id='Ext-layout-overflow-Scroller-property-toolAlignCls'>    toolAlignCls: {
+</span>        start: Ext.baseCSSPrefix + &#39;tool-align-start&#39;,
+        end: Ext.baseCSSPrefix + &#39;tool-align-end&#39;,
+        center: Ext.baseCSSPrefix + &#39;tool-align-center&#39;,
+        stretch: Ext.baseCSSPrefix + &#39;tool-align-stretch&#39;
+    },
+
+<span id='Ext-layout-overflow-Scroller-property-orientMap'>    orientMap: {
+</span>        false: {
+            cls: Ext.baseCSSPrefix + &#39;horizontal&#39;,
+            crossSize: &#39;height&#39;,
+            getSize: &#39;getWidth&#39;,
+            setCrossSize: &#39;setHeight&#39;,
+            measureCross: &#39;h&#39;,
+            scrollSize: &#39;scrollWidth&#39;,
+            scrollbarMargin: &#39;margin-bottom&#39;,
+            forwardTool: &#39;scroll-right&#39;,
+            backwardTool: &#39;scroll-left&#39;,
+            startPad: &#39;l&#39;,
+            endPad: &#39;r&#39;,
+            posProp: &#39;x&#39;
+        },
+        true: {
+            cls: Ext.baseCSSPrefix + &#39;vertical&#39;,
+            crossSize: &#39;width&#39;,
+            getSize: &#39;getHeight&#39;,
+            setCrossSize: &#39;setWidth&#39;,
+            measureCross: &#39;w&#39;,
+            scrollSize: &#39;scrollHeight&#39;,
+            scrollbarMargin: &#39;margin-right&#39;,
+            forwardTool: &#39;scroll-down&#39;,
+            backwardTool: &#39;scroll-up&#39;,
+            startPad: &#39;t&#39;,
+            endPad: &#39;b&#39;,
+            posProp: &#39;y&#39;
+        }
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-constructor'>    constructor: function (config) {
+</span>        var me = this;
+
+        me.repeaters = [];
+
+        me.initConfig(config);
+        me.syncMouseWheel();
+
+        //&lt;debug&gt;
+        if (me.getOwner().getPack() !== &#39;start&#39;) {
+            Ext.raise(&#39;Overflow scroller requires box layout to be packed \&#39;start\&#39;&#39;);
+        }
+
+        if (me.getContainer().getAutoSize() === false) {
+            Ext.raise(&#39;Overflow scroller is not compatible with autoSize: false&#39;);
+        }
+        //&lt;/debug&gt;
+
+        me.getContainer().$onScrollerContainerVisible = me.sync.bind(me);
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-applyWrap'>    applyWrap: function () {
+</span>        var me = this,
+            container = me.getContainer(),
+            containerBody = me.getContainer().bodyElement,
+            wrap = Ext.Element.create({
+                cls: me.cls,
+                children: [{
+                    cls: me.bodyCls
+                }]
+            }),
+            uiCls = &#39;boxscroller&#39;,
+            bodyEl = wrap.first();
+
+        // Add the wrap el as a &quot;reference element&quot; on the Container so it can participate
+        // in the Container&#39;s &quot;UI&quot;
+        container.boxScrollerElement = wrap;
+
+        // Add the boxScrollerElement to the Container&#39;s uiReferences map so that it&#39;s CSS
+        // class names will be automatically synchronized when the container&#39;s UI changes.
+        container.uiReferences.boxScrollerElement = uiCls;
+
+        container.initUiReference(&#39;boxScrollerElement&#39;, uiCls);
+
+        if (!container.isConfiguring) {
+            // If the container has already been configured its UI classes have already been
+            // synchronized on its reference elements.  Since we are adding the boxScrollerElement
+            // to the Container references we need too sync its UI cls now.
+            container.syncUiCls({
+                boxScrollerElement: &#39;boxscroller&#39;
+            });
+        }
+
+        this._body = bodyEl;
+
+        wrap.insertBefore(containerBody);
+        bodyEl.appendChild(containerBody);
+
+        return wrap;
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-getBody'>    getBody: function () {
+</span>        var body = this._body;
+
+        if (!body) {
+            this.getWrap();
+        }
+
+        return this._body;
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-onActiveItemChange'>    onActiveItemChange: function (render, item) {
+</span>        var me = this;
+
+        if (me.getContainer().rendered) {
+            me.ensureVisible(item);
+        }
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-onActiveTabChange'>    onActiveTabChange: function (render, tab) {
+</span>        var me = this;
+
+        if (me.getContainer().rendered) {
+            me.ensureVisible(tab);
+        }
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-ensureVisible'>    ensureVisible: function (item, animation) {
+</span>        var me = this;
+
+        if (animation === undefined) {
+            animation = me.getAnimation();
+        }
+
+        me.getOwner().ensureVisible(item, {animation: animation});
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-createForwardTool'>    createForwardTool: function (config) {
+</span>        var me = this;
+
+        return Ext.apply({
+            $initParent: me.getContainer(),
+            hidden: true,
+            preventRefocus: true
+        }, config);
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-createBackwardTool'>    createBackwardTool: function (config) {
+</span>        var me = this;
+
+        return Ext.apply({
+            $initParent: me.getContainer(),
+            hidden: true,
+            preventRefocus: true
+        }, config);
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-scrollToItemOffset'>    scrollToItemOffset: function (offset, page) {
+</span>        var animate = this.getAnimation();
+
+        this.getOwner().ensureVisible({
+            offset: offset,
+            scroll: page ? &#39;max&#39; : &#39;min&#39;,
+            animation: animate
+        });
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-applyVertical'>    applyVertical: function (vertical) {
+</span>        return !!vertical;
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-updateVertical'>    updateVertical: function (vertical) {
+</span>        var me = this,
+            orientMap = me.orientMap[vertical];
+
+        me.getWrap().replaceCls(me.orientMap[!vertical].cls, orientMap.cls);
+
+        if (me.getArrows()) {
+            me.getForwardTool().setType(orientMap.forwardTool);
+            me.getBackwardTool().setType(orientMap.backwardTool);
+        }
+
+        if (!me.isConfiguring) {
+            me.syncContainerScrollable();
+            me.syncMouseWheel();
+        }
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-applyForwardTool'>    applyForwardTool: function (tool, oldTool) {
+</span>        var ct = this.getContainer();
+
+        tool = Ext.updateWidget(oldTool, tool, this, &#39;createForwardTool&#39;);
+        delete tool.$initParent;
+        tool.ownerCmp = ct;
+
+        tool.doInheritUi();
+        tool.addUi(&#39;boxscroller-&#39; + ct.xtype);
+
+        return tool;
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-applyBackwardTool'>    applyBackwardTool: function (tool, oldTool) {
+</span>        var ct = this.getContainer();
+
+        tool = Ext.updateWidget(oldTool, tool, this, &#39;createBackwardTool&#39;);
+        delete tool.$initParent;
+        tool.ownerCmp = ct;
+
+        tool.doInheritUi();
+        tool.addUi(&#39;boxscroller-&#39; + ct.xtype);
+
+        return tool;
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-updateArrows'>    updateArrows: function (arrows) {
+</span>        var me = this,
+            container = me.getContainer(),
+            el = me.getWrap(),
+            forward = me.getForwardTool(),
+            backward = me.getBackwardTool();
+
+        el.insertFirst(backward.el);
+        el.append(forward.el);
+        me.addClickListener(forward, me.onForwardClick);
+        me.addClickListener(backward, me.onBackwardClick);
+
+        if (container.rendered) {
+            me.sync();
+        } else {
+            container.whenVisible(&#39;$onScrollerContainerVisible&#39;);
+            container.on({
+                painted: &#39;sync&#39;,
+                scope: me,
+                single: true
+            });
+        }
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-updateMouseWheel'>    updateMouseWheel: function () {
+</span>        if (!this.isConfiguring) {
+            this.syncMouseWheel();
+        }
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-updateOwner'>    updateOwner: function (owner) {
+</span>        var me = this,
+            container = owner.getContainer();
+
+        container.on({
+            activeitemchange: &#39;onActiveItemChange&#39;,
+            activetabchange: &#39;onActiveTabChange&#39;, // is this needed?
+            scope: me
+        });
+
+        Ext.override(container, {
+            getRefItems: function (deep) {
+                var refItems = this.callParent([deep]), // this, not me!
+                    forward = me.getForwardTool(),      // me, not this!
+                    backward = me.getBackwardTool();    // me, not this!
+
+                refItems.push(forward, backward);
+
+                return refItems;
+            }
+        });
+
+        me.syncContainerScrollable();
+
+        container.getScrollable().on(&#39;scrollend&#39;, &#39;sync&#39;, me);
+
+        container.on(&#39;resize&#39;, &#39;sync&#39;, me);
+        container.bodyElement.on(&#39;resize&#39;, &#39;sync&#39;, me);
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-updateToolAlign'>    updateToolAlign: function (toolAlign, oldToolAlign) {
+</span>        var map = this.toolAlignCls;
+
+        this.getWrap().replaceCls(map[oldToolAlign], map[toolAlign]);
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-getContainer'>    getContainer: function () {
+</span>        return this.getOwner().getContainer();
+    },
+
+<span id='Ext-layout-overflow-Scroller-method-destroy'>    destroy: function () {
+</span>        var me = this;
+
+        Ext.destroy(me.repeaters);
+        me.getForwardTool().destroy();
+        me.getBackwardTool().destroy();
+        me.callParent();
+    },
+
+<span id='Ext-layout-overflow-Scroller-property-privates'>    privates: {
+</span>        addClickListener: function (tool, clickFn) {
+            var me = this,
+                repeat = me.getRepeatInterval(),
+                repeater;
+
+            if (repeat) {
+                repeater = new Ext.util.ClickRepeater(Ext.apply({
+                    target: tool,
+                    preventDefault: true,
+                    listeners: {
+                        click: clickFn,
+                        scope: me
+                    }
+                }, repeat));
+
+                me.repeaters.push(repeater);
+            } else {
+                tool.on({
+                    click: clickFn,
+                    scope: me
+                });
+            }
+        },
+
+        doMoveFromClick: function(offset) {
+            var me = this,
+                scrollable = me.getContainer().getScrollable(),
+                animate = me.getAnimation(),
+                isVertical = me.getVertical(),
+                increment = me.getIncrement(),
+                dx, dy;
+
+            if (isNaN(increment)) {
+                me.scrollToItemOffset(offset, increment === &#39;page&#39;);
+            } else {
+                dx = !isVertical ? increment : 0;
+                dy = isVertical ? increment : 0;
+                scrollable.scrollBy(dx * offset, dy * offset, animate);
+            }
+        },
+
+        onBackwardClick: function () {
+            this.doMoveFromClick(-1);
+        },
+
+        onForwardClick: function () {
+            this.doMoveFromClick(1);
+        },
+
+        onMouseWheel: function (e) {
+            var me = this,
+                scrollable = me.getContainer().getScrollable(),
+                isVertical = me.getVertical(),
+                delta = e.getWheelDelta() * me.getWheelIncrement() * -1,
+                dx = !isVertical ? delta : 0,
+                dy = isVertical ? delta : 0;
+
+            scrollable.scrollBy(dx, dy);
+        },
+
+        syncMouseWheel: function () {
+            var me = this,
+                target = me.getContainer().getScrollerTarget(),
+                fn = me.getMouseWheel() &amp;&amp; !me.getVertical() ? &#39;on&#39; : &#39;un&#39;;
+
+            target[fn](&#39;wheel&#39;, &#39;onMouseWheel&#39;, me);
+        },
+
+        syncContainerScrollable: function () {
+            var me = this,
+                isVertical = me.getVertical(),
+                container = me.getContainer();
+
+            container.setScrollable({
+                element: me.getBody(),
+                x: !isVertical,
+                y: isVertical
+            });
+        },
+
+        sync: function () {
+            var me = this,
+                container = me.getContainer(),
+                target = container.getScrollerTarget(),
+                orientMap = me.orientMap[me.getVertical()],
+                elementSize = container.el[orientMap.getSize](),
+                targetSize = target.dom[orientMap.scrollSize],
+                forwardTool = me.getForwardTool(),
+                backwardTool = me.getBackwardTool(),
+                scrollbarSize = Ext.getScrollbarSize()[orientMap.crossSize],
+                hasOverflow = targetSize &gt; elementSize,
+                posProp = orientMap.posProp,
+                scrollable, maxPos, pos;
+
+            if (me.getArrows() &amp;&amp; hasOverflow) {
+                forwardTool.show();
+                backwardTool.show();
+
+                scrollable = container.getScrollable();
+                maxPos = scrollable.getMaxPosition()[posProp];
+                pos = scrollable.getPosition()[posProp];
+                
+                forwardTool.setDisabled(pos + target.getPadding(orientMap.endPad) &gt;= maxPos);
+                backwardTool.setDisabled(pos &lt;= target.getPadding(orientMap.startPad));
+            } else {
+                forwardTool.hide();
+                backwardTool.hide();
+            }
+
+            // The stylesheet uses padding and negative margin on the x-boxscroller-body
+            // element in order to hide the scrollbar or floating scroll indicator, whichever
+            // the browser may have. On browsers that have scrollbars we need an additional
+            // adjustment to account for the additional height that the scrollbar adds to
+            // the x-boxscroller-body element.
+            container.bodyElement.setStyle(
+                orientMap.scrollbarMargin,
+                hasOverflow ? (-scrollbarSize + &#39;px&#39;) : 0
+            );
+
+            // Forces the height of the box scroller, this will remove any flicker
+            // when changing heights/resizing later
+            me.getBody()[orientMap.setCrossSize](
+                container.bodyElement.measure(orientMap.measureCross)
+            );
+        }
+    }
+});
+</pre>
+</body>
+</html>

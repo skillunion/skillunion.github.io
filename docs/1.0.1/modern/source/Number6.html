@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-grid-cell-Number'>/**
+</span> * This class displays a numeric value in a {@link Ext.grid.Grid grid} cell. This cell type
+ * is typically used by specifying {@link Ext.grid.column.Number} column type.
+ *
+ * {@link Ext.grid.Row Rows} create cells based on the {@link Ext.grid.column.Column#cell}
+ * config. Application code would rarely create cells directly.
+ */
+Ext.define(&#39;Ext.grid.cell.Number&#39;, {
+    extend: &#39;Ext.grid.cell.Text&#39;,
+    xtype: &#39;numbercell&#39;,
+
+<span id='Ext-grid-cell-Number-property-isNumberCell'>    isNumberCell: true,
+</span>
+    requires: [
+        &#39;Ext.util.Format&#39;
+    ],
+
+    config: {
+<span id='Ext-grid-cell-Number-cfg-format'>        /**
+</span>         * @cfg {String} format
+         * A format string as used by {@link Ext.util.Format#number} to format values for
+         * this column.
+         */
+        format: &#39;0,000.00&#39;
+    },
+
+<span id='Ext-grid-cell-Number-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;numbercell&#39;,
+</span>
+<span id='Ext-grid-cell-Number-cfg-zeroValue'>    zeroValue: null,
+</span>
+<span id='Ext-grid-cell-Number-method-updateColumn'>    updateColumn: function (column, oldColumn) {
+</span>        this.callParent([ column, oldColumn ]);
+
+        if (column &amp;&amp; column.isNumberColumn) {
+            var format = column.getFormat();
+
+            if (format !== null) {
+                this.setFormat(format);
+            }
+        }
+    },
+
+<span id='Ext-grid-cell-Number-method-updateFormat'>    updateFormat: function (format) {
+</span>        if (!this.isConfiguring) {
+            this.writeValue();
+        }
+    },
+
+<span id='Ext-grid-cell-Number-method-formatValue'>    formatValue: function (value) {
+</span>        var hasValue = value || value === 0,
+            zeroValue;
+
+        if (value === 0 &amp;&amp; (zeroValue = this.getZeroValue()) !== null) {
+            value = zeroValue || &#39;&#39;;
+        } else {
+            value = hasValue ? Ext.util.Format.number(value, this.getFormat()) : &#39;&#39;;
+        }
+
+        return value;
+    }
+});
+</pre>
+</body>
+</html>

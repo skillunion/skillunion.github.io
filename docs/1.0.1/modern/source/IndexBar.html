@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js"><span id='Ext-dataview-IndexBar'>/**
+</span> * IndexBar is a component used to display a list of data (primarily an alphabet) which
+ * can then be used to quickly navigate through a list (see {@link Ext.List}) of data.
+ *
+ * When a user taps on an item in the {@link Ext.IndexBar}, it will fire the {@link #index}
+ * event.
+ *
+ * Here is an example of the usage in a {@link Ext.dataview.List List}:
+ *
+ *     @example
+ *     Ext.define(&#39;Contact&#39;, {
+ *         extend: &#39;Ext.data.Model&#39;,
+ *         config: {
+ *             fields: [&#39;firstName&#39;, &#39;lastName&#39;]
+ *         }
+ *     });
+ *
+ *     var store = new Ext.data.JsonStore({
+ *        model: &#39;Contact&#39;,
+ *        sorters: &#39;lastName&#39;,
+ *
+ *        grouper: {
+ *            groupFn: function(record) {
+ *                return record.get(&#39;lastName&#39;)[0];
+ *            }
+ *        },
+ *
+ *        data: [
+ *            {firstName: &#39;Screech&#39;, lastName: &#39;Powers&#39;},
+ *            {firstName: &#39;Kelly&#39;,   lastName: &#39;Kapowski&#39;},
+ *            {firstName: &#39;Zach&#39;,    lastName: &#39;Morris&#39;},
+ *            {firstName: &#39;Jessie&#39;,  lastName: &#39;Spano&#39;},
+ *            {firstName: &#39;Lisa&#39;,    lastName: &#39;Turtle&#39;},
+ *            {firstName: &#39;A.C.&#39;,    lastName: &#39;Slater&#39;},
+ *            {firstName: &#39;Richard&#39;, lastName: &#39;Belding&#39;}
+ *        ]
+ *     });
+ *
+ *     var list = new Ext.List({
+ *        fullscreen: true,
+ *        itemTpl: &#39;&lt;div class=&quot;contact&quot;&gt;{firstName} &lt;strong&gt;{lastName}&lt;/strong&gt;&lt;/div&gt;&#39;,
+ *
+ *        grouped: true,
+ *        indexBar: true,
+ *        store: store,
+ *        hideOnMaskTap: false
+ *     });
+ *
+ */
+Ext.define(&#39;Ext.dataview.IndexBar&#39;, {
+    extend: &#39;Ext.Component&#39;,
+    alternateClassName: &#39;Ext.IndexBar&#39;,
+    xtype: &#39;indexbar&#39;,
+
+<span id='Ext-dataview-IndexBar-event-index'>    /**
+</span>     * @event index
+     * Fires when an item in the index bar display has been tapped.
+     * @param {Ext.dataview.IndexBar} this The IndexBar instance
+     * @param {String} html The HTML inside the tapped node.
+     * @param {Ext.dom.Element} target The node on the indexbar that has been tapped.
+     */
+
+    cachedConfig: {
+<span id='Ext-dataview-IndexBar-cfg-letters'>        /**
+</span>         * @cfg {String/String[]} letters
+         * The letters to show on the index bar.
+         */
+        letters: &#39;ABCDEFGHIJKLMNOPQRSTUVWXYZ&#39;
+    },
+
+    config: {
+<span id='Ext-dataview-IndexBar-cfg-animation'>        /**
+</span>         * @cfg {Boolean/Object} animation
+         * Set to `false` to disable animation when scrolling the list to the selected
+         * position. This can also be an animation config object.
+         */
+        animation: true,
+
+<span id='Ext-dataview-IndexBar-cfg-autoHide'>        /**
+</span>         * @cfg {Boolean/String} autoHide
+         * Determines if the indexbar is hidden when not actively in use.
+         * Value of &#39;true&#39; will show/hide the indexbar on Over/Out events.
+         * Value of &#39;press&#39; will show/hide the indexbar on Press/Release events.
+         */
+        autoHide: false,
+
+<span id='Ext-dataview-IndexBar-cfg-dynamic'>        /**
+</span>         * @cfg {Boolean} dynamic
+         * Set to `true` to scroll the list as the index bar is manipulated, or `false`
+         * to position the list when the index drag is complete.
+         */
+        dynamic: false,
+
+<span id='Ext-dataview-IndexBar-cfg-listPrefix'>        /**
+</span>         * @cfg {String} listPrefix
+         * The prefix string to be used at the beginning of the list.
+         * E.g: useful to add a &quot;#&quot; prefix before numbers.
+         */
+        listPrefix: null,
+
+<span id='Ext-dataview-IndexBar-cfg-indicator'>        /**
+</span>         * @cfg {Boolean} indicator
+         * Determines if a indicator is used to show the current selected index
+         */
+        indicator: true
+    },
+
+    eventedConfig: {
+<span id='Ext-dataview-IndexBar-cfg-direction'>        /**
+</span>         * @cfg {&#39;vertical&#39;/&#39;horizontal&#39;} direction
+         * The layout direction.
+         */
+        direction: &#39;vertical&#39;
+    },
+
+<span id='Ext-dataview-IndexBar-cfg-top'>    top: 0,
+</span><span id='Ext-dataview-IndexBar-cfg-bottom'>    bottom: 0,
+</span><span id='Ext-dataview-IndexBar-cfg-left'>    left: 0,
+</span><span id='Ext-dataview-IndexBar-cfg-right'>    right: 0,
+</span>
+<span id='Ext-dataview-IndexBar-property-inheritUi'>    inheritUi: true,
+</span>
+<span id='Ext-dataview-IndexBar-property-autoHideCls'>    autoHideCls: Ext.baseCSSPrefix + &#39;autohide&#39;,
+</span><span id='Ext-dataview-IndexBar-property-classCls'>    classCls: Ext.baseCSSPrefix + &#39;indexbar&#39;,
+</span><span id='Ext-dataview-IndexBar-property-horizontalCls'>    horizontalCls: Ext.baseCSSPrefix + &#39;horizontal&#39;,
+</span><span id='Ext-dataview-IndexBar-property-indexedCls'>    indexedCls: Ext.baseCSSPrefix + &#39;indexed&#39;,
+</span><span id='Ext-dataview-IndexBar-property-indexedHorizontalCls'>    indexedHorizontalCls: Ext.baseCSSPrefix + &#39;indexed-horizontal&#39;,
+</span><span id='Ext-dataview-IndexBar-property-indexedVerticalCls'>    indexedVerticalCls: Ext.baseCSSPrefix + &#39;indexed-vertical&#39;,
+</span><span id='Ext-dataview-IndexBar-property-indexedNoAutoHideCls'>    indexedNoAutoHideCls: Ext.baseCSSPrefix + &#39;indexed-no-autohide&#39;,
+</span><span id='Ext-dataview-IndexBar-property-indicatorCls'>    indicatorCls: Ext.baseCSSPrefix + &#39;indexbar-indicator&#39;,
+</span><span id='Ext-dataview-IndexBar-property-pressedCls'>    pressedCls: Ext.baseCSSPrefix + &#39;pressed&#39;,
+</span><span id='Ext-dataview-IndexBar-property-verticalCls'>    verticalCls: Ext.baseCSSPrefix + &#39;vertical&#39;,
+</span>
+<span id='Ext-dataview-IndexBar-property-element'>    element: {
+</span>        reference: &#39;element&#39;,
+        cls: Ext.baseCSSPrefix + &#39;unselectable&#39;,
+
+        children: [{
+            reference: &#39;bodyElement&#39;,
+            cls: Ext.baseCSSPrefix + &#39;body-el&#39;
+        }]
+    },
+
+<span id='Ext-dataview-IndexBar-method-initialize'>    initialize: function() {
+</span>        var me = this,
+            bodyElement = me.bodyElement;
+
+        me.callParent();
+
+        bodyElement.addClsOnClick(me.pressedCls);
+
+        bodyElement.on({
+            touchstart: &#39;onTouchStart&#39;,
+            touchend: &#39;onTouchEnd&#39;,
+            mouseover: &#39;onMouseOver&#39;,
+            mouseout: &#39;onMouseOut&#39;,
+            drag: &#39;onDrag&#39;,
+            dragEnd: &#39;onDragEnd&#39;,
+            scope: me
+        });
+    },
+
+<span id='Ext-dataview-IndexBar-method-getVertical'>    getVertical: function() {
+</span>        return this.getDirection() === &#39;vertical&#39;;
+    },
+
+<span id='Ext-dataview-IndexBar-method-setVertical'>    setVertical: function (vertical) {
+</span>        return this.setDirection(vertical ? &#39;vertical&#39; : &#39;horizontal&#39;);
+    },
+
+<span id='Ext-dataview-IndexBar-method-onAdded'>    //-----------------------
+</span>    // Protected
+
+    onAdded: function(parent, instanced) {
+        var me = this;
+
+        parent.el.addCls(me.indexedCls);
+
+        me.parentListeners = parent.on({
+            pinnedfooterheightchange: &#39;onPinnedFooterHeightChange&#39;,
+            pinnedheaderheightchange: &#39;onPinnedHeaderHeightChange&#39;,
+            verticaloverflowchange: &#39;onVerticalOverflowChange&#39;,
+
+            destroyable: true,
+            scope: me
+        });
+
+        me.callParent([parent, instanced]);
+    },
+
+<span id='Ext-dataview-IndexBar-method-onRemoved'>    onRemoved: function (destroying) {
+</span>        var me = this,
+            parent = me.parent;
+
+        Ext.destroy(me.parentListeners);
+
+        if (parent &amp;&amp; !parent.destroying &amp;&amp; !parent.destroyed) {
+            parent.el.removeCls(me.indexedCls);
+        }
+
+        me.callParent([destroying]);
+    },
+
+<span id='Ext-dataview-IndexBar-property-privates'>    //-----------------------
+</span>    privates: {
+        parentListeners: null,
+
+        onDrag: function (e) {
+            this.trackMove(e, false);
+        },
+
+        onDragEnd: function (e) {
+            var me = this,
+                indicator = me.getIndicator();
+
+            me.trackMove(e, true);
+
+            if (indicator &amp;&amp; me.indicator) {
+                me.indicator.hide();
+            }
+        },
+
+        onMouseOver: function() {
+            var me = this;
+
+            me.$isMouseOver = true;
+
+            if (me.shouldAutoHide(&#39;over&#39;)) {
+                me.bodyElement.show();
+            }
+        },
+
+        onMouseOut: function() {
+            var me = this;
+
+            me.$isMouseOver = false;
+
+            if (me.shouldAutoHide(&#39;out&#39;)) {
+                me.bodyElement.hide();
+            }
+        },
+
+        onPinnedFooterHeightChange: function (list, height) {
+            this.setBottom(height);
+        },
+
+        onPinnedHeaderHeightChange: function (list, height) {
+            this.setTop(height);
+        },
+
+        onTouchStart: function(e) {
+            var me = this;
+
+            me.$isPressing = true;
+            me.pageBox = me.bodyElement.getBox();
+
+            me.onDrag(e);
+
+            if (me.shouldAutoHide(&#39;press&#39;)) {
+                me.bodyElement.show();
+            }
+        },
+
+        onTouchEnd: function (e) {
+            var me = this;
+
+            me.$isPressing = false;
+
+            if (me.shouldAutoHide(&#39;release&#39;)) {
+                me.bodyElement.hide();
+            }
+
+            me.onDragEnd(e);
+        },
+
+        onVerticalOverflowChange: function (list, verticalOverflow) {
+            this.setRight(verticalOverflow ? Ext.getScrollbarSize().width : 0);
+        },
+
+        scrollToClosestByIndex: function (index) {
+            var me = this,
+                list = me.parent,
+                key = index.toLowerCase(),
+                store = list.getStore(),
+                groups = store.getGroups(),
+                ln = groups.length,
+                group, groupKey, i, closest, item, record;
+
+            for (i = 0; i &lt; ln; i++) {
+                group = groups.getAt(i);
+                groupKey = group.getGroupKey().toLowerCase();
+
+                if (groupKey &gt;= key) {
+                    closest = group;
+                    break;
+                }
+
+                closest = group;
+            }
+
+            if (closest) {
+                record = closest.first();
+
+                // Scrolling when infinite will already take the
+                // header into account so we only want to get the
+                // header when the list is not infinite. Also note,
+                // header pinning is only applicable to infinite
+                // lists so we don&#39;t have to worry about adjusting
+                // for pinned headers.
+                if (!list.getInfinite()) {
+                    item = list.itemFromRecord(record).$header;
+                }
+
+                list.ensureVisible(record, {
+                    animation: me.getAnimation(),
+                    item: item,
+                    align: {
+                        y: &#39;start&#39;
+                    }
+                });
+            }
+        },
+
+<span id='Ext-dataview-IndexBar-method-shouldAutoHide'>        /**
+</span>         *
+         * @param {&#39;over&#39;/&#39;out&#39;/&#39;press&#39;/&#39;release&#39;} trigger
+         * @private
+         */
+        shouldAutoHide: function (trigger) {
+            var me = this,
+                autoHide = me.getAutoHide(),
+                ret = false;
+
+            // Automatic autohide detection
+            // Desktop (hover events) will use over/out to show/hide
+            // Mobile (touch based) will use press/release to show/hide
+            if (autoHide) {
+                // Press mode only by config or automatic autohide for mobile
+                if (autoHide === &#39;pressed&#39; || !Ext.os.is.Desktop) {
+                    ret = trigger === &#39;press&#39; || trigger === &#39;release&#39;;
+                    // Automatic autohide for desktop
+                } else {
+                    // Over the index bar
+                    // out of the index bar but not currently pressing down on the bar
+                    // released the mouse and not hovered over the bar
+                    ret = trigger === &#39;over&#39; ||
+                         (trigger === &#39;release&#39; &amp;&amp; !me.$isMouseOver) ||
+                         (trigger === &#39;out&#39; &amp;&amp; !me.$isPressing);
+                }
+            }
+
+            return ret;
+        },
+
+        syncIndicatorPosition: function (point, target, isValidTarget) {
+            var me = this,
+                isUsingIndicator = me.getIndicator(),
+                direction = me.getDirection(),
+                renderElement = me.renderElement,
+                bodyElement = me.bodyElement,
+                indicator = me.indicator,
+                indicatorInner = me.indicatorInner,
+                first = bodyElement.getFirstChild(),
+                last = bodyElement.getLastChild(),
+                indexbarWidth, indexbarHeight,indicatorSpacing,
+                firstPosition, lastPosition,
+                indicatorSize;
+
+            if (isUsingIndicator &amp;&amp; indicator) {
+                indicator.show();
+
+                if (direction === &#39;vertical&#39;) {
+                    indicatorSize = indicator.getHeight();
+                    indexbarWidth = bodyElement.getWidth();
+                    indicatorSpacing = bodyElement.getMargin(&#39;lr&#39;);
+                    firstPosition = first.getY();
+                    lastPosition = last.getY();
+
+                    if (point.y &lt; firstPosition) {
+                        target = first;
+                    } else if (point.y &gt; lastPosition) {
+                        target = last;
+                    }
+
+                    if (isValidTarget) {
+                        indicatorInner.setHtml(target.getHtml().toUpperCase());
+                    }
+
+                    indicator.setTop(target.getY() - renderElement.getY() - (indicatorSize / 2) + (target.getHeight()/2));
+                    indicator.setRight(indicatorSpacing + indexbarWidth);
+                } else {
+                    indicatorSize = indicator.getWidth();
+                    indicatorSpacing = bodyElement.getMargin(&#39;tb&#39;);
+                    indexbarHeight = bodyElement.getHeight();
+                    firstPosition = first.getX();
+                    lastPosition = last.getX();
+
+                    if (point.x &lt; firstPosition) {
+                        target = first;
+                    } else if (point.x &gt; lastPosition) {
+                        target = last;
+                    }
+
+                    indicator.setLeft(target.getX() - renderElement.getX() - (indicatorSize / 2) + (target.getWidth()/2));
+                    indicator.setBottom(indicatorSpacing + indexbarHeight);
+                }
+
+                indicatorInner.setHtml(target.getHtml().toUpperCase());
+            }
+        },
+
+        trackMove: function (event, drop) {
+            var me = this,
+                el = me.bodyElement,
+                pageBox = me.pageBox || (me.pageBox = me.el.getBox()),
+                point = Ext.util.Point.fromEvent(event),
+                target, isValidTarget;
+
+            if (me.getDirection() === &#39;vertical&#39;) {
+                if (point.y &gt; pageBox.bottom || point.y &lt; pageBox.top) {
+                    return;
+                }
+
+                target = Ext.Element.fromPoint(pageBox.left + (pageBox.width / 2),
+                    point.y);
+                isValidTarget = target &amp;&amp; target.getParent() === el;
+            } else {
+                if (point.x &gt; pageBox.right || point.x &lt; pageBox.left) {
+                    return;
+                }
+
+                target = Ext.Element.fromPoint(point.x,
+                    pageBox.top + (pageBox.height / 2));
+                isValidTarget = target &amp;&amp; target.getParent() === el;
+            }
+
+            if (target &amp;&amp; isValidTarget) {
+                if (me.getIndicator()) {
+                    me.syncIndicatorPosition(point, target, isValidTarget);
+                }
+
+                if (drop || me.getDynamic()) {
+                    me.scrollToClosestByIndex(target.dom.innerHTML);
+                }
+            }
+        },
+
+        //--------------------------------------------------------
+        // Config properties
+
+        // autoHide
+
+        updateAutoHide: function(autoHide) {
+            var me = this,
+                parentEl = me.parent.el,
+                autoHideCls = me.autoHideCls,
+                indexedNoAutoHideCls = me.indexedNoAutoHideCls;
+
+            // get this down to our element
+            me.bodyElement.setVisibilityMode(Ext.Element.OPACITY);
+
+            if (autoHide) {
+                // Autohide requires opacity based visibility for event detection
+                me.addCls(autoHideCls);
+                me.bodyElement.hide();
+                parentEl.removeCls(indexedNoAutoHideCls);
+            } else {
+                me.removeCls(autoHideCls);
+                me.bodyElement.show();
+                parentEl.addCls(indexedNoAutoHideCls);
+            }
+        },
+
+        // direction
+
+        updateDirection: function(direction) {
+            var me = this,
+                verticalCls = me.verticalCls,
+                horizontalCls = me.horizontalCls,
+                indexedVerticalCls = me.indexedVerticalCls,
+                indexedHorizontalCls = me.indexedHorizontalCls,
+                oldCls, newCls, oldIndexedCls, newIndexedCls;
+
+            if (direction === &#39;vertical&#39;) {
+                oldCls = horizontalCls;
+                newCls = verticalCls;
+                oldIndexedCls = indexedHorizontalCls;
+                newIndexedCls = indexedVerticalCls;
+            } else {
+                oldCls = verticalCls;
+                newCls = horizontalCls;
+                oldIndexedCls = indexedVerticalCls;
+                newIndexedCls = indexedHorizontalCls;
+            }
+
+            me.element.replaceCls(oldCls, newCls);
+            me.bodyElement.replaceCls(oldCls, newCls);
+            me.parent.element.replaceCls(oldIndexedCls, newIndexedCls);
+        },
+
+        // indicator
+
+        updateIndicator: function (indicator) {
+            var me = this,
+                config = { cls: me.indicatorCls };
+
+            if (indicator &amp;&amp; indicator !== true) {
+                config = Ext.apply(config, indicator);
+            }
+
+            if (indicator) {
+                me.indicator = me.el.appendChild(config);
+                me.indicatorInner = me.indicator.appendChild({
+                    cls: me.indicatorCls + &#39;-inner&#39;
+                });
+                me.indicator.hide(false);
+            }
+            else if (me.indicator) {
+                me.indicator.destroy();
+                me.indicatorInner.destroy();
+
+                me.indicator = me.indicatorInner = null;
+            }
+        },
+
+        // letters
+
+        updateLetters: function (letters) {
+            var bodyElement = this.bodyElement,
+                len = letters.length,
+                i;
+
+            bodyElement.setHtml(&#39;&#39;);
+
+            if (letters) {
+                // This loop needs to work for String or String[]
+                for (i = 0; i &lt; len; i++) {
+                    bodyElement.createChild({
+                        cls: Ext.baseCSSPrefix + &#39;indexbar-item&#39;,
+                        html: letters[i]
+                    });
+                }
+            }
+        },
+
+        // listPrefix
+
+        updateListPrefix: function(listPrefix) {
+            if (listPrefix &amp;&amp; listPrefix.length) {
+                this.bodyElement.createChild({
+                    html: listPrefix
+                }, 0);
+            }
+        },
+
+        // ui
+
+        updateUi: function(ui, oldUi) {
+            var me = this,
+                list = me.parent,
+                listElement = list.element,
+                indexedCls = me.indexedCls;
+
+            // list element needs the x-indexed-[indexBarUi] class added so that it can pad
+            // its items to account for the presence of the index bar
+            if (oldUi) {
+                listElement.removeCls(oldUi, indexedCls);
+            }
+
+            if (ui) {
+                listElement.addCls(ui, indexedCls);
+            }
+
+            me.callParent([ui, oldUi]);
+        }
+    } // privates
+});
+</pre>
+</body>
+</html>
