@@ -161,6 +161,84 @@
       "name": "su-dbproxies",
       "namespace": "SU.dbproxies",
       "format": "1",
+      "version": "1.0.1.8",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "ExtJS proxies for Websql/Sqlite and IndexedDB",
+      "detailedDescription": "ExtJS proxies for Websql/Sqlite and IndexedDB",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T17:47:57Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "RVxoe+y4ixs\u003d",
+          "signature": "J2tPwxz31st6t38mhwNszXO5oHrIjUzyodUmb0Xgi7Ob/Njc5Ab1NQ3g+9HH0nqBmLzcj9RPmn83z/0O+oYEAAVD9onfy4+uHS+omhGj1LcFnNMrjWhin/NtJdJtyDo05TqawAha7+ZawKY0SRpSwtfiGinS3LrfnzMmxQznNtljlkbytoq3zPzMrI1lcNUfcypS+NZIzGVzuxCCEblbU5ETxRiY/wMW5eiCY873eRplgfgZG0qNjfJ/jc/iCAq6DYzEXndcss0dUl2q3FoDFYYyXWTx0KRytjkrBBkp2Tk89fnqTMN9mXk+MtVtmLrsG83xtz8pNQ1GIUeUgxe9Wg\u003d\u003d"
+        }
+      ],
+      "slicer": {
+        "js": [
+          {
+            "path": "${package.dir}/sass/example/custom.js",
+            "isWidgetManifest": true
+          }
+        ]
+      },
+      "builds": {
+        "su-dbproxies-classic": {
+          "toolkit": "classic",
+          "name": "su-dbproxies-classic"
+        },
+        "su-dbproxies-modern": {
+          "toolkit": "modern",
+          "name": "su-dbproxies-modern"
+        }
+      }
+    },
+    {
+      "name": "su-dbproxies",
+      "namespace": "SU.dbproxies",
+      "format": "1",
+      "version": "1.0.1.201",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "ExtJS proxies for Websql/Sqlite and IndexedDB",
+      "detailedDescription": "ExtJS proxies for Websql/Sqlite and IndexedDB",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-25T07:19:53Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "ZovVfAb5J7E\u003d",
+          "signature": "rCuXYEPVNxlTsoXYEDAtb/eDhQeQYCbldG+Tx+7uoXxRvXb3fXbPCcuNsm6pufm6dj1Ul3AyiMxoUcBLC43tWtUdaBmQf9iDL5nbiyegQ8Lui8XG+cOqaI82KpZiwBbJh7eN7kfZrvQtjfGI9gWGN9au/GfPsi15EmTFQHKT49/i43L/Apc7/600h++W9Z/V9FzWloYoxFoTj1znEiBQsNjGNaT20Om4MbCBN0qixWAunrESFegnX+wEULBnWgx/MCLIn3sWqKAMdk2CUL0kmPduYMeN/FKgECd9x0yazwyj8JjsNRLpaiLi7hZOVzZ2sYAQ8pKol55f3HxrI7xvsA\u003d\u003d"
+        }
+      ],
+      "slicer": {
+        "js": [
+          {
+            "path": "${package.dir}/sass/example/custom.js",
+            "isWidgetManifest": true
+          }
+        ]
+      },
+      "builds": {
+        "su-dbproxies-classic": {
+          "toolkit": "classic",
+          "name": "su-dbproxies-classic"
+        },
+        "su-dbproxies-modern": {
+          "toolkit": "modern",
+          "name": "su-dbproxies-modern"
+        }
+      }
+    },
+    {
+      "name": "su-dbproxies",
+      "namespace": "SU.dbproxies",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",

@@ -101,6 +101,54 @@
       "name": "su-native",
       "namespace": "SU",
       "format": "1",
+      "version": "1.0.1.8",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package for mobile applications",
+      "detailedDescription": "Sencha Cmd package for mobile applications",
+      "type": "code",
+      "requires": [
+        "su"
+      ],
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-23T17:48:07Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "8yG03TpJUOE\u003d",
+          "signature": "Kst7l/dE5DnzrYMxRosGORiQgKHvXVsLSmdFhmhxyHb+vo+0xi0Y2LFxjtvxWsmGj8jyMH1mTqO3gcFqBGPdde5rgSK10dyWAQdhoxfPb7pijeT4A19SGib4XS7wtdGsWal0TQu2YL6IHaH1g6P3q6515I3C1hDTH0+fQGAyv+y+rANDwCcsJqIcaUrLvgQh8AdgeARhInvbwZ5oOkGttAeKRPZusJdi7a5bhh55XSggItGJDoHVqvnEEh/glX9MCIqW670ml6ll4qyT6136MDICIRoo8jnfouPArsOwA+FFzN9s8XA4lR9VDAd0y3bA9//llkDlKyAxxmRFGHWPng\u003d\u003d"
+        }
+      ]
+    },
+    {
+      "name": "su-native",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.201",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package for mobile applications",
+      "detailedDescription": "Sencha Cmd package for mobile applications",
+      "type": "code",
+      "requires": [
+        "su"
+      ],
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-03-25T07:20:15Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "yQxpZqC/ZAk\u003d",
+          "signature": "cFqmxbcVrfFGf2Ebi6QibejYwVzm4Y8J5OGU1MATlsKRsvXUGns8NuyqemLc0QqZlEvcBiFz/76BVCM/GQHVKXUpTTHPKqjChrdXcXBsWpvn1DJN/tV+DSyourzRVB+VDvRLpkt0eGWEe7N4aNrsgKDSBAl8TVVwNN+StZsP+iIQG8IHKlJPkeuR7uzurDvtjd6HR/8jPkKDtu209OkLv7+lHJqg2bXc2U7DbaH1lXt0w2khwXFm8GIWx2eeJB9L4bFf1uiIt7vgGgAlOEaQobN/Tusl+Ktymz2Qz+L0ud5k9GdWeafXYzDNqLtvHfh5uSrHsqIzFuQasiVHSZnrbw\u003d\u003d"
+        }
+      ]
+    },
+    {
+      "name": "su-native",
+      "namespace": "SU",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",
