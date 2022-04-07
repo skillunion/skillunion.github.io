@@ -17,8 +17,8 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-native-overrides-Toast'>/**
 </span> * Переопределение Ext.Toast для нативного вывода сообщений.
- * 
- * 
+ *
+ *
  *        Ext.toast({
  *            message: &#39;Text here&#39;,
  *            timeout: 1500, // short, long
@@ -33,66 +33,66 @@
  *                verticalPadding: 16 // iOS default 12, Android default 30
  *            }
  *        });
- *      
+ *
  * Требуется плагин [cordova-plugin-x-toast](https://github.com/EddyVerbruggen/Toast-PhoneGap-Plugin)
- * 
+ *
  */
-Ext.define(&#39;SU.native.overrides.Toast&#39;, {
-    override: &#39;Ext.Toast&#39;
-}, function(){
-    
-    var extToast = Ext.toast;
-    var nativeToast = undefined;
-    
-    Ext.toast = function(message, timeout){
-        
-        var config = message;
-        nativeToast = window.plugins &amp;&amp; window.plugins.toast;
-        
-        if (Ext.isString(message)) {
-            config = {
-                message: message,
-                timeout: timeout
-            };
-        }
+Ext.define(
+    &#39;SU.native.overrides.Toast&#39;,
+    {
+        override: &#39;Ext.Toast&#39;
+    },
+    function () {
+        var extToast = Ext.toast;
+        var nativeToast = undefined;
 
-        //&lt;debug&gt;
-        if (!config) {
-            throw new Error(&quot;Toast requires a message&quot;);
-        }
-        //&lt;/debug&gt;
+        Ext.toast = function (message, timeout) {
+            var config = message;
+            nativeToast = window.plugins &amp;&amp; window.plugins.toast;
 
-        if (config.timeout === undefined) {
-            config.timeout = Ext.Toast.prototype.config.timeout;
-        }
-        if (config.timeout === &#39;short&#39;) {
-            config.timeout = 2000;
-        }
-        if (config.timeout === &#39;long&#39;) {
-            config.timeout = 4000;
-        }
-        
-        if (config.position === undefined) {
-            config.position = &#39;top&#39;;
-        }
-        
-        config.duration = config.timeout;
-        
-        if(nativeToast){
-            console.log(&#39;native toast&#39;);
-            nativeToast.showWithOptions(config);            
-        } else {
-            console.log(&#39;ext toast&#39;);
-            extToast.apply(Ext, [config]);
-        }
-    };
-    
-    Ext.onReady(function(){
-        nativeToast = window.plugins &amp;&amp; window.plugins.toast;
-    });
-    
-});
+            if (Ext.isString(message)) {
+                config = {
+                    message: message,
+                    timeout: timeout
+                };
+            }
 
+            //&lt;debug&gt;
+            if (!config) {
+                throw new Error(&#39;Toast requires a message&#39;);
+            }
+            //&lt;/debug&gt;
+
+            if (config.timeout === undefined) {
+                config.timeout = Ext.Toast.prototype.config.timeout;
+            }
+            if (config.timeout === &#39;short&#39;) {
+                config.timeout = 2000;
+            }
+            if (config.timeout === &#39;long&#39;) {
+                config.timeout = 4000;
+            }
+
+            if (config.position === undefined) {
+                config.position = &#39;top&#39;;
+            }
+
+            config.duration = config.timeout;
+
+            if (nativeToast) {
+                console.log(&#39;native toast&#39;);
+                nativeToast.showWithOptions(config);
+            } else {
+                console.log(&#39;ext toast&#39;);
+                extToast.apply(Ext, [config]);
+            }
+        };
+
+        Ext.onReady(function () {
+            nativeToast = window.plugins &amp;&amp; window.plugins.toast;
+        });
+    }
+);
 </pre>
 </body>
 </html>

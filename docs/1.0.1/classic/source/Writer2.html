@@ -16,9 +16,9 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-data-odata-Writer'>/**
-</span> * 
+</span> *
  */
- Ext.define(&#39;SU.data.odata.Writer&#39;, {
+Ext.define(&#39;SU.data.odata.Writer&#39;, {
     extend: &#39;Ext.data.JsonWriter&#39;,
     alternateClassName: [&#39;SU.data.ODataWriter&#39;, &#39;Ext.data.ODataWriter&#39;],
     alias: &#39;writer.odata&#39;,
@@ -34,7 +34,6 @@
             headers = request.getHeaders();
 
         if (proxy) {
-
             // remove $inlinecount as listdata.svc complains when sent with anything but GET
             // this is required for the pager for know how many total records
             if (url.indexOf(&#39;$inlinecount&#39;) &gt; 0) {
@@ -45,8 +44,7 @@
             // for updates, set the if-match header to a matching etag
             if (action === &#39;update&#39;) {
                 proxy.headers[&#39;If-Match&#39;] = record.data.__metadata.etag;
-            }
-            else {
+            } else {
                 if (headers &amp;&amp; headers[&#39;If-Match&#39;]) {
                     delete headers[&#39;If-Match&#39;];
                     request.setHeaders(headers);
@@ -56,7 +54,6 @@
 
         return me.callParent(arguments);
     }
-
 });
 </pre>
 </body>

@@ -191,6 +191,37 @@
       "name": "su-locale",
       "namespace": "SU",
       "format": "1",
+      "version": "1.0.1.202",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU locale",
+      "detailedDescription": "Skill Union locale package",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-07T00:18:49Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "vBtNhbAKtrc\u003d",
+          "signature": "k0pw7lNk5GZhORsSJD4Bk076sa2Do9YsmtDn+u9qeZVdju1TMtsnMaatpjEzFtLfsoFmDp/iUMdYwXZq0gVzZriuTUOe1ZEmsW4KBXGLO2jPxs//q4+2uXdxtKuCr+eaLtitkH4ntjLxVcbNmrS1eH8VcKJdZHUBrvby2ZcIkZrj88KTZcpdQOHMzGI4L0V1dPpxWcYq1pJQHVpGfepWBB8eB1ACjqg0lBJJQmUzFfpGAdqGvvtd3QNosm/N+qIGKQETGfgj9Z2Y8pUup4Rf7wMKoqvqS6LLF8RvKT2X4S6+gqnC8XAao8s+oviTxGvhjbJuVhODeHpkOwEYbbq38w\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "locale-classic": {
+          "toolkit": "classic",
+          "name": "su-locale-classic"
+        },
+        "locale-modern": {
+          "toolkit": "modern",
+          "name": "su-locale-modern"
+        }
+      }
+    },
+    {
+      "name": "su-locale",
+      "namespace": "SU",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",

@@ -251,6 +251,47 @@
       "name": "su",
       "namespace": "SU",
       "format": "1",
+      "version": "1.0.1.202",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU Core",
+      "detailedDescription": "Skill Union Core Library",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-07T00:18:28Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "hG6v3NDn+tU\u003d",
+          "signature": "oKhu5ys0ay2KYAw9BcCYQP1ZMslOb3rtlKmZK6hlaR/hL2NJTXavraieR98Ybub06y0s9wIYi2P3pyw0MhsgoEoSRWnXtMqF3PQ7JXH+nz66ZzYvYJ00COjSkvmRRbnnrWLrfK8ZS050EvxVJ3LCSWJfWe2QfsNvDy3ljolmXFQLM8WS+rn1ViauxMbmhBmdGLxL4t9nz0+5c0vRlJ/BoX5Ra+rQUW1fogFk16weEvawGsVRte3Z7ckWgogqoKVWtMZygxESP2FuefQFX2kxFWE/K9bfHLw8LaJZp1czB8Zso7kBU3QxyLNyh+TOBwYQymMDCSpRbSMUIm9os6ZWCw\u003d\u003d"
+        },
+        {
+          "name": "skillunion",
+          "uuid": "16a844e0-a0da-482d-903f-13247471c53c",
+          "created": "2019-06-17T12:42:03Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "QZNdxa8BL1U\u003d",
+          "signature": "OCLlGDgTspuefU3lWCCemMY/Wzr7+vO8reReNKlNHMpfAiLOk1hfR9gRPHNr58maPOoI29MnlTHloaDHjphW37yPYU2zIql9YkksFIulCxsBdKgaUuVsv/P4KbwExVkfvev+Um2xYlLYiLUgPhu65IwPqqxrvQmuOo9gPssS6RRgvOa4kuTic6ZqIjvpHJUDj0UjWRxTyWC4OXM2ekaJaRT3wDIO6zhL8Q6b3DCnithl/duJWgTrGGwtg9l8waJOQuv6B+N8qwdmvpVPqHJSNYTpAYEzzHioMDnnRD7Y6kBUt/8Z5i4HtJ3XwFuPXk+6lSSjkiMjAt1Fx0TQQNhLiw\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "su-classic": {
+          "toolkit": "classic",
+          "theme": "theme-classic",
+          "name": "su-classic"
+        },
+        "su-modern": {
+          "toolkit": "modern",
+          "theme": "theme-material",
+          "name": "su-modern"
+        }
+      }
+    },
+    {
+      "name": "su",
+      "namespace": "SU",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",

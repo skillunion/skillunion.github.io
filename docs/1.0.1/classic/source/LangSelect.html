@@ -20,108 +20,107 @@
  */
 Ext.define(&#39;SU.LangSelect&#39;, {
     extend: &#39;Ext.form.ComboBox&#39;,
-	alias: &#39;widget.languagefield&#39;,
-	alternateClassName: [&#39;Ext.field.LangSelect&#39;, &#39;Ext.form.LangSelect&#39;],
+    alias: &#39;widget.languagefield&#39;,
+    alternateClassName: [&#39;Ext.field.LangSelect&#39;, &#39;Ext.form.LangSelect&#39;],
 
-	//autoSelect: false,
-	//triggerAction: &#39;all&#39;,
+    //autoSelect: false,
+    //triggerAction: &#39;all&#39;,
 
-<span id='SU-LangSelect-cfg-valueField'>	/**
-</span>	 * @cfg
-	 * @inheritdoc
-	 */
-	valueField: &#39;id&#39;,
+<span id='SU-LangSelect-cfg-valueField'>    /**
+</span>     * @cfg
+     * @inheritdoc
+     */
+    valueField: &#39;id&#39;,
 
-<span id='SU-LangSelect-cfg-displayField'>	/**
-</span>	 * @cfg
-	 * @inheritdoc
-	 */
-	displayField: &#39;label&#39;,
+<span id='SU-LangSelect-cfg-displayField'>    /**
+</span>     * @cfg
+     * @inheritdoc
+     */
+    displayField: &#39;label&#39;,
 
-<span id='SU-LangSelect-cfg-usePicker'>	/**
-</span>	 * @cfg
-	 * @inheritdoc
-	 */
-	usePicker: false,
+<span id='SU-LangSelect-cfg-usePicker'>    /**
+</span>     * @cfg
+     * @inheritdoc
+     */
+    usePicker: false,
 
-<span id='SU-LangSelect-cfg-submitValue'>	/**
-</span>	 * @cfg
-	 * @inheritdoc
-	 */
-	submitValue: false,
+<span id='SU-LangSelect-cfg-submitValue'>    /**
+</span>     * @cfg
+     * @inheritdoc
+     */
+    submitValue: false,
 
-<span id='SU-LangSelect-cfg-forceSelection'>	/**
-</span>	 * @cfg
-	 * @inheritdoc
-	 */
-	forceSelection: true,
+<span id='SU-LangSelect-cfg-forceSelection'>    /**
+</span>     * @cfg
+     * @inheritdoc
+     */
+    forceSelection: true,
 
-<span id='SU-LangSelect-cfg-queryMode'>	/**
-</span>	 * @cfg
-	 * @inheritdoc
-	 */
-	queryMode: &#39;local&#39;,
+<span id='SU-LangSelect-cfg-queryMode'>    /**
+</span>     * @cfg
+     * @inheritdoc
+     */
+    queryMode: &#39;local&#39;,
 
-<span id='SU-LangSelect-cfg-editable'>	/**
-</span>	 * @cfg
-	 * @inheritdoc
-	 */
-	editable: false,
+<span id='SU-LangSelect-cfg-editable'>    /**
+</span>     * @cfg
+     * @inheritdoc
+     */
+    editable: false,
 
-<span id='SU-LangSelect-method-initComponent'>	initComponent: function(){
-</span>		var me = this;
-		me.callParent();
-		me.setStore( Ext.Language.getLocales() );
-		me.setValue( Ext.Language.getPersistedLocale( true ) );
-//		Ext.Language.on({
-//			initialized: {
-//				fn: function(){
-//					me.setValue( Ext.Language.getPersistedLocale( true ) );
-//				},
-//				single: true
-//			}
-//		});
-	},
+<span id='SU-LangSelect-method-initComponent'>    initComponent: function () {
+</span>        var me = this;
+        me.callParent();
+        me.setStore(Ext.Language.getLocales());
+        me.setValue(Ext.Language.getPersistedLocale(true));
+        //		Ext.Language.on({
+        //			initialized: {
+        //				fn: function(){
+        //					me.setValue( Ext.Language.getPersistedLocale( true ) );
+        //				},
+        //				single: true
+        //			}
+        //		});
+    },
 
-<span id='SU-LangSelect-method-onChange'>	onChange: function( newValue, oldValue ){
-</span>		var me = this;
-		try{
-			var locale = me.getValue();
-			if( locale !== Ext.Language.getLocale() ){
-				if( Ext.Language.mode === &#39;static&#39; ){
-					var params = Ext.urlDecode(window.location.search.substring(1));
-					params.lang = locale;
-					window.location.search = Ext.urlEncode(params);
-				} else if( !!Ext.Language.initialized ){
-					var cbChange = function(){
-							me.self.superclass.onChange.call(me, newValue, oldValue);
-							Ext.Language.un({
-								changeLocale: cbChange,
-								failureLocale: cbFailure
-							});
-						},
-						cbFailure = function(){
-							me.setValue( Ext.Language.getPersistedLocale( true ) );
-							Ext.Language.un({
-								changeLocale: cbChange,
-								failureLocale: cbFailure
-							});
-						};
-					Ext.Language.on({
-						changeLocale: cbChange,
-						failureLocale: cbFailure
-					});
-					Ext.Language.setLocale( locale );
-				}
-			}
-		} catch(e){
-			// &lt;debug&gt;
-			alert(&#39;onChange &#39;+e);
-			// &lt;/debug&gt;
-		}
-	}
+<span id='SU-LangSelect-method-onChange'>    onChange: function (newValue, oldValue) {
+</span>        var me = this;
+        try {
+            var locale = me.getValue();
+            if (locale !== Ext.Language.getLocale()) {
+                if (Ext.Language.mode === &#39;static&#39;) {
+                    var params = Ext.urlDecode(window.location.search.substring(1));
+                    params.lang = locale;
+                    window.location.search = Ext.urlEncode(params);
+                } else if (!!Ext.Language.initialized) {
+                    var cbChange = function () {
+                            me.self.superclass.onChange.call(me, newValue, oldValue);
+                            Ext.Language.un({
+                                changeLocale: cbChange,
+                                failureLocale: cbFailure
+                            });
+                        },
+                        cbFailure = function () {
+                            me.setValue(Ext.Language.getPersistedLocale(true));
+                            Ext.Language.un({
+                                changeLocale: cbChange,
+                                failureLocale: cbFailure
+                            });
+                        };
+                    Ext.Language.on({
+                        changeLocale: cbChange,
+                        failureLocale: cbFailure
+                    });
+                    Ext.Language.setLocale(locale);
+                }
+            }
+        } catch (e) {
+            // &lt;debug&gt;
+            alert(&#39;onChange &#39; + e);
+            // &lt;/debug&gt;
+        }
+    }
 });
-
 </pre>
 </body>
 </html>

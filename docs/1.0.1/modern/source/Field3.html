@@ -16,20 +16,17 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-field-Field'>/**
-</span> * 
+</span> *
  */
 Ext.define(&#39;SU.field.Field&#39;, {
     override: &#39;Ext.field.Field&#39;,
 
-<span id='Ext-field-Field-property-requres'>    requres: [
-</span>        &#39;Ext.Sheet&#39;
-    ],
-
+<span id='Ext-field-Field-property-requres'>    requres: [&#39;Ext.Sheet&#39;],
+</span>
     config: {
-
 <span id='Ext-field-Field-cfg-helperIconCls'>        /**
 </span>         * @cfg {String} helperIconCls
-         * 
+         *
          */
         helperIconCls: &#39;x-mi mi-help-circle-outline&#39;,
 
@@ -104,9 +101,7 @@ Ext.define(&#39;SU.field.Field&#39;, {
     },
 
 <span id='Ext-field-Field-method-updateHelperIconCls'>    updateHelperIconCls: function (value, oldValue) {
-</span>
-        if (this.labelHelperElement) {
-
+</span>        if (this.labelHelperElement) {
             if (oldValue) {
                 this.labelHelperElement.removeCls(oldValue);
             }
@@ -150,22 +145,23 @@ Ext.define(&#39;SU.field.Field&#39;, {
 
 <span id='SU-field-Field-property-privates'>    // @hide
 </span>    privates: {
-
         // @private
         getHelperSheet: function () {
             var me = this,
                 config = Ext.applyIf(me.getHelperConfig() || {}, me.defaultHelperConfig || {});
 
-            return me.helperSheet || (me.helperSheet = Ext.factory(
-                Ext.applyIf(config, {
-                    title: me.getHelperTitle(),
-                    html: me.getHelperText()
-                }),
-                Ext.Sheet
-            ));
+            return (
+                me.helperSheet ||
+                (me.helperSheet = Ext.factory(
+                    Ext.applyIf(config, {
+                        title: me.getHelperTitle(),
+                        html: me.getHelperText()
+                    }),
+                    Ext.Sheet
+                ))
+            );
         }
     }
-
 });
 </pre>
 </body>

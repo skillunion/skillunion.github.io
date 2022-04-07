@@ -167,6 +167,33 @@
       "name": "din-pro",
       "namespace": "Ext",
       "format": "1",
+      "version": "1.0.1.202",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package wrapper for DINPro Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for DINPro Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-07T00:17:19Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "PLctABnWspc\u003d",
+          "signature": "t3ueWw8lwiaBWtgIMXqgAkNZ1LNXNZ1gDtqtrfKeeadeWR5KQMnuM0KllOokW12X76oc15UvEERrNlgCUrayTH05YXVrGn55HYH0PTFKO9kK9stty0ibj7ucrzfR4/WcLtSWf+3KIvOwg2xvrc/Wm7WEkqZGVoqAhdXvBs8LEEXzH1BH79OvNU1SH4+xUwfPLSdyBrA4/CPdsS2QebcGemAB5mihXvZs1X3WYLnFLVEmt4xFqIueXMAmszGqfF8FBog8ihmsDCvh+o6iszFUZDOOTbjJVQimgl0IVCY5l5N3lpdTt6QO1VpHF497Aca3w6sWmxWN9H7A7ra4UJpUpQ\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    },
+    {
+      "name": "din-pro",
+      "namespace": "Ext",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",
@@ -406,6 +433,33 @@
           "algorithm": "SHA1withRSA",
           "nonce": "Zmp6WLhg2Tw\u003d",
           "signature": "RCARGXYgFr17qKm4l+iI7I6eLnnK92J1dJI30MeIVBEaJ8NerVvibYaxJAmBuUn0oGIQnM7c7XRbfP/uKFodbWPWE1GhAtXjKhBA5w+7Zx3U6nJhIpRN8kQi79WbeOotCXBnlDtjvNWSV7vSOgzW5uzOd1YhYe/7HKAanU04R/AuX9LZjj3cyYRqWkVZfRDuytEKJ4/EUXFZ9pUhZsYvhwrHF8GPvkuQKcX6GUOjVNPudwVTZmN0ECooSu8t4ZTA2Df7fGpy4eQKgBcCpm1AG0vn5S2Z6kSjsw6sf4E1oi+LEXnA+fkedWSMULIboN3jSqD3xllQ8NAoKg3dS0F8Xg\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    },
+    {
+      "name": "material-icons",
+      "namespace": "Ext",
+      "format": "1",
+      "version": "1.0.1.202",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package wrapper for Material Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for Google\u0027s Material Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-07T00:17:33Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "0eNRZxtrj70\u003d",
+          "signature": "TrfStG/fWtwHfOfE8aetwN9FyNtb5yQ2cKo4rBwBX7XnDxu649UdcaC8JrUltTZjxojwHXgFkHFZRbwtc03F6nDDsK0oMicH0+qqfhIV9rw2XMrznSXY4Dpqhc4TrYHL3ltKOO2U/FiUNKw4wkU/mnhXnjlJkqpmqMzzSkwx9SQ5TZWfPt35QO3/U92rz7a9pJiFNWkCDyhEtx9Vly4R6B8k9wIymEg7Q2I6xqRgbuYssA7LmrqZF4plxvr3pXk+VYKLPu4iPYSZfdSW7AJUByc78aGoortxSujfWMu5TKrRtsE0BNJXuHivIje+licDIpgj5xQSL2n8hExe6hliTw\u003d\u003d"
         }
       ],
       "resources": [
@@ -711,6 +765,47 @@
       "name": "su",
       "namespace": "SU",
       "format": "1",
+      "version": "1.0.1.202",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU Core",
+      "detailedDescription": "Skill Union Core Library",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-07T00:18:28Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "hG6v3NDn+tU\u003d",
+          "signature": "oKhu5ys0ay2KYAw9BcCYQP1ZMslOb3rtlKmZK6hlaR/hL2NJTXavraieR98Ybub06y0s9wIYi2P3pyw0MhsgoEoSRWnXtMqF3PQ7JXH+nz66ZzYvYJ00COjSkvmRRbnnrWLrfK8ZS050EvxVJ3LCSWJfWe2QfsNvDy3ljolmXFQLM8WS+rn1ViauxMbmhBmdGLxL4t9nz0+5c0vRlJ/BoX5Ra+rQUW1fogFk16weEvawGsVRte3Z7ckWgogqoKVWtMZygxESP2FuefQFX2kxFWE/K9bfHLw8LaJZp1czB8Zso7kBU3QxyLNyh+TOBwYQymMDCSpRbSMUIm9os6ZWCw\u003d\u003d"
+        },
+        {
+          "name": "skillunion",
+          "uuid": "16a844e0-a0da-482d-903f-13247471c53c",
+          "created": "2019-06-17T12:42:03Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "QZNdxa8BL1U\u003d",
+          "signature": "OCLlGDgTspuefU3lWCCemMY/Wzr7+vO8reReNKlNHMpfAiLOk1hfR9gRPHNr58maPOoI29MnlTHloaDHjphW37yPYU2zIql9YkksFIulCxsBdKgaUuVsv/P4KbwExVkfvev+Um2xYlLYiLUgPhu65IwPqqxrvQmuOo9gPssS6RRgvOa4kuTic6ZqIjvpHJUDj0UjWRxTyWC4OXM2ekaJaRT3wDIO6zhL8Q6b3DCnithl/duJWgTrGGwtg9l8waJOQuv6B+N8qwdmvpVPqHJSNYTpAYEzzHioMDnnRD7Y6kBUt/8Z5i4HtJ3XwFuPXk+6lSSjkiMjAt1Fx0TQQNhLiw\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "su-classic": {
+          "toolkit": "classic",
+          "theme": "theme-classic",
+          "name": "su-classic"
+        },
+        "su-modern": {
+          "toolkit": "modern",
+          "theme": "theme-material",
+          "name": "su-modern"
+        }
+      }
+    },
+    {
+      "name": "su",
+      "namespace": "SU",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",
@@ -986,6 +1081,45 @@
       "name": "su-dbproxies",
       "namespace": "SU.dbproxies",
       "format": "1",
+      "version": "1.0.1.202",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "ExtJS proxies for Websql/Sqlite and IndexedDB",
+      "detailedDescription": "ExtJS proxies for Websql/Sqlite and IndexedDB",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-07T00:18:44Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "+sy0bn5crc0\u003d",
+          "signature": "LHN7q8AE93pPvgxvUS051kJZ1Cf4iplu0TajnOj29amfrOlGqypD8ryr4DhyHg9eevPWvypijBIFTuCTiwHPGatidclWoDRH3k7JsgaFalv2cFt7dNhCmZ6JDezOZV1zMa0aiIDyi4LeZPc4LWue/ahO/051d9NEFakCoXaPdCHGZ7gC42SZrhU1K3BpzC0QemYl/ByFLKH7GH0JjCWPH+r/Wxe9QQP1WVSXCje6Pe5cZPZ7v8cPM1oFMaOyeoH+PJsB9RqUPoKatmGqGWt921Abvd3Ub4wLRLLDAtBrxN61gNOfFCXlsTOQqYNrjHCqZVD8yxApFCUV1caI78NkVg\u003d\u003d"
+        }
+      ],
+      "slicer": {
+        "js": [
+          {
+            "path": "${package.dir}/sass/example/custom.js",
+            "isWidgetManifest": true
+          }
+        ]
+      },
+      "builds": {
+        "su-dbproxies-classic": {
+          "toolkit": "classic",
+          "name": "su-dbproxies-classic"
+        },
+        "su-dbproxies-modern": {
+          "toolkit": "modern",
+          "name": "su-dbproxies-modern"
+        }
+      }
+    },
+    {
+      "name": "su-dbproxies",
+      "namespace": "SU.dbproxies",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",
@@ -1211,6 +1345,37 @@
       "name": "su-locale",
       "namespace": "SU",
       "format": "1",
+      "version": "1.0.1.202",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "SU locale",
+      "detailedDescription": "Skill Union locale package",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-07T00:18:49Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "vBtNhbAKtrc\u003d",
+          "signature": "k0pw7lNk5GZhORsSJD4Bk076sa2Do9YsmtDn+u9qeZVdju1TMtsnMaatpjEzFtLfsoFmDp/iUMdYwXZq0gVzZriuTUOe1ZEmsW4KBXGLO2jPxs//q4+2uXdxtKuCr+eaLtitkH4ntjLxVcbNmrS1eH8VcKJdZHUBrvby2ZcIkZrj88KTZcpdQOHMzGI4L0V1dPpxWcYq1pJQHVpGfepWBB8eB1ACjqg0lBJJQmUzFfpGAdqGvvtd3QNosm/N+qIGKQETGfgj9Z2Y8pUup4Rf7wMKoqvqS6LLF8RvKT2X4S6+gqnC8XAao8s+oviTxGvhjbJuVhODeHpkOwEYbbq38w\u003d\u003d"
+        }
+      ],
+      "builds": {
+        "locale-classic": {
+          "toolkit": "classic",
+          "name": "su-locale-classic"
+        },
+        "locale-modern": {
+          "toolkit": "modern",
+          "name": "su-locale-modern"
+        }
+      }
+    },
+    {
+      "name": "su-locale",
+      "namespace": "SU",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",
@@ -1379,6 +1544,30 @@
           "algorithm": "SHA1withRSA",
           "nonce": "yQxpZqC/ZAk\u003d",
           "signature": "cFqmxbcVrfFGf2Ebi6QibejYwVzm4Y8J5OGU1MATlsKRsvXUGns8NuyqemLc0QqZlEvcBiFz/76BVCM/GQHVKXUpTTHPKqjChrdXcXBsWpvn1DJN/tV+DSyourzRVB+VDvRLpkt0eGWEe7N4aNrsgKDSBAl8TVVwNN+StZsP+iIQG8IHKlJPkeuR7uzurDvtjd6HR/8jPkKDtu209OkLv7+lHJqg2bXc2U7DbaH1lXt0w2khwXFm8GIWx2eeJB9L4bFf1uiIt7vgGgAlOEaQobN/Tusl+Ktymz2Qz+L0ud5k9GdWeafXYzDNqLtvHfh5uSrHsqIzFuQasiVHSZnrbw\u003d\u003d"
+        }
+      ]
+    },
+    {
+      "name": "su-native",
+      "namespace": "SU",
+      "format": "1",
+      "version": "1.0.1.202",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package for mobile applications",
+      "detailedDescription": "Sencha Cmd package for mobile applications",
+      "type": "code",
+      "requires": [
+        "su"
+      ],
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-07T00:18:58Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "8JS/SsSSlxw\u003d",
+          "signature": "OFOP7kawdwiD2gW9UjQWZ6qqInU9O4jOzx7SfPWzzhgtDWauLusm0yv7pWIBC7WW1aLUA75QNavbB0lIAF9WQTxH/abLcdquO8WsGapNxsT35b0/C3etuSDTAE5S8wPpqfWZdRlwCO1voSt/ns4aQ/1RyVN9JmklyTx4o/PnfLXHzGGwOZ759EJfEg58K4D+baQL1pGJkmI5uNtiZGrMItg84Aw7hkAjQh3xgtS8zGlLiI5snklohqyxQHGbISqurwzGu5gBR4x71Uio6geululGifpkP8BuXowIgr0M3lII7ckHuEON6GE1mUxMZ2/7rdTsDzohM26NEkzh9abp8A\u003d\u003d"
         }
       ]
     },

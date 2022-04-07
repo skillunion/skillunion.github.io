@@ -24,88 +24,90 @@
 Ext.define(&#39;SU.locale.Persistence&#39;, {
     singleton: true,
 
-	requires:[
-		&#39;SU.storage.LocalStorageCookie&#39;
-	],
+    requires: [&#39;SU.storage.LocalStorageCookie&#39;],
 
 <span id='SU-locale-Persistence-method-getLocale'>    /**
 </span>     * Возвращает идентификатор локали из
-	 * {@link Ext.Cookie локального хранилища}.
-	 *
-	 * При отсутствии, выполняет поиск подходящего идентификатора в переменных браузера.
+     * {@link Ext.Cookie локального хранилища}.
      *
-	 * @param {Boolean} [ignoreLocation=false] true - не получать
-	 * идентификатор локали из строки адреса.
-	 *
+     * При отсутствии, выполняет поиск подходящего идентификатора в переменных браузера.
+     *
+     * @param {Boolean} [ignoreLocation=false] true - не получать
+     * идентификатор локали из строки адреса.
+     *
      * @return {String}
      */
-    getLocale: function( ignoreLocation ){
-		var lang;
-		if( ignoreLocation !== true ) lang = this.getLocationLanguage();
-		//&lt;debug&gt;
-        if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] Persistence - Getting persisted locale id from location: &#39; + lang, ignoreLocation);
-		//&lt;/debug&gt;
-		if( !lang ){
-			lang = Ext.Cookie.get(&#39;language&#39;);
-			//&lt;debug&gt;
-			if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] Persistence - Getting persisted locale id from cookie: &#39; + lang);
-			//&lt;/debug&gt;
-		}
-		if( !lang ){
-			lang = this.getBrowserLanguage();
-			//&lt;debug&gt;
-			if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] Persistence - Getting persisted locale id: &#39; + lang);
-			//&lt;/debug&gt;
-		}
+    getLocale: function (ignoreLocation) {
+        var lang;
+        if (ignoreLocation !== true) lang = this.getLocationLanguage();
+        //&lt;debug&gt;
+        if (!!window.DEBUG_LOCALE)
+            console.log(&#39;[LOCALE] Persistence - Getting persisted locale id from location: &#39; + lang, ignoreLocation);
+        //&lt;/debug&gt;
+        if (!lang) {
+            lang = Ext.Cookie.get(&#39;language&#39;);
+            //&lt;debug&gt;
+            if (!!window.DEBUG_LOCALE)
+                console.log(&#39;[LOCALE] Persistence - Getting persisted locale id from cookie: &#39; + lang);
+            //&lt;/debug&gt;
+        }
+        if (!lang) {
+            lang = this.getBrowserLanguage();
+            //&lt;debug&gt;
+            if (!!window.DEBUG_LOCALE) console.log(&#39;[LOCALE] Persistence - Getting persisted locale id: &#39; + lang);
+            //&lt;/debug&gt;
+        }
         return lang;
     },
 
 <span id='SU-locale-Persistence-method-setLocale'>    /**
 </span>     * Сохраняет идентификатор локали в
-	 * {@link Ext.Cookie локальном хранилище}.
+     * {@link Ext.Cookie локальном хранилище}.
      *
      * @param {String} value
-	 * Идентификатор локали
+     * Идентификатор локали
      */
-    setLocale: function(value) {
-		//&lt;debug&gt;
-        if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] Persistence - Persisting locale save id: &#39; + value);
-		//&lt;/debug&gt;
-		Ext.Cookie.set(&#39;language&#39;, value);
-		//&lt;debug&gt;
-        if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] Persistence - Persisting locale saved id: &#39; + Ext.Cookie.get(&#39;language&#39;));
-		//&lt;/debug&gt;
+    setLocale: function (value) {
+        //&lt;debug&gt;
+        if (!!window.DEBUG_LOCALE) console.log(&#39;[LOCALE] Persistence - Persisting locale save id: &#39; + value);
+        //&lt;/debug&gt;
+        Ext.Cookie.set(&#39;language&#39;, value);
+        //&lt;debug&gt;
+        if (!!window.DEBUG_LOCALE)
+            console.log(&#39;[LOCALE] Persistence - Persisting locale saved id: &#39; + Ext.Cookie.get(&#39;language&#39;));
+        //&lt;/debug&gt;
     },
 
-<span id='SU-locale-Persistence-method-getBrowserLanguage'>	/**
-</span>	 * Получает язык из переменных браузера.
-	 *
-	 * @returns {String}
-	 */
-	getBrowserLanguage: function(){
-		var na = navigator,
-			locale = na.userAgent.match(/[a-z]{2}-[a-z]{2}/);
-		if( !!locale ) locale = locale[0];
-		locale = locale || na.language || na.userLanguage;
-		//&lt;debug&gt;
-        if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] Persistence - Getting persisted locale id from userAgent: &#39; + locale);
-		//&lt;/debug&gt;
-		return locale.split(&quot;-&quot;)[0];
-	},
+<span id='SU-locale-Persistence-method-getBrowserLanguage'>    /**
+</span>     * Получает язык из переменных браузера.
+     *
+     * @returns {String}
+     */
+    getBrowserLanguage: function () {
+        var na = navigator,
+            locale = na.userAgent.match(/[a-z]{2}-[a-z]{2}/);
+        if (!!locale) locale = locale[0];
+        locale = locale || na.language || na.userLanguage;
+        //&lt;debug&gt;
+        if (!!window.DEBUG_LOCALE)
+            console.log(&#39;[LOCALE] Persistence - Getting persisted locale id from userAgent: &#39; + locale);
+        //&lt;/debug&gt;
+        return locale.split(&#39;-&#39;)[0];
+    },
 
-<span id='SU-locale-Persistence-method-getLocationLanguage'>	/**
-</span>	 * Получает идентификатор локали из строки адреса.
-	 *
-	 * @returns {String}
-	 */
-	getLocationLanguage: function(){
-		var params = Ext.urlDecode(window.location.search.substring(1));
-		//&lt;debug&gt;
-        if( !!window.DEBUG_LOCALE ) console.log(&#39;[LOCALE] Persistence - Getting persisted locale id from location: &#39; + params.lang);
-		//&lt;/debug&gt;
-		return params.lang;
-	}
-
+<span id='SU-locale-Persistence-method-getLocationLanguage'>    /**
+</span>     * Получает идентификатор локали из строки адреса.
+     *
+     * @returns {String}
+     */
+    getLocationLanguage: function () {
+        var params = Ext.urlDecode(window.location.search.substring(1));
+        //&lt;debug&gt;
+        if (!!window.DEBUG_LOCALE)
+            console.log(&#39;[LOCALE] Persistence - Getting persisted locale id from location: &#39; + params.lang);
+        //&lt;/debug&gt;
+        return params.lang;
+    }
 });
 </pre>
 </body>

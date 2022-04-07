@@ -16,7 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-native-overrides-app-Application'>/**
-</span> * 
+</span> *
  */
 Ext.define(&#39;SU.native.overrides.app.Application&#39;, {
     override: &#39;Ext.app.Application&#39;,
@@ -24,12 +24,12 @@ Ext.define(&#39;SU.native.overrides.app.Application&#39;, {
 <span id='Ext-app-Application-method-init'>    /**
 </span>     * @inheritdoc
      * @localdoc
-     * Придерживает запуск приложения до инициализации ExtJS 
+     * Придерживает запуск приложения до инициализации ExtJS
      * и готовности устройства при использовании нативной поддержки
      */
     init: function () {
         var me = this;
-        
+
         if (window.cordova) {
             var profilesReady = me.onProfilesReady,
                 nativeRady = false,
@@ -50,11 +50,11 @@ Ext.define(&#39;SU.native.overrides.app.Application&#39;, {
                 nativeRady = true;
                 mayBeRady();
             });
-        };
-        
+        }
+
         me.callParent(arguments);
     }
-});        
+});
 </pre>
 </body>
 </html>

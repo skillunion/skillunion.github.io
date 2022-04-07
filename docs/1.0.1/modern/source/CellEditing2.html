@@ -22,13 +22,15 @@
 Ext.define(&#39;SU.grid.plugin.CellEditing&#39;, {
     override: &#39;Ext.grid.plugin.CellEditing&#39;,
 
-<span id='SU-grid-plugin-CellEditing-method-getEditor'>    getEditor: function (location) {
-</span>        if (!location.column) {
+<span id='SU-grid-plugin-CellEditing-method-getEditor'>    // eslint-disable-next-line @sencha/extjs/no-private-method-override
+</span>    getEditor: function (location) {
+        if (!location.column) {
             return;
         }
 
         return this.callParent([location]);
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

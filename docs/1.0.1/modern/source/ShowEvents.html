@@ -38,34 +38,32 @@
  * Создание модуля
  */
 Ext.define(&#39;SU.utils.ShowEvents&#39;, {
-	requires: [&#39;Ext.util.Observable&#39;],
+    requires: [&#39;Ext.util.Observable&#39;],
 
-<span id='SU-utils-ShowEvents-property-mixinConfig'>	mixinConfig: {
-</span>		id: &#39;showevents&#39;
-	},
+<span id='SU-utils-ShowEvents-property-mixinConfig'>    mixinConfig: {
+</span>        id: &#39;showevents&#39;
+    },
 
-<span id='SU-utils-ShowEvents-property-disabledShowEvents'>	/**
-</span>	 * `true` запрещает вывод сообщений
-	 *
-	 * @property {Boolean}
-	 */
-	disabledShowEvents: false,
+<span id='SU-utils-ShowEvents-property-disabledShowEvents'>    /**
+</span>     * `true` запрещает вывод сообщений
+     *
+     * @property {Boolean}
+     */
+    disabledShowEvents: false,
 
-<span id='SU-utils-ShowEvents-method-onClassMixedIn'>	//
-</span>	onClassMixedIn: function (cls) {
-		cls.prototype.fireEvent = function () {
-			var me = this;
-			if( !me.disabledShowEvents ){
-				console.log(&#39;[SHOW EVENTS]&#39;, me.$className, arguments[0], arguments);
-			}
-			return Ext.util.Observable.prototype.fireEvent.apply(this, arguments);
-		};
-	}
+<span id='SU-utils-ShowEvents-method-onClassMixedIn'>    //
+</span>    onClassMixedIn: function (cls) {
+        cls.prototype.fireEvent = function () {
+            var me = this;
+            if (!me.disabledShowEvents) {
+                console.log(&#39;[SHOW EVENTS]&#39;, me.$className, arguments[0], arguments);
+            }
+            return Ext.util.Observable.prototype.fireEvent.apply(this, arguments);
+        };
+    }
 });
 
 // &lt;/debug&gt;
-
-
 </pre>
 </body>
 </html>

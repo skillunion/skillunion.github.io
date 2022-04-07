@@ -16,16 +16,13 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-native-tab-SlidePanel'>/**
-</span> * 
+</span> *
  */
 Ext.define(&#39;SU.native.tab.SlidePanel&#39;, {
     extend: &#39;Ext.carousel.Carousel&#39;,
     alias: &#39;widget.slidetabpanel&#39;,
 
-    requires: [
-        &#39;Ext.tab.Bar&#39;,
-        &#39;Ext.tab.Tab&#39;
-    ],
+    requires: [&#39;Ext.tab.Bar&#39;, &#39;Ext.tab.Tab&#39;],
 
     config: {
 <span id='SU-native-tab-SlidePanel-cfg-tabBar'>        /**
@@ -43,11 +40,11 @@ Ext.define(&#39;SU.native.tab.SlidePanel&#39;, {
          */
         tabBarPosition: &#39;top&#39;,
 
-<span id='SU-native-tab-SlidePanel-cfg-indicator'>        indicator: false,
+<span id='SU-native-tab-SlidePanel-cfg-indicator'>        indicator: false
 </span>    },
 
 <span id='SU-native-tab-SlidePanel-cfg-defaults'>    defaults: {
-</span>        allowHeader: false,
+</span>        allowHeader: false
         //layout: &#39;fit&#39;
     },
 
@@ -69,8 +66,7 @@ Ext.define(&#39;SU.native.tab.SlidePanel&#39;, {
     },
 
 <span id='SU-native-tab-SlidePanel-method-applyTabBar'>    applyTabBar: function (config) {
-</span>        var innerItems,
-            activeItem;
+</span>        var innerItems, activeItem;
 
         if (this.isConfiguring) {
             activeItem = this.initialConfig.activeItem || 0;
@@ -133,19 +129,19 @@ Ext.define(&#39;SU.native.tab.SlidePanel&#39;, {
         var tabBar = me.getTabBar(),
             initialConfig = card.getInitialConfig(),
             tabConfig = initialConfig.tab || {},
-            tabTitle = (card.getTitle) ? card.getTitle() : initialConfig.title,
-            tabClosable = (card.getClosable) ? card.getClosable() : initialConfig.closable,
-            tabIconAlign = (card.getIconAlign) ? card.getIconAlign() : initialConfig.iconAlign,
-            tabIconCls = (card.getIconCls) ? card.getIconCls() : initialConfig.iconCls,
-            tabIcon = (card.getIcon) ? card.getIcon() : initialConfig.icon,
-            tabHidden = (card.getHidden) ? card.getHidden() : initialConfig.hidden,
-            tabDisabled = (card.getDisabled) ? card.getDisabled() : initialConfig.disabled,
-            tabBadgeText = (card.getBadgeText) ? card.getBadgeText() : initialConfig.badgeText,
+            tabTitle = card.getTitle ? card.getTitle() : initialConfig.title,
+            tabClosable = card.getClosable ? card.getClosable() : initialConfig.closable,
+            tabIconAlign = card.getIconAlign ? card.getIconAlign() : initialConfig.iconAlign,
+            tabIconCls = card.getIconCls ? card.getIconCls() : initialConfig.iconCls,
+            tabIcon = card.getIcon ? card.getIcon() : initialConfig.icon,
+            tabHidden = card.getHidden ? card.getHidden() : initialConfig.hidden,
+            tabDisabled = card.getDisabled ? card.getDisabled() : initialConfig.disabled,
+            tabBadgeText = card.getBadgeText ? card.getBadgeText() : initialConfig.badgeText,
             innerItems = me.getInnerItems(),
             index = innerItems.indexOf(card),
             tabs = tabBar.getItems(),
             activeTab = tabBar.getActiveTab(),
-            currentTabInstance = (tabs.length &gt;= innerItems.length) &amp;&amp; tabs.getAt(index),
+            currentTabInstance = tabs.length &gt;= innerItems.length &amp;&amp; tabs.getAt(index),
             header = card.getConfig(&#39;header&#39;, false, true),
             tabInstance;
 
@@ -214,7 +210,8 @@ Ext.define(&#39;SU.native.tab.SlidePanel&#39;, {
 <span id='SU-native-tab-SlidePanel-method-onItemRemove'>    onItemRemove: function (item, index, destroying) {
 </span>        var me = this,
             meDestroying = me.meDestroying,
-            clearBar, tabBar;
+            clearBar,
+            tabBar;
 
         if (!meDestroying) {
             tabBar = me.getTabBar();
@@ -285,8 +282,6 @@ Ext.define(&#39;SU.native.tab.SlidePanel&#39;, {
             item.tab.setDisabled(newDisabled);
         }
     }
-
-
 });
 </pre>
 </body>

@@ -1,0 +1,660 @@
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1547 */
+.x-button-alt.x-button-decline {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1550 */
+.x-button-alt.x-button-decline .x-inner-el {
+    background-color: #c62828;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1554 */
+.x-button-alt.x-button-decline .x-icon-el {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1558 */
+.x-button-alt.x-button-decline.x-hovered {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1561 */
+.x-button-alt.x-button-decline.x-hovered .x-inner-el {
+    background-color: #c62828;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1565 */
+.x-button-alt.x-button-decline.x-hovered .x-icon-el {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1570 */
+.x-button-alt.x-button-decline.x-pressing,
+.x-button-alt.x-button-decline.x-pressed {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1573 */
+.x-button-alt.x-button-decline.x-pressing .x-inner-el,
+.x-button-alt.x-button-decline.x-pressed .x-inner-el {
+    background-color: #c62828;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1577 */
+.x-button-alt.x-button-decline.x-pressing .x-icon-el,
+.x-button-alt.x-button-decline.x-pressed .x-icon-el {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1583 */
+.x-keyboard-mode .x-button-alt.x-button-decline.x-focused {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1586 */
+.x-keyboard-mode .x-button-alt.x-button-decline.x-focused .x-inner-el {
+    background-color: #c62828;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1590 */
+.x-keyboard-mode .x-button-alt.x-button-decline.x-focused .x-icon-el {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1547 */
+.x-button-alt.x-button-confirm {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1550 */
+.x-button-alt.x-button-confirm .x-inner-el {
+    background-color: #7cb342;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1554 */
+.x-button-alt.x-button-confirm .x-icon-el {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1558 */
+.x-button-alt.x-button-confirm.x-hovered {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1561 */
+.x-button-alt.x-button-confirm.x-hovered .x-inner-el {
+    background-color: #7cb342;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1565 */
+.x-button-alt.x-button-confirm.x-hovered .x-icon-el {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1570 */
+.x-button-alt.x-button-confirm.x-pressing,
+.x-button-alt.x-button-confirm.x-pressed {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1573 */
+.x-button-alt.x-button-confirm.x-pressing .x-inner-el,
+.x-button-alt.x-button-confirm.x-pressed .x-inner-el {
+    background-color: #7cb342;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1577 */
+.x-button-alt.x-button-confirm.x-pressing .x-icon-el,
+.x-button-alt.x-button-confirm.x-pressed .x-icon-el {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1583 */
+.x-keyboard-mode .x-button-alt.x-button-confirm.x-focused {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1586 */
+.x-keyboard-mode .x-button-alt.x-button-confirm.x-focused .x-inner-el {
+    background-color: #7cb342;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Button.scss:1590 */
+.x-keyboard-mode .x-button-alt.x-button-confirm.x-focused .x-icon-el {
+    color: #fff;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/overrides/field/Field.scss:2 */
+.x-label-helper-el {
+    width: 16px;
+    display: inline-block;
+    margin-left: 10px;
+    color: #64b5f6;
+    font-size: 1.2em;
+    line-height: 0;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/overrides/field/Field.scss:11 */
+.x-field-helper-sheet {
+    white-space: pre-wrap;
+    padding: 2px;
+    border-radius: 10px;
+    max-width: 300px;
+    max-height: 250px;
+    background-color: transparent;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/overrides/field/Field.scss:19 */
+.x-field-helper-sheet .x-body-el {
+    padding: 10px;
+    background-color: #fffee5;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/overrides/field/Field.scss:24 */
+.x-field-helper-sheet .x-panelheader {
+    min-height: unset;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/overrides/field/Field.scss:27 */
+.x-field-helper-sheet .x-panelheader .x-body-el {
+    padding: 0;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/overrides/field/Field.scss:31 */
+.x-field-helper-sheet .x-panelheader .x-paneltitle {
+    font-size: 13px;
+    color: #000;
+    padding: 10px;
+    margin: 0;
+    line-height: 12px;
+    font-weight: 600;
+}
+/* C:/Development/mygit/SU/su/packages/su/sass/var/widgets/Avatar.scss:138 */
+.x-avatar {
+    position: relative;
+    display: flex;
+    box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.24);
+    border-radius: 100%;
+    background-color: #e5e4e8;
+    background-position: center;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    border: 1px solid #cac8d1;
+}
+/* C:/Development/mygit/SU/su/packages/su/sass/var/widgets/Avatar.scss:149 */
+.x-avatar .x-avatar-inner {
+    border-radius: 100%;
+    margin: auto;
+    font-weight: 500;
+    line-height: 100%;
+    font-family: Roboto, sans-serif;
+    background-color: transparent;
+    color: #563071;
+}
+/* C:/Development/mygit/SU/su/packages/su/sass/var/widgets/Avatar.scss:161 */
+.x-avatar .x-avatar-inner:before {
+    content: attr(data-content);
+    margin: auto;
+}
+/* C:/Development/mygit/SU/su/packages/su/sass/var/widgets/Avatar.scss:138 */
+.x-avatar-plain {
+    position: relative;
+    display: flex;
+    box-shadow: none;
+    background-position: center;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    border-width: 0;
+}
+/* C:/Development/mygit/SU/su/packages/su/sass/var/widgets/Avatar.scss:149 */
+.x-avatar-plain .x-avatar-plain-inner {
+    margin: auto;
+}
+/* C:/Development/mygit/SU/su/packages/su/sass/var/widgets/Avatar.scss:161 */
+.x-avatar-plain .x-avatar-plain-inner:before {
+    content: attr(data-content);
+    margin: auto;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/ErrorDialog.scss:2 */
+.x-error-dialog .x-error-icon {
+    margin: 5px;
+    background-repeat: no-repeat;
+    background-position: 32px center;
+    background-image: url(images/errordialog-icons.png);
+    height: 32px;
+    width: 32px;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/ErrorDialog.scss:13 */
+.x-error-dialog .x-error-icon.ext-mb-error {
+    background-position: 0px center;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/ErrorDialog.scss:13 */
+.x-error-dialog .x-error-icon.ext-mb-info {
+    background-position: -32px center;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/ErrorDialog.scss:13 */
+.x-error-dialog .x-error-icon.ext-mb-question {
+    background-position: -64px center;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/ErrorDialog.scss:13 */
+.x-error-dialog .x-error-icon.ext-mb-warning {
+    background-position: -96px center;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/ErrorDialog.scss:21 */
+.x-error-dialog .x-error-message {
+    /*	background-color: #fff; */
+    /*	border: 1px solid #555; */
+    /*	background-color: #fff; */
+    /*	border: 1px solid #555; */
+    padding: 2px;
+    margin: 5px;
+    white-space: pre-wrap;
+    color: #111;
+    user-select: text;
+    font-size: 14px;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/ErrorDialog.scss:32 */
+.x-error-dialog .x-error-description {
+    /*background-color: #fff;*/
+    /*background-color: #fff;*/
+    border: 1px solid #99bbe8;
+    white-space: pre-wrap;
+    color: #111;
+    user-select: text;
+    margin-top: 5px;
+    padding: 0 5px;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:1 */
+.x-pulse-circle {
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    -ms-border-radius: 100%;
+    -o-border-radius: 100%;
+    border-radius: 100%;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    opacity: 0.5;
+    border: 2px solid #29aee3;
+    /*border-color: $base-color;
+    border-color: var(--base-color);*/
+    /*border-color: $base-pressed-color;
+    border-color: var(--base-pressed-color);*/
+    position: absolute;
+    -webkit-animation: circle-anim 2.4s infinite ease-in-out !important;
+    animation: circle-anim 2.4s infinite ease-in-out !important;
+    -webkit-transition: -webkit-all 0.5s;
+    -moz-transition: -moz-all 0.5s;
+    -o-transition: -o-all 0.5s;
+    transition: all 0.5s;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:14 */
+.x-pulse-circle-fill {
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    -ms-border-radius: 100%;
+    -o-border-radius: 100%;
+    border-radius: 100%;
+    background-color: #29aee3;
+    position: absolute;
+    border: 2px solid transparent;
+    -webkit-animation: circle-fill-anim 2.3s infinite ease-in-out;
+    animation: circle-fill-anim 2.3s infinite ease-in-out;
+    -webkit-transition: -webkit-all 0.5s;
+    -moz-transition: -moz-all 0.5s;
+    -o-transition: -o-all 0.5s;
+    transition: all 0.5s;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:26 */
+.x-pulse-icon-circle {
+    background-color: #29aee3;
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
+    opacity: 0.7;
+    position: absolute;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    -ms-border-radius: 100%;
+    -o-border-radius: 100%;
+    border-radius: 100%;
+    border: 2px solid transparent;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:35 */
+.x-pulse-icon-circle:hover {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+    opacity: 1;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:40 */
+.x-pulse-icon-circleblock {
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    background-position: center center;
+    background-repeat: no-repeat;
+    -webkit-animation: tossing 1.5s infinite;
+    animation: tossing 1.5s infinite;
+    color: #fff;
+    text-align: center;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:49 */
+@keyframes pulse {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:49 */
+    0% {
+        transform: scale(0.9);
+        opacity: 1;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:50 */
+    50% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:51 */
+    100% {
+        transform: scale(0.9);
+        opacity: 1;
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:54 */
+@-webkit-keyframes pulse {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:54 */
+    0% {
+        -webkit-transform: scale(0.95);
+        opacity: 1;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:55 */
+    50% {
+        -webkit-transform: scale(1);
+        opacity: 1;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:56 */
+    100% {
+        -webkit-transform: scale(0.95);
+        opacity: 1;
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:59 */
+@keyframes tossing {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:60 */
+    0% {
+        transform: rotate(-8deg);
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:61 */
+    50% {
+        transform: rotate(8deg);
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:62 */
+    100% {
+        transform: rotate(-8deg);
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:65 */
+@-webkit-keyframes tossing {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:66 */
+    0% {
+        -webkit-transform: rotate(-8deg);
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:67 */
+    50% {
+        -webkit-transform: rotate(8deg);
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:68 */
+    100% {
+        -webkit-transform: rotate(-8deg);
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:71 */
+@-moz-keyframes circle-anim {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:72 */
+    0% {
+        -moz-transform: rotate(0deg) scale(0.5) skew(1deg);
+        opacity: 0.1;
+        -moz-opacity: 0.1;
+        -webkit-opacity: 0.1;
+        -o-opacity: 0.1;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:73 */
+    30% {
+        -moz-transform: rotate(0deg) scale(0.7) skew(1deg);
+        opacity: 0.5;
+        -moz-opacity: 0.5;
+        -webkit-opacity: 0.5;
+        -o-opacity: 0.5;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:74 */
+    100% {
+        -moz-transform: rotate(0deg) scale(1) skew(1deg);
+        opacity: 0.6;
+        -moz-opacity: 0.6;
+        -webkit-opacity: 0.6;
+        -o-opacity: 0.1;
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:77 */
+@-webkit-keyframes circle-anim {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:78 */
+    0% {
+        -webkit-transform: rotate(0deg) scale(0.5) skew(1deg);
+        -webkit-opacity: 0.1;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:79 */
+    30% {
+        -webkit-transform: rotate(0deg) scale(0.7) skew(1deg);
+        -webkit-opacity: 0.5;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:80 */
+    100% {
+        -webkit-transform: rotate(0deg) scale(1) skew(1deg);
+        -webkit-opacity: 0.1;
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:83 */
+@-o-keyframes circle-anim {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:84 */
+    0% {
+        -o-transform: rotate(0deg) kscale(0.5) skew(1deg);
+        -o-opacity: 0.1;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:85 */
+    30% {
+        -o-transform: rotate(0deg) scale(0.7) skew(1deg);
+        -o-opacity: 0.5;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:86 */
+    100% {
+        -o-transform: rotate(0deg) scale(1) skew(1deg);
+        -o-opacity: 0.1;
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:89 */
+@keyframes circle-anim {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:90 */
+    0% {
+        transform: rotate(0deg) scale(0.5) skew(1deg);
+        opacity: 0.1;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:91 */
+    30% {
+        transform: rotate(0deg) scale(0.7) skew(1deg);
+        opacity: 0.5;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:92 */
+    100% {
+        transform: rotate(0deg) scale(1) skew(1deg);
+        opacity: 0.1;
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:96 */
+@-moz-keyframes circle-fill-anim {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:97 */
+    0% {
+        -moz-transform: rotate(0deg) scale(0.7) skew(1deg);
+        opacity: 0.2;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:98 */
+    50% {
+        -moz-transform: rotate(0deg) -moz-scale(1) skew(1deg);
+        opacity: 0.2;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:99 */
+    100% {
+        -moz-transform: rotate(0deg) scale(0.7) skew(1deg);
+        opacity: 0.2;
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:102 */
+@-webkit-keyframes circle-fill-anim {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:103 */
+    0% {
+        -webkit-transform: rotate(0deg) scale(0.7) skew(1deg);
+        opacity: 0.2;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:104 */
+    50% {
+        -webkit-transform: rotate(0deg) scale(1) skew(1deg);
+        opacity: 0.2;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:105 */
+    100% {
+        -webkit-transform: rotate(0deg) scale(0.7) skew(1deg);
+        opacity: 0.2;
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:108 */
+@-o-keyframes circle-fill-anim {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:109 */
+    0% {
+        -o-transform: rotate(0deg) scale(0.7) skew(1deg);
+        opacity: 0.2;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:110 */
+    50% {
+        -o-transform: rotate(0deg) scale(1) skew(1deg);
+        opacity: 0.2;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:111 */
+    100% {
+        -o-transform: rotate(0deg) scale(0.7) skew(1deg);
+        opacity: 0.2;
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:114 */
+@keyframes circle-fill-anim {
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:115 */
+    0% {
+        transform: rotate(0deg) scale(0.7) skew(1deg);
+        opacity: 0.2;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:116 */
+    50% {
+        transform: rotate(0deg) scale(1) skew(1deg);
+        opacity: 0.2;
+    }
+    /* C:/Development/mygit/SU/su/packages/su/modern/sass/src/PulseButton.scss:117 */
+    100% {
+        transform: rotate(0deg) scale(0.7) skew(1deg);
+        opacity: 0.2;
+    }
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/field/Tag.scss:2 */
+.x-tagfield .x-before-input-el,
+.x-tagfield .x-after-input-el {
+    display: flex;
+    flex-wrap: wrap;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/field/Tag.scss:7 */
+.x-tagfield .x-tag {
+    display: flex;
+    padding: 4px;
+    margin: 4px;
+    cursor: default;
+    background-color: #6ab8f7;
+    color: #fff;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -o-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-box-shadow: 1px 1px 1px #1976d2;
+    -moz-box-shadow: 1px 1px 1px #1976d2;
+    box-shadow: 1px 1px 1px #1976d2;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/field/Tag.scss:17 */
+.x-tagfield .x-tag .x-tag-tool {
+    margin-left: 2px;
+    color: #fff;
+    cursor: pointer;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/field/Tag.scss:25 */
+.x-tagfield.x-disabled .x-tag .x-tag-tool,
+.x-tagfield.x-field-readonly .x-tag .x-tag-tool {
+    display: none;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/field/plugin/HighlightArea.scss:2 */
+.x-highlight-container {
+    display: flex;
+    position: relative;
+    overflow: hidden !important;
+    -webkit-text-size-adjust: none !important;
+    flex: 1 1 auto;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/field/plugin/HighlightArea.scss:9 */
+.x-highlight-container .x-backdrop {
+    position: absolute !important;
+    top: 0 !important;
+    right: -99px !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    padding-right: 99px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/field/plugin/HighlightArea.scss:20 */
+.x-highlight-container .x-highlights {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 4px;
+    font: 400 13px/16px Roboto, sans-serif;
+    border-color: transparent !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    color: transparent !important;
+    overflow: hidden !important;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/field/plugin/HighlightArea.scss:34 */
+.x-highlight-container .x-highlights mark {
+    padding: 0 !important;
+    color: transparent;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/field/plugin/HighlightArea.scss:40 */
+.x-highlight-container .x-input {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+}
+/* C:/Development/mygit/SU/su/packages/su/modern/sass/src/field/plugin/HighlightArea.scss:48 */
+.x-highlight-container .x-content {
+    background: none transparent !important;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Panel.scss:951 */
+.x-panel-accordion-body-el {
+    padding: 10px;
+    border-width: 0;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Panel.scss:969 */
+.x-panel-accordion-boxscroller {
+    border-width: 0;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Panel.scss:972 */
+.x-panel-accordion-boxscroller > .x-boxscroller-body > .x-body-el {
+    border: 0;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/panel/Header.scss:68 */
+.x-panelheader-accordion {
+    background-color: #f5f5f5;
+    background-image: none;
+    border-width: 0;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/panel/Header.scss:104 */
+.x-panelheader-accordion.x-docked-right {
+    border-width: 0;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/panel/Header.scss:118 */
+.x-panelheader-accordion.x-docked-left {
+    border-width: 0;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/panel/Header.scss:132 */
+.x-panelheader-accordion.x-docked-bottom {
+    border-width: 0;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/panel/Title.scss:117 */
+.x-paneltitle-accordion {
+    color: #111;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/panel/Title.scss:130 */
+.x-paneltitle-accordion .x-icon-el {
+    color: #111;
+}
+/* C:/Development/mygit/SU/ext/modern/theme-neptune/sass/var/Tool.scss:431 */
+.x-paneltool-accordion .x-icon-el {
+    color: #9e9e9e;
+}

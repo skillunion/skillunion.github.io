@@ -25,18 +25,16 @@ Ext.define(&#39;SU.locale.LocalePlugin&#39;, {
     extend: &#39;Ext.plugin.Abstract&#39;,
     alias: &#39;plugin.localization&#39;,
 
-	requires: [
-		&#39;SU.locale.model.ClientModel&#39;
-	],
+    requires: [&#39;SU.locale.model.ClientModel&#39;],
 
     config: {
 <span id='SU-locale-LocalePlugin-cfg-method'>        /**
 </span>         * Метод копонента, вызываемый при изменении локализации.
          * @cfg {Function/String} method
-		 * @cfg {Mixed} method.property
-		 * Значение найденное в Ext.Language#properties по ключу #key
-		 * или Ext.Language#properties если ключ #key не указан или
-		 * значение не найдено.
+         * @cfg {Mixed} method.property
+         * Значение найденное в Ext.Language#properties по ключу #key
+         * или Ext.Language#properties если ключ #key не указан или
+         * значение не найдено.
          */
         method: Ext.EmptyFn,
 
@@ -49,11 +47,11 @@ Ext.define(&#39;SU.locale.LocalePlugin&#39;, {
 
 <span id='SU-locale-LocalePlugin-method-init'>    /**
 </span>     * Инициализация плагина при создании компонента.
-	 * Регистрирует компонент в Ext.Language.
+     * Регистрирует компонент в Ext.Language.
      *
      * @param {Ext.Component} client
      */
-    init: function(client) {
+    init: function (client) {
         this.clientModel = Ext.create(&#39;SU.locale.model.ClientModel&#39;, {
             client: client,
             method: this.getMethod(),

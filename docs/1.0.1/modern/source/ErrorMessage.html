@@ -31,161 +31,157 @@
  *
  * @singleton
  */
-(function(){
+(function () {
+    /*
+     * Список сообщений об ошибках
+     */
+    var errorList = [];
 
-	/*
-	 * Список сообщений об ошибках
-	 */
-	var errorList = [];
+    /*
+     * Окно сообщений об ошибках
+     */
+    var dlg;
 
-	/*
-	 * Окно сообщений об ошибках
-	 */
-	var dlg;
+    /*
+     * Номер отображаемой ошибки
+     */
+    var errorIndex = -1;
 
-	/*
-	 * Номер отображаемой ошибки
-	 */
-	var errorIndex = -1;
+    /*
+     * Создание окна вывода сообщения об ошибке
+     */
+    function createDialog() {
+        dlg = Ext.create(&#39;Ext.ErrorDialog&#39;, {
+            listeners: {
+                destroy: onDestroy,
+                close: onClose,
+                changepos: onChangePos
+            }
+        });
+        //		dlg.render( document.body );
+        //		dlg.getEl().addClass( &#39;x-window-dlg&#39; );
+        //		dlg.setIcon( Ext.ERROR );
+    }
 
-	/*
-	 * Создание окна вывода сообщения об ошибке
-	 */
-	function createDialog(){
-		dlg = Ext.create(&#39;Ext.ErrorDialog&#39;, {
-			listeners:{
-				destroy: onDestroy,
-				close: onClose,
-				changepos: onChangePos
-			}
-		} );
-//		dlg.render( document.body );
-//		dlg.getEl().addClass( &#39;x-window-dlg&#39; );
-//		dlg.setIcon( Ext.ERROR );
-	}
+    /*
+     * Отображение номера показываемой ошибки
+     */
+    function refreshNumber(index) {
+        !!dlg &amp;&amp;
+            dlg.updateNavigate({
+                current: index,
+                count: errorList.length
+            });
+    }
 
-	/*
-	 * Отображение номера показываемой ошибки
-	 */
-	function refreshNumber( index ){
-		!!dlg &amp;&amp; dlg.updateNavigate({
-			current: index,
-			count: errorList.length
-		});
-	}
+    /*
+     * Обработка уничтожения окна
+     */
+    function onDestroy() {
+        dlg = undefined;
+        errorList = [];
+    }
 
-	/*
-	 * Обработка уничтожения окна
-	 */
-	function onDestroy(){
-		dlg = undefined;
-		errorList = [];
-	}
+    /*
+     * Обработка при закрытии окна
+     */
+    function onClose() {
+        // Вызов обработчиков
+        for (var i = 0, len = errorList.length; i &lt; len; i++) {
+            if (errorList[i].handler &amp;&amp; typeof errorList[i].handler === &#39;function&#39;)
+                errorList[i].handler.call(errorList[i].scope || this, this, errorList[i]);
+        }
+    }
 
-	/*
-	 * Обработка при закрытии окна
-	 */
-	function onClose(){
-		// Вызов обработчиков
-		for (var i = 0, len = errorList.length; i &lt; len; i++){
-			if (errorList[i].handler &amp;&amp; typeof errorList[i].handler === &#39;function&#39;)
-				errorList[i].handler.call(errorList[i].scope || this, this, errorList[i]);
-		}
-	}
+    /*
+     * Смещение к сообщению об ошибке
+     * @param {Object} b
+     * @param {Number} step Смещение
+     */
+    function onChangePos(b, step) {
+        Ext.setError(errorIndex + step);
+    }
 
-	/*
-	 * Смещение к сообщению об ошибке
-	 * @param {Object} b
-	 * @param {Number} step Смещение
-	 */
-	function onChangePos(b, step){
-		Ext.setError(errorIndex + step);
-	}
+<span id='Ext-method-setError'>    /**
+</span>     * Установка на отображение указанного сообщения об ошибке
+     * @param {Number} index Номер сообщения в сохраненном списке
+     */
+    Ext.setError = function setError(index) {
+        if (!dlg || index &lt; 0 || index &gt;= errorList.length) {
+            return;
+        }
+        errorIndex = index;
+        refreshNumber(index);
+        dlg.updateException(errorList[index]);
+    };
 
-<span id='Ext-method-setError'>	/**
-</span>	 * Установка на отображение указанного сообщения об ошибке
-	 * @param {Number} index Номер сообщения в сохраненном списке
-	 */
-	Ext.setError = function setError( index ){
-		if (!dlg || index &lt; 0 || index &gt;= errorList.length){
-			return;
-		}
-		errorIndex = index;
-		refreshNumber(index);
-		dlg.updateException( errorList[index] );
-	};
+<span id='Ext-method-errorMessage'>    /**
+</span>     * Вывод сообщений об ошибке с использованием настройки окна
+     *
+     * @param {Object} options
+     * Параметры сообщения и настройки окна
+     * @param {Number} options.code код ошибки
+     * @param {String} options.message текст сообщения об ошибке
+     * @param {String} options.description (optional) текст описания ошибки
+     * (при отсутствии параметра детализация по ошибке не показывается)
+     * @param {String} options.title (optional) заголовок окна
+     * @param {String} options.icon (optional) картинка, рядом с текстом ошибки.
+     * По умолчанию {@link Ext#ERROR}.
+     * @param {Function} options.handler (optional)
+     * Функция окончательной обработки ошибки
+     * @param {Object} options.scope (optional) Область видимости при вызове &lt;tt&gt;handler&lt;/tt&gt;.
+     * По умолчанию - {@link Ext.ErrorDialog}
+     */
+    Ext.errorMessage = function errorMessage(options) {
+        var me = this;
+        // Добавление сообщения в список
+        !!options &amp;&amp; errorList.push(options);
 
-<span id='Ext-method-errorMessage'>	/**
-</span>	 * Вывод сообщений об ошибке с использованием настройки окна
-	 *
-	 * @param {Object} options
-	 * Параметры сообщения и настройки окна
-	 * @param {Number} options.code код ошибки
-	 * @param {String} options.message текст сообщения об ошибке
-	 * @param {String} options.description (optional) текст описания ошибки
-	 * (при отсутствии параметра детализация по ошибке не показывается)
-	 * @param {String} options.title (optional) заголовок окна
-	 * @param {String} options.icon (optional) картинка, рядом с текстом ошибки.
-	 * По умолчанию {@link Ext#ERROR}.
-	 * @param {Function} options.handler (optional)
-	 * Функция окончательной обработки ошибки
-	 * @param {Object} options.scope (optional) Область видимости при вызове &lt;tt&gt;handler&lt;/tt&gt;.
-	 * По умолчанию - {@link Ext.ErrorDialog}
-	 */
-	Ext.errorMessage = function errorMessage(options){
-		var me = this;
-		// Добавление сообщения в список
-		!!options &amp;&amp; errorList.push(options);
+        // Создание окна, если не создано
+        if (!dlg) {
+            createDialog();
+        }
+        if (dlg.isHidden()) {
+            // Если ранее не показывалось - показываем последнюю ошибку
+            dlg.show();
+            me.setError(errorList.length - 1);
+        } else {
+            // иначе - обновляем инфу о количестве ошибок
+            refreshNumber(errorIndex);
+            //dlg.show();
+        }
+    };
 
-		// Создание окна, если не создано
-		if( !dlg ){
-			createDialog();
-		}
-		if( dlg.isHidden() ){
-			// Если ранее не показывалось - показываем последнюю ошибку
-			dlg.show();
-			me.setError(errorList.length-1);
-		} else {
-			// иначе - обновляем инфу о количестве ошибок
-			refreshNumber(errorIndex);
-			//dlg.show();
-		}
-	};
+<span id='Ext-property-INFO'>    /**
+</span>     * CSS класс иконки сообщения.
+     * @type {String}
+     */
+    Ext.INFO = &#39;ext-mb-info&#39;;
 
-<span id='Ext-property-INFO'>	/**
-</span>	 * CSS класс иконки сообщения.
-	 * @type {String}
-	 */
-	Ext.INFO = &#39;ext-mb-info&#39;;
+<span id='Ext-property-WARNING'>    /**
+</span>     * CSS класс иконки прадупреждения.
+     * @type {String}
+     */
+    Ext.WARNING = &#39;ext-mb-warning&#39;;
 
-<span id='Ext-property-WARNING'>	/**
-</span>	 * CSS класс иконки прадупреждения.
-	 * @type {String}
-	 */
-	Ext.WARNING = &#39;ext-mb-warning&#39;;
+<span id='Ext-property-QUESTION'>    /**
+</span>     * CSS класс иконки запроса.
+     * @type {String}
+     */
+    Ext.QUESTION = &#39;ext-mb-question&#39;;
 
-<span id='Ext-property-QUESTION'>	/**
-</span>	 * CSS класс иконки запроса.
-	 * @type {String}
-	 */
-	Ext.QUESTION = &#39;ext-mb-question&#39;;
+<span id='Ext-property-ERROR'>    /**
+</span>     * CSS класс иконки ошибки.
+     * @type {String}
+     */
+    Ext.ERROR = &#39;ext-mb-error&#39;;
 
-<span id='Ext-property-ERROR'>	/**
-</span>	 * CSS класс иконки ошибки.
-	 * @type {String}
-	 */
-	Ext.ERROR = &#39;ext-mb-error&#39;;
-
-<span id='Ext-property-ADVANSED_HEIGHT'>	/**
-</span>	 * Высота панели описания ошибки.
-	 * @type {Number}
-	 */
-	Ext.ADVANSED_HEIGHT = 150;
-
+<span id='Ext-property-ADVANSED_HEIGHT'>    /**
+</span>     * Высота панели описания ошибки.
+     * @type {Number}
+     */
+    Ext.ADVANSED_HEIGHT = 150;
 })();
-
-
-
 </pre>
 </body>
 </html>

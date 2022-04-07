@@ -17,7 +17,7 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-PulseButton'>/**
 </span> * Плавающая пульсирующая кнопка с качающейся иконкой
- * 
+ *
  */
 Ext.define(&#39;SU.PulseButton&#39;, {
     extend: &#39;Ext.Component&#39;,
@@ -57,7 +57,7 @@ Ext.define(&#39;SU.PulseButton&#39;, {
 </span>
 <span id='SU-PulseButton-property-preventDefaultAction'>    preventDefaultAction: true,
 </span>
-<span id='SU-PulseButton-property-element'>    element:{
+<span id='SU-PulseButton-property-element'>    element: {
 </span>        tag: &#39;a&#39;,
         reference: &#39;element&#39;
     },
@@ -65,24 +65,24 @@ Ext.define(&#39;SU.PulseButton&#39;, {
 <span id='SU-PulseButton-property-template'>    template: [
 </span>        {
             reference: &#39;circleElement&#39;,
-            style: &quot;transform-origin: center;&quot;,
-            cls: &quot;x-pulse-circle&quot;
+            style: &#39;transform-origin: center;&#39;,
+            cls: &#39;x-pulse-circle&#39;
         },
         {
             reference: &#39;fillElement&#39;,
-            style: &quot;transform-origin: center;&quot;,
-            cls: &quot;x-pulse-circle-fill&quot;
+            style: &#39;transform-origin: center;&#39;,
+            cls: &#39;x-pulse-circle-fill&#39;
         },
         {
             reference: &#39;innerElement&#39;,
-            style: &quot;transform-origin: center;&quot;,
-            cls: &quot;x-pulse-icon-circle&quot;,
+            style: &#39;transform-origin: center;&#39;,
+            cls: &#39;x-pulse-icon-circle&#39;,
             onclick: &#39;return Ext.doEv(this, event);&#39;,
             children: [
                 {
                     reference: &#39;iconElement&#39;,
-                    style: &quot;transform-origin: center;&quot;,
-                    cls: &quot;x-pulse-icon-circleblock&quot;
+                    style: &#39;transform-origin: center;&#39;,
+                    cls: &#39;x-pulse-icon-circleblock&#39;
                 }
             ]
         }
@@ -106,7 +106,7 @@ Ext.define(&#39;SU.PulseButton&#39;, {
 
         element.setHeight(height);
         element.setStyle(&#39;lineHeight&#39;, height + &#39;px&#39;);
-        element.setStyle(&#39;fontSize&#39;, (height * .6) + &#39;px&#39;);
+        element.setStyle(&#39;fontSize&#39;, height * 0.6 + &#39;px&#39;);
 
         me.fillElement.setHeight(height * 1.4);
         me.innerElement.setTop((height * 1.4 - height) / 2);
@@ -149,7 +149,6 @@ Ext.define(&#39;SU.PulseButton&#39;, {
             Ext.callback(handler, me.getScope(), [me, e], 0, me);
         }
     }
-
 });
 </pre>
 </body>

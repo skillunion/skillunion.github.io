@@ -149,6 +149,30 @@
       "name": "su-native",
       "namespace": "SU",
       "format": "1",
+      "version": "1.0.1.202",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package for mobile applications",
+      "detailedDescription": "Sencha Cmd package for mobile applications",
+      "type": "code",
+      "requires": [
+        "su"
+      ],
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-07T00:18:58Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "8JS/SsSSlxw\u003d",
+          "signature": "OFOP7kawdwiD2gW9UjQWZ6qqInU9O4jOzx7SfPWzzhgtDWauLusm0yv7pWIBC7WW1aLUA75QNavbB0lIAF9WQTxH/abLcdquO8WsGapNxsT35b0/C3etuSDTAE5S8wPpqfWZdRlwCO1voSt/ns4aQ/1RyVN9JmklyTx4o/PnfLXHzGGwOZ759EJfEg58K4D+baQL1pGJkmI5uNtiZGrMItg84Aw7hkAjQh3xgtS8zGlLiI5snklohqyxQHGbISqurwzGu5gBR4x71Uio6geululGifpkP8BuXowIgr0M3lII7ckHuEON6GE1mUxMZ2/7rdTsDzohM26NEkzh9abp8A\u003d\u003d"
+        }
+      ]
+    },
+    {
+      "name": "su-native",
+      "namespace": "SU",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",

@@ -16,15 +16,16 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-native-overrides-fix-EventPublisherDom'>/**
-</span> * 
+</span> *
  */
 Ext.define(&#39;SU.native.overrides.fix.EventPublisherDom&#39;, {
     override: &#39;Ext.event.publisher.Dom&#39;,
-    
-<span id='SU-native-overrides-fix-EventPublisherDom-method-doDirectEvent'>    doDirectEvent: function(e, capture) {
+
+<span id='SU-native-overrides-fix-EventPublisherDom-method-doDirectEvent'>    doDirectEvent: function (e, capture) {
 </span>        var me = this,
             currentTarget = e.currentTarget,
-            timeStamp, el;
+            timeStamp,
+            el;
 
         e = new Ext.event.Event(e);
 
@@ -42,11 +43,11 @@ Ext.define(&#39;SU.native.overrides.fix.EventPublisherDom&#39;, {
         FIX
         el = Ext.cache[currentTarget.id];
         */
-       
-        if(currentTarget){
+
+        if (currentTarget) {
             el = Ext.cache[currentTarget.id];
         }
-        
+
         // Element can be removed from the cache by this time, with the node
         // still lingering for some reason. This can happen for example when
         // load event is fired on an iframe that we constructed when submitting
@@ -66,10 +67,7 @@ Ext.define(&#39;SU.native.overrides.fix.EventPublisherDom&#39;, {
 
         me.afterEvent(e);
     }
-    
 });
-
-
 </pre>
 </body>
 </html>

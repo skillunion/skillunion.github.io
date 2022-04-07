@@ -15,23 +15,24 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">
-<span id='SU-dataview-plugin-ListPaging'>/**
+  <pre class="prettyprint lang-js"><span id='SU-dataview-plugin-ListPaging'>/**
 </span> * Правим ошибку &quot;Cannot read property &#39;getBox&#39; of undefined&quot; в doEnsureBufferZone
  */
 Ext.define(&#39;SU.dataview.plugin.ListPaging&#39;, {
     override: &#39;Ext.dataview.plugin.ListPaging&#39;,
 
 <span id='SU-dataview-plugin-ListPaging-property-privates'>    privates: {
-</span>
-        doEnsureBufferZone: function () {
+</span>        doEnsureBufferZone: function () {
             var me = this,
                 list = me.cmp,
                 store = list.getStore(),
                 scroller = list.getScrollable(),
                 count = store &amp;&amp; store.getCount(),
                 bufferZone = me.getBufferZone(),
-                item, box, y, index;
+                item,
+                box,
+                y,
+                index;
 
             if (!store || !count || !scroller || me.getLoading()) {
                 return;
@@ -63,7 +64,6 @@ Ext.define(&#39;SU.dataview.plugin.ListPaging&#39;, {
         }
     }
 });
-
 </pre>
 </body>
 </html>

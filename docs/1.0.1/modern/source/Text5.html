@@ -16,7 +16,7 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-field-Text'>/**
-</span> * 
+</span> *
  */
 Ext.define(&#39;SU.field.Text&#39;, {
     override: &#39;Ext.field.Text&#39;,
@@ -47,8 +47,7 @@ Ext.define(&#39;SU.field.Text&#39;, {
     },
 
 <span id='Ext-field-Text-method-filterKeys'>    filterKeys: function (e) {
-</span>
-        if (e.ctrlKey &amp;&amp; !e.altKey || e.isSpecialKey()) return;
+</span>        if ((e.ctrlKey &amp;&amp; !e.altKey) || e.isSpecialKey()) return;
 
         var charCode = String.fromCharCode(e.getCharCode()),
             raw = this.getValue() || &#39;&#39;,

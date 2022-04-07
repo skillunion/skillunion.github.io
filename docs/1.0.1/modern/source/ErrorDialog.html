@@ -28,7 +28,7 @@
  * @history 30.06.2019
  * Переработано для ExtJS 6.5.2+ modern
  *
- * @history 22.04.2015 
+ * @history 22.04.2015
  * Создание модуля
  */
 Ext.define(&#39;SU.ErrorDialog&#39;, {
@@ -44,29 +44,29 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
 </span>
     //bodyPadding: 0,
 
-<span id='SU-ErrorDialog-property-textOk'>	/**
-</span>	 * @property {String}
-	 * Текст кнопки `Ок`
-	 */
-    textOk: &quot;Ok&quot;,
+<span id='SU-ErrorDialog-property-textOk'>    /**
+</span>     * @property {String}
+     * Текст кнопки `Ок`
+     */
+    textOk: &#39;Ok&#39;,
 
-<span id='SU-ErrorDialog-property-textAdvansed'>	/**
-</span>	 * @property {String}
-	 * Текст кнопки `Подробно`
-	 */
-    textAdvansed: &quot;Advanced&quot;,
+<span id='SU-ErrorDialog-property-textAdvansed'>    /**
+</span>     * @property {String}
+     * Текст кнопки `Подробно`
+     */
+    textAdvansed: &#39;Advanced&#39;,
 
-<span id='SU-ErrorDialog-property-textErrorTitle'>	/**
-</span>	 * @property {String}
-	 * Текст заголовка окна по умолчанию
-	 */
-    textErrorTitle: &quot;Error message&quot;,
+<span id='SU-ErrorDialog-property-textErrorTitle'>    /**
+</span>     * @property {String}
+     * Текст заголовка окна по умолчанию
+     */
+    textErrorTitle: &#39;Error message&#39;,
 
-<span id='SU-ErrorDialog-property-textErrorNumber'>	/**
-</span>	 * @property {String}
-	 * Шаблон строки отображения количества сообщений
-	 */
-    textErrorNumber: &quot;Error {0} of {1}&quot;,
+<span id='SU-ErrorDialog-property-textErrorNumber'>    /**
+</span>     * @property {String}
+     * Шаблон строки отображения количества сообщений
+     */
+    textErrorNumber: &#39;Error {0} of {1}&#39;,
 
 <span id='SU-ErrorDialog-cfg-keyMap'>    keyMap: {
 </span>        ESC: &#39;onEscape&#39;,
@@ -93,65 +93,70 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
         } else {
             me.description.setHeight(Ext.ADVANSED_HEIGHT);
         }
-
     },
-
 
 <span id='SU-ErrorDialog-method-initNavigate'>    initNavigate: function () {
 </span>        var me = this;
 
-<span id='SU-ErrorDialog-property-navigate'>		/**
-</span>		 * @property {Ext.Toolbar}
-		 * Панель отображения перехода между ошибками.
-		 * @private
-		 */
-        me.navigate = me.navigate || me.add({
-            xtype: &#39;toolbar&#39;,
-            docked: &#39;bottom&#39;,
-            ui: &#39;upper&#39;
-        });
+<span id='SU-ErrorDialog-property-navigate'>        /**
+</span>         * @property {Ext.Toolbar}
+         * Панель отображения перехода между ошибками.
+         * @private
+         */
+        me.navigate =
+            me.navigate ||
+            me.add({
+                xtype: &#39;toolbar&#39;,
+                docked: &#39;bottom&#39;,
+                ui: &#39;upper&#39;
+            });
 
-<span id='SU-ErrorDialog-property-errorNumber'>		/**
-</span>		 * @property {Ext.Label}
-		 * Поле отображения количества ошибок и номера отображаемой ошибки.
-		 * @private
-		 */
-        me.errorNumber = me.errorNumber || me.navigate.add({
-            xtype: &#39;label&#39;,
-            flex: 1,
-            ui: &#39;light&#39;
-        });
+<span id='SU-ErrorDialog-property-errorNumber'>        /**
+</span>         * @property {Ext.Label}
+         * Поле отображения количества ошибок и номера отображаемой ошибки.
+         * @private
+         */
+        me.errorNumber =
+            me.errorNumber ||
+            me.navigate.add({
+                xtype: &#39;label&#39;,
+                flex: 1,
+                ui: &#39;light&#39;
+            });
 
-<span id='SU-ErrorDialog-property-btnPrev'>		/**
-</span>		 * @property {Ext.Button}
-		 * Кнопка &#39;Назад&#39; для перехода между ошибками.
-		 * Отображается когда в диалог передано несколько ошибок.
-		 * @private
-		 */
-        me.btnPrev = me.btnPrev || me.navigate.add({
-            width: 50,
-            text: &#39;&lt;&lt;&#39;,
-            cls: &#39;x-error-btn-prev&#39;,
-            focusable: false,
-            handler: &#39;onPrev&#39;,
-            scope: me
-        });
+<span id='SU-ErrorDialog-property-btnPrev'>        /**
+</span>         * @property {Ext.Button}
+         * Кнопка &#39;Назад&#39; для перехода между ошибками.
+         * Отображается когда в диалог передано несколько ошибок.
+         * @private
+         */
+        me.btnPrev =
+            me.btnPrev ||
+            me.navigate.add({
+                width: 50,
+                text: &#39;&lt;&lt;&#39;,
+                cls: &#39;x-error-btn-prev&#39;,
+                focusable: false,
+                handler: &#39;onPrev&#39;,
+                scope: me
+            });
 
-<span id='SU-ErrorDialog-property-btnNext'>		/**
-</span>		 * @property {Ext.Button}
-		 * Кнопка &#39;Вперед&#39; для перехода между ошибками.
-		 * Отображается когда в диалог передано несколько ошибок.
-		 * @private
-		 */
-        me.btnNext = me.btnNext || me.navigate.add({
-            width: 50,
-            text: &#39;&gt;&gt;&#39;,
-            cls: &#39;x-error-btn-next&#39;,
-            focusable: false,
-            handler: &#39;onNext&#39;,
-            scope: me
-        });
-
+<span id='SU-ErrorDialog-property-btnNext'>        /**
+</span>         * @property {Ext.Button}
+         * Кнопка &#39;Вперед&#39; для перехода между ошибками.
+         * Отображается когда в диалог передано несколько ошибок.
+         * @private
+         */
+        me.btnNext =
+            me.btnNext ||
+            me.navigate.add({
+                width: 50,
+                text: &#39;&gt;&gt;&#39;,
+                cls: &#39;x-error-btn-next&#39;,
+                focusable: false,
+                handler: &#39;onNext&#39;,
+                scope: me
+            });
     },
 
 <span id='SU-ErrorDialog-method-initMessageInfo'>    initMessageInfo: function () {
@@ -162,22 +167,22 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
             }),
             buttons;
 
-<span id='SU-ErrorDialog-property-icon'>		/**
-</span>		 * Иконка сообщения
-		 * @property {Ext.Component}
-		 * @private
-		 */
+<span id='SU-ErrorDialog-property-icon'>        /**
+</span>         * Иконка сообщения
+         * @property {Ext.Component}
+         * @private
+         */
         me.icon = container.add({
             xtype: &#39;component&#39;,
             itemId: &#39;erroricon&#39;,
             cls: &#39;x-error-icon&#39;
         });
 
-<span id='SU-ErrorDialog-property-message'>		/**
-</span>		 * Поле отображения информации об ошибке.
-		 * @property {Ext.Component}
-		 * @private
-		 */
+<span id='SU-ErrorDialog-property-message'>        /**
+</span>         * Поле отображения информации об ошибке.
+         * @property {Ext.Component}
+         * @private
+         */
         me.message = container.add({
             xtype: &#39;component&#39;,
             itemId: &#39;errormessage&#39;,
@@ -193,11 +198,11 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
             layout: { align: &#39;stretch&#39;, type: &#39;vbox&#39; }
         });
 
-<span id='SU-ErrorDialog-property-btnOk'>		/**
-</span>		 * Кнопка &#39;OK&#39;
-		 * @property {Ext.Button}
-		 * @private
-		 */
+<span id='SU-ErrorDialog-property-btnOk'>        /**
+</span>         * Кнопка &#39;OK&#39;
+         * @property {Ext.Button}
+         * @private
+         */
         me.btnOk = buttons.add({
             xtype: &#39;button&#39;,
             margin: 5,
@@ -207,11 +212,11 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
             scope: me
         });
 
-<span id='SU-ErrorDialog-property-btnAdvansed'>		/**
-</span>		 * Кнопка &#39;Подробно&#39;. Скрывает или показывает подробности сообщения.
-		 * @property {Ext.SegmentedButton}
-		 * @private
-		 */
+<span id='SU-ErrorDialog-property-btnAdvansed'>        /**
+</span>         * Кнопка &#39;Подробно&#39;. Скрывает или показывает подробности сообщения.
+         * @property {Ext.SegmentedButton}
+         * @private
+         */
         me.btnAdvansed = buttons.add({
             xtype: &#39;button&#39;,
             docked: &#39;bottom&#39;,
@@ -223,26 +228,26 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
             toggleHandler: &#39;onAdvansed&#39;,
             scope: me
         });
-
     },
 
 <span id='SU-ErrorDialog-method-initDescription'>    initDescription: function () {
 </span>        var me = this;
 
-<span id='SU-ErrorDialog-property-description'>		/**
-</span>		 * Контейнер отображения дополнительной информации об ошибке.
-		 * @property {Ext.Container}
-		 * @private
-		 */
-        me.description = me.description || me.add({
-            xtype: &#39;container&#39;,
-            itemId: &#39;description&#39;,
-            //hidden: true,
-            scrollable: true,
-            border: 1,
-            cls: &#39;x-error-description&#39;
-        });
-
+<span id='SU-ErrorDialog-property-description'>        /**
+</span>         * Контейнер отображения дополнительной информации об ошибке.
+         * @property {Ext.Container}
+         * @private
+         */
+        me.description =
+            me.description ||
+            me.add({
+                xtype: &#39;container&#39;,
+                itemId: &#39;description&#39;,
+                //hidden: true,
+                scrollable: true,
+                border: 1,
+                cls: &#39;x-error-description&#39;
+            });
     },
 
 <span id='SU-ErrorDialog-method-afterRender'>    afterRender: function () {
@@ -256,15 +261,15 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
         //});
     },
 
-<span id='SU-ErrorDialog-method-updateNavigate'>	/**
-</span>	 * Обновляет сведения о количестве ошибок.
-	 *
-	 * @param {Object} config
-	 * @param {Number} config.count количество ошибок
-	 * @param {Object} config.current номер отображаемой ошибки
-	 *
-	 * @protected
-	 */
+<span id='SU-ErrorDialog-method-updateNavigate'>    /**
+</span>     * Обновляет сведения о количестве ошибок.
+     *
+     * @param {Object} config
+     * @param {Number} config.count количество ошибок
+     * @param {Object} config.current номер отображаемой ошибки
+     *
+     * @protected
+     */
     updateNavigate: function (config) {
         config = config || {};
 
@@ -277,33 +282,31 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
         me.navigate.setHidden(!visible);
         me.btnNext.setDisabled(!nextEnable);
         me.btnPrev.setDisabled(!prevEnable);
-        me.errorNumber.setHtml(
-            Ext.String.format(me.textErrorNumber, index + 1, config.count)
-        );
+        me.errorNumber.setHtml(Ext.String.format(me.textErrorNumber, index + 1, config.count));
     },
 
-<span id='SU-ErrorDialog-method-updateException'>	/**
-</span>	 * Обновление данных информационных полей из объекта ошибки
-	 *
-	 * @param {Ext.Error|Object} exception 
+<span id='SU-ErrorDialog-method-updateException'>    /**
+</span>     * Обновление данных информационных полей из объекта ошибки
+     *
+     * @param {Ext.Error|Object} exception
      * Сообщение об ошибке
-     * 
-	 * @param {String} exception.message 
+     *
+     * @param {String} exception.message
      * текст сообщения об ошибке
-     * 
-	 * @param {String} exception.description (optional) 
+     *
+     * @param {String} exception.description (optional)
      * текст дополнительного описания ошибки
-     * 
-	 * @param {String} exception.title (optional) 
+     *
+     * @param {String} exception.title (optional)
      * заголовок окна
-     * 
-	 * @param {String} exception.icon (optional) 
+     *
+     * @param {String} exception.icon (optional)
      * CSS класс иконки сообщения. По умолчанию {@link Ext#ERROR}.
-     * 
+     *
      * False - скрытие иконки
-	 *
-	 * @protected
-	 */
+     *
+     * @protected
+     */
     updateException: function (exception) {
         var me = this,
             description = exception.description || &#39;&#39;,
@@ -319,9 +322,10 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
         me.icon.addCls(exception.icon || Ext.ERROR);
         me.icon.setHidden(exception.icon === false);
 
-        if (exception.stack
-            &amp;&amp; me.statics().APPEND_STACK
-            &amp;&amp; (me.statics().APPEND_STACK_EMPTY_DESCRIPTION || !!description)
+        if (
+            exception.stack &amp;&amp;
+            me.statics().APPEND_STACK &amp;&amp;
+            (me.statics().APPEND_STACK_EMPTY_DESCRIPTION || !!description)
         ) {
             description += &#39;\n\n&#39;;
             description += exception.stack;
@@ -333,11 +337,11 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
         me.description.setHidden(me.btnAdvansed.getHidden() || !me.btnAdvansed.getPressed());
     },
 
-<span id='SU-ErrorDialog-method-doToggleAdvansed'>	/**
-</span>	 * Обработка переключения кнопки `Дополнительно`.
-	 *
-	 * @private
-	 */
+<span id='SU-ErrorDialog-method-doToggleAdvansed'>    /**
+</span>     * Обработка переключения кнопки `Дополнительно`.
+     *
+     * @private
+     */
     doToggleAdvansed: function () {
         var me = this,
             errorDescription = me.down(&#39;#errordescription&#39;),
@@ -349,72 +353,67 @@ Ext.define(&#39;SU.ErrorDialog&#39;, {
         errorDescription.setVisible(visibled);
     },
 
-<span id='SU-ErrorDialog-method-onPrev'>	/**
-</span>	 * Обработка нажатия кнопки {@link #btnPrev переход к предыдущей ошибке}.
-	 * @param {Ext.Button} btn Кнопка
-	 * @param {Ext.event.Event} e Событие
-	 * @private
-	 */
+<span id='SU-ErrorDialog-method-onPrev'>    /**
+</span>     * Обработка нажатия кнопки {@link #btnPrev переход к предыдущей ошибке}.
+     * @param {Ext.Button} btn Кнопка
+     * @param {Ext.event.Event} e Событие
+     * @private
+     */
     onPrev: function (btn, e) {
         e.stopEvent();
-        this.fireEvent(&quot;changepos&quot;, btn, -1);
+        this.fireEvent(&#39;changepos&#39;, btn, -1);
     },
 
-<span id='SU-ErrorDialog-method-onNext'>	/**
-</span>	 * Обработка нажатия кнопки {@link #btnNext переход к следующей ошибке}.
-	 * @param {Ext.Button} btn Кнопка
-	 * @param {Ext.event.Event} e Событие
-	 * @private
-	 */
+<span id='SU-ErrorDialog-method-onNext'>    /**
+</span>     * Обработка нажатия кнопки {@link #btnNext переход к следующей ошибке}.
+     * @param {Ext.Button} btn Кнопка
+     * @param {Ext.event.Event} e Событие
+     * @private
+     */
     onNext: function (btn, e) {
         e.stopEvent();
-        this.fireEvent(&quot;changepos&quot;, btn, 1);
+        this.fireEvent(&#39;changepos&#39;, btn, 1);
     },
 
-<span id='SU-ErrorDialog-method-onOk'>	/**
-</span>	 * Обработка нажатия кнопки {@link #btnOk закрытия диалогового окна}.
-	 *
-	 * @param {Ext.Button} btn Кнопка
-	 * @param {Ext.event.Event} e Событие
-	 * @private
-	 */
+<span id='SU-ErrorDialog-method-onOk'>    /**
+</span>     * Обработка нажатия кнопки {@link #btnOk закрытия диалогового окна}.
+     *
+     * @param {Ext.Button} btn Кнопка
+     * @param {Ext.event.Event} e Событие
+     * @private
+     */
     onOk: function (btn, e) {
         e.stopEvent();
         this.destroy();
     },
 
-<span id='SU-ErrorDialog-method-onAdvansed'>	/**
-</span>	 * Обработка нажатий кнопки {@link #btnAdvansed скрыть|показать подробности сообщения}.
-	 *
-	 * @param {Ext.Button} btn Кнопка
-	 * @param {Boolean} pressed Состояние кнопки
-	 *
-	 * @private
-	 */
+<span id='SU-ErrorDialog-method-onAdvansed'>    /**
+</span>     * Обработка нажатий кнопки {@link #btnAdvansed скрыть|показать подробности сообщения}.
+     *
+     * @param {Ext.Button} btn Кнопка
+     * @param {Boolean} pressed Состояние кнопки
+     *
+     * @private
+     */
     onAdvansed: function (btn, pressed) {
         this.description.setHidden(!pressed);
     },
 
     statics: {
-
-<span id='SU-ErrorDialog-static-property-APPEND_STACK'>		/**
-</span>		 * Управляет добавлением данных стека, при их наличии, в описание ошибки
-		 */
+<span id='SU-ErrorDialog-static-property-APPEND_STACK'>        /**
+</span>         * Управляет добавлением данных стека, при их наличии, в описание ошибки
+         */
         APPEND_STACK: true,
 
-<span id='SU-ErrorDialog-static-property-APPEND_STACK_EMPTY_DESCRIPTION'>		/**
-</span>		 * Управляет добавлением данных стека в пустое описание.
-		 *
-		 * Как правило, пустое описание связано с выводом информационных сообщений.
-		 * Для ошибок описание всегда существует.
-		 */
+<span id='SU-ErrorDialog-static-property-APPEND_STACK_EMPTY_DESCRIPTION'>        /**
+</span>         * Управляет добавлением данных стека в пустое описание.
+         *
+         * Как правило, пустое описание связано с выводом информационных сообщений.
+         * Для ошибок описание всегда существует.
+         */
         APPEND_STACK_EMPTY_DESCRIPTION: false
-
     }
-
 });
-
-
 </pre>
 </body>
 </html>

@@ -21,7 +21,7 @@
  */
 Ext.define(&#39;SU.dataview.Abstract&#39;, {
     override: &#39;Ext.dataview.Abstract&#39;,
-    
+
 <span id='SU-dataview-Abstract-method-onInnerFocusEnter'>    onInnerFocusEnter: function (e) {
 </span>        var me = this,
             navigationModel = me.getNavigationModel(),
@@ -52,17 +52,17 @@ Ext.define(&#39;SU.dataview.Abstract&#39;, {
 
         itemCount = me.getFastItems().length;
 
-        if (itemCount &amp;&amp; focusPosition) { // было if (itemCount) {
+        if (itemCount &amp;&amp; focusPosition) {
+            // было if (itemCount) {
             if (focusPosition.isWidget) {
                 focusPosition = focusPosition.getFocusEl() || focusPosition.el;
             }
 
             if (focusPosition.sourceElement) {
-                navigationModel.setLocation(focusPosition,
-                    {
-                        event: e,
-                        navigate: false
-                    });
+                navigationModel.setLocation(focusPosition, {
+                    event: e,
+                    navigate: false
+                });
             }
         }
 

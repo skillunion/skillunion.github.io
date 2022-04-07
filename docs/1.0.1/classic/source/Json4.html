@@ -37,16 +37,16 @@ Ext.define(&#39;SU.data.field.Json&#39;, {
 </span>     * @inheritdoc
      * @localdoc
      * Преобразование JSON-строки в Object.
-     * 
+     *
      * При неудачном преобразовании возвращает null или пустой массив
      * в зависимости от #allowNull.
-     * 
+     *
      * @param {Mixed} v -
      * @return {Mixed} -
      */
     convert: function (v) {
         var me = this;
-        
+
         if (v === undefined || v === null || v === &#39;&#39;) {
             return me.allowNull ? null : [];
         }
@@ -55,19 +55,19 @@ Ext.define(&#39;SU.data.field.Json&#39;, {
             try {
                 v = JSON.parse(v || &#39;[]&#39;);
             } catch (e) {
-                //&lt;debug&gt;
+                // &lt;debug&gt;
                 // eslint-disable-next-line no-console
                 console.log(e);
-                //&lt;/debug&gt;
+                // &lt;/debug&gt;
                 return me.allowNull ? null : [];
             }
-        } else if(Ext.isArray(v)){
+        } else if (Ext.isArray(v)) {
             v = Ext.Array.clone(v);
         } else {
             v = Ext.Object.chain(v);
         }
 
-        //me.rawValue = JSON.stringify(v);
+        // me.rawValue = JSON.stringify(v);
         return v;
     },
 
@@ -75,15 +75,15 @@ Ext.define(&#39;SU.data.field.Json&#39;, {
 </span>        var me = this;
 
         if (me.allowNull &amp;&amp; (v === undefined || v === null)) {
-            //me.rawValue = this.allowNull ? null : JSON.stringify([]);
+            // me.rawValue = this.allowNull ? null : JSON.stringify([]);
             return null;
         }
 
         if (v) {
-            //me.rawValue === JSON.stringify(v);
+            // me.rawValue === JSON.stringify(v);
             return me.serialized ? JSON.stringify(v) : v;
         } else {
-            //me.rawValue = me.allowNull ? null : JSON.stringify([]);
+            // me.rawValue = me.allowNull ? null : JSON.stringify([]);
             return null;
         }
     },
@@ -93,21 +93,23 @@ Ext.define(&#39;SU.data.field.Json&#39;, {
 
         try {
             if (value1 === value2) {
-                return (value1 ? JSON.stringify(value1) : me.allowNull ? null : JSON.stringify([])) === (value2 ? JSON.stringify(value2) : me.allowNull ? null : JSON.stringify([]));
-
+                return (
+                    (value1 ? JSON.stringify(value1) : me.allowNull ? null : JSON.stringify([])) ===
+                    (value2 ? JSON.stringify(value2) : me.allowNull ? null : JSON.stringify([]))
+                );
             }
             return false;
         } catch (e) {
-            //&lt;debug&gt;
+            // &lt;debug&gt;
             // eslint-disable-next-line no-console
             console.log(e);
-            //&lt;/debug&gt;
+            // &lt;/debug&gt;
             return false;
         }
     },
 
 <span id='SU-data-field-Json-method-getType'>    getType: function () {
-</span>        return &quot;json&quot;;
+</span>        return &#39;json&#39;;
     }
 });
 </pre>

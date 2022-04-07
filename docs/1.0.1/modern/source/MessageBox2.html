@@ -16,66 +16,67 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-native-overrides-MessageBox'>/**
-</span> * Подменяет окна сообщений Ext.Msg#alert, Ext.Msg#confirm 
+</span> * Подменяет окна сообщений Ext.Msg#alert, Ext.Msg#confirm
  * и Ext.Msg#prompt нативными диалогами при сборке в `cordova`
- * с подключенным плагином 
+ * с подключенным плагином
  * [cordova-plugin-dialogs](https://www.npmjs.com/package/cordova-plugin-dialogs).
- * 
+ *
  */
-Ext.define(&#39;SU.native.overrides.MessageBox&#39;, {
-    override: &#39;Ext.MessageBox&#39;,
+Ext.define(
+    &#39;SU.native.overrides.MessageBox&#39;,
+    {
+        override: &#39;Ext.MessageBox&#39;,
 
-<span id='Ext-MessageBox-property-nativeDialog'>    /**
-</span>     * @property {Boolean} nativeDialog
-     * `false` выключает использование нативных диалогов
-     */
-    nativeDialog: false,
+<span id='Ext-MessageBox-property-nativeDialog'>        /**
+</span>         * @property {Boolean} nativeDialog
+         * `false` выключает использование нативных диалогов
+         */
+        nativeDialog: false,
 
-<span id='SU-native-overrides-MessageBox-method-show'>    show: function (msgBoxOptions) {
-</span>
-        if (!navigator.notification || !this.nativeDialog) {
-            return this.callParent(arguments);
+<span id='SU-native-overrides-MessageBox-method-show'>        show: function (msgBoxOptions) {
+</span>            if (!navigator.notification || !this.nativeDialog) {
+                return this.callParent(arguments);
+            }
+
+            var me = this,
+                method,
+                buttons;
+            msgBoxOptions = msgBoxOptions || {};
+
+            me.setButtons(msgBoxOptions.buttons || Ext.MessageBox.OK);
+            buttons = me.getButtons();
+            buttons = buttons.items.items.map(function (btn) {
+                return { text: btn.getText(), itemId: btn.getItemId() };
+            });
+
+            method = msgBoxOptions.prompt ? &#39;prompt&#39; : buttons.length &gt; 1 ? &#39;confirm&#39; : &#39;alert&#39;;
+
+            navigator.notification[method].call(
+                me,
+                msgBoxOptions.message || &#39;&#39;,
+                function (results) {
+                    results = results || {};
+                    var buttonIndex = (typeof results === &#39;number&#39; ? results : results.buttonIndex) || 1,
+                        value = results.input1;
+
+                    if (msgBoxOptions.fn) {
+                        Ext.callback(msgBoxOptions.fn, msgBoxOptions.scope, [buttons[--buttonIndex].itemId, value]);
+                    }
+                },
+                msgBoxOptions.title || &#39;Alert&#39;,
+                buttons.map(function (btn) {
+                    return Ext.String.capitalize(btn.text);
+                }),
+                msgBoxOptions.value
+            );
         }
-
-        var me = this,
-            method,
-            buttons;
-        msgBoxOptions = msgBoxOptions || {};
-
-        me.setButtons(msgBoxOptions.buttons || Ext.MessageBox.OK);
-        buttons = me.getButtons();
-        buttons = buttons.items.items.map(function (btn) {
-            return { text: btn.getText(), itemId: btn.getItemId() };
+    },
+    function () {
+        Ext.onReady(function () {
+            Ext.MessageBox.prototype.nativeDialog = !!navigator.notification;
         });
-
-        method = msgBoxOptions.prompt ? &#39;prompt&#39; : (buttons.length &gt; 1 ? &#39;confirm&#39; : &#39;alert&#39;);
-
-        navigator.notification[method].call(me,
-            msgBoxOptions.message || &#39;&#39;,
-            function (results) {
-                results = results || {};
-                var buttonIndex = (typeof results === &#39;number&#39; ? results : results.buttonIndex) || 1,
-                    value = results.input1;
-
-                if (msgBoxOptions.fn) {
-                    Ext.callback(msgBoxOptions.fn, msgBoxOptions.scope, [buttons[--buttonIndex].itemId, value]);
-                }
-            },
-            msgBoxOptions.title || &#39;Alert&#39;,
-            buttons.map(function (btn) { return Ext.String.capitalize(btn.text); }),
-            msgBoxOptions.value
-        );
     }
-
-}, function () {
-
-    Ext.onReady(function () {
-        Ext.MessageBox.prototype.nativeDialog = !!navigator.notification;
-    });
-});
-
-
-
+);
 </pre>
 </body>
 </html>

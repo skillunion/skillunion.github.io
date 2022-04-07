@@ -17,23 +17,24 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-field-File'>/**
 </span> * Bug: Ext.field.File ошибочно использует конфигурацию `proxyConfigs` для
- * 
+ *
  * - accept
  * - capture
  * - multiple
- * 
+ *
  * На самом деле должен быть `proxyConfig`
  */
-Ext.define(&#39;SU.field.File&#39;, {
-    override: &#39;Ext.field.File&#39;
+Ext.define(
+    &#39;SU.field.File&#39;,
+    {
+        override: &#39;Ext.field.File&#39;
+    },
+    function (Cls) {
+        var proxyConfig = Cls.prototype.proxyConfigs;
 
-}, function (Cls) {
-
-    var proxyConfig = Cls.prototype.proxyConfigs;
-
-    Ext.mixin.ConfigProxy.processClass(Cls, proxyConfig);
-
-});
+        Ext.mixin.ConfigProxy.processClass(Cls, proxyConfig);
+    }
+);
 </pre>
 </body>
 </html>

@@ -37,8 +37,7 @@ Ext.define(&#39;SU.grid.TextAreaCellEditor&#39;, {
                 var pos = withIns.length;
                 el.value = withIns + el.value.substring(el.selectionEnd, el.value.length);
                 el.setSelectionRange(pos, pos);
-            }
-            else if (document.selection) {
+            } else if (document.selection) {
                 document.selection.createRange().text = &#39;    &#39;;
             }
             return false;
@@ -51,7 +50,6 @@ Ext.define(&#39;SU.grid.TextAreaCellEditor&#39;, {
 
         me.callParent(arguments);
     }
-
 });
 </pre>
 </body>

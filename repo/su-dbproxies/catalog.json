@@ -239,6 +239,45 @@
       "name": "su-dbproxies",
       "namespace": "SU.dbproxies",
       "format": "1",
+      "version": "1.0.1.202",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "ExtJS proxies for Websql/Sqlite and IndexedDB",
+      "detailedDescription": "ExtJS proxies for Websql/Sqlite and IndexedDB",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-07T00:18:44Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "+sy0bn5crc0\u003d",
+          "signature": "LHN7q8AE93pPvgxvUS051kJZ1Cf4iplu0TajnOj29amfrOlGqypD8ryr4DhyHg9eevPWvypijBIFTuCTiwHPGatidclWoDRH3k7JsgaFalv2cFt7dNhCmZ6JDezOZV1zMa0aiIDyi4LeZPc4LWue/ahO/051d9NEFakCoXaPdCHGZ7gC42SZrhU1K3BpzC0QemYl/ByFLKH7GH0JjCWPH+r/Wxe9QQP1WVSXCje6Pe5cZPZ7v8cPM1oFMaOyeoH+PJsB9RqUPoKatmGqGWt921Abvd3Ub4wLRLLDAtBrxN61gNOfFCXlsTOQqYNrjHCqZVD8yxApFCUV1caI78NkVg\u003d\u003d"
+        }
+      ],
+      "slicer": {
+        "js": [
+          {
+            "path": "${package.dir}/sass/example/custom.js",
+            "isWidgetManifest": true
+          }
+        ]
+      },
+      "builds": {
+        "su-dbproxies-classic": {
+          "toolkit": "classic",
+          "name": "su-dbproxies-classic"
+        },
+        "su-dbproxies-modern": {
+          "toolkit": "modern",
+          "name": "su-dbproxies-modern"
+        }
+      }
+    },
+    {
+      "name": "su-dbproxies",
+      "namespace": "SU.dbproxies",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",

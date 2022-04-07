@@ -17,18 +17,18 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-field-Captcha'>/**
 </span> * CaptchaField для Google reCAPTCHA v2
- * 
+ *
  * Для подключения добавить в файл `app.json` в секцию js
- * 
+ *
  *     {
  *         &quot;path&quot;: &#39;https://www.google.com/recaptcha/api.js?render=explicit&#39;,
  *         &quot;remote&quot;: true
- *     } 
- * 
- * Чтобы начать работу, вам нужно будет зарегистрировать 
- * свой сайт {@link https://www.google.com/recaptcha/admin/create на этой странице}, 
+ *     }
+ *
+ * Чтобы начать работу, вам нужно будет зарегистрировать
+ * свой сайт {@link https://www.google.com/recaptcha/admin/create на этой странице},
  * выбрав опции `reCAPTCHA v2` и `Флажок &quot;Я не робот&quot;`.
- * 
+ *
  */
 Ext.define(&#39;SU.field.Captcha&#39;, {
     extend: &#39;Ext.field.Field&#39;,
@@ -36,7 +36,6 @@ Ext.define(&#39;SU.field.Captcha&#39;, {
     xtype: &#39;captchafield&#39;,
 
     config: {
-
 <span id='SU-field-Captcha-cfg-siteKey'>        /**
 </span>         * @cfg {String} siteKey (required)
          * ключ в HTML-коде, который ваш сайт передает на устройства пользователей
@@ -47,7 +46,7 @@ Ext.define(&#39;SU.field.Captcha&#39;, {
 </span>         * @cfg {String} theme
          * тема reCAPTCHA `light` или `dark`
          */
-        theme: &#39;dark&#39;,
+        theme: &#39;dark&#39;
 
 <span id='SU-field-Captcha-cfg-render'>        /**
 </span>         * @cfg {String} render
@@ -65,7 +64,8 @@ Ext.define(&#39;SU.field.Captcha&#39;, {
 </span>
 <span id='SU-field-Captcha-method-initialize'>    initialize: function () {
 </span>        var me = this,
-            po, s;
+            po,
+            s;
 
         me.callParent(arguments);
 
@@ -74,7 +74,6 @@ Ext.define(&#39;SU.field.Captcha&#39;, {
         } else {
             me.addCls(&#39;x-grecaptcha-error&#39;);
         }
-
     },
 
 <span id='SU-field-Captcha-method-getBodyTemplate'>    getBodyTemplate: function () {
@@ -98,16 +97,22 @@ Ext.define(&#39;SU.field.Captcha&#39;, {
 </span>        var me = this;
 
         grecaptcha.render(me.captchaElement.id, {
-            &#39;callback&#39;: function (response) { me.verifyCallback.call(me, response) },
-            &#39;expired-callback&#39;: function () { me.onRecaptchaExpired.call(me) },
-            &#39;error-callback&#39;: function () { me.onErrorCallback.call(me) }
+            callback: function (response) {
+                me.verifyCallback.call(me, response);
+            },
+            &#39;expired-callback&#39;: function () {
+                me.onRecaptchaExpired.call(me);
+            },
+            &#39;error-callback&#39;: function () {
+                me.onErrorCallback.call(me);
+            }
         });
     },
 
 <span id='SU-field-Captcha-method-verifyCallback'>    verifyCallback: function (response) {
 </span>        var me = this;
 
-        me.isCaptchaValid = (response.length &gt; 0);
+        me.isCaptchaValid = response.length &gt; 0;
         if (me.isCaptchaValid) {
             me.setValue(response);
             me.fireEvent(&#39;recaptchavalid&#39;, me);
@@ -137,7 +142,6 @@ Ext.define(&#39;SU.field.Captcha&#39;, {
 </span>        var me = this;
         return me.isDisabled() || me.isCaptchaValid;
     }
-
 });
 </pre>
 </body>

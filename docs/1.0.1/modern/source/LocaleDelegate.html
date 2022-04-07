@@ -20,14 +20,12 @@
  *
  */
 Ext.define(&#39;SU.locale.LocaleDelegate&#39;, {
-    requires: [
-        &#39;Ext.Ajax&#39;
-    ],
+    requires: [&#39;Ext.Ajax&#39;],
 
 <span id='SU-locale-LocaleDelegate-property-success'>    /**
 </span>     * Метод, вызываемый при успешной загрузке файла языкового пакета.
      * @type {Function}
-	 * @param {String} responseText Строка, содержащая текст ответа.
+     * @param {String} responseText Строка, содержащая текст ответа.
      * @private
      */
     success: undefined,
@@ -35,7 +33,7 @@ Ext.define(&#39;SU.locale.LocaleDelegate&#39;, {
 <span id='SU-locale-LocaleDelegate-property-failure'>    /**
 </span>     * Метод, вызываемый при проблемах в загрузке файла языкового пакета.
      * @type {Function}
-	 * @param {Object} response Объект XMLHttpRequest, содержащий данные ответа.
+     * @param {Object} response Объект XMLHttpRequest, содержащий данные ответа.
      * @private
      */
     failure: undefined,
@@ -52,7 +50,7 @@ Ext.define(&#39;SU.locale.LocaleDelegate&#39;, {
      * @param {Function} failure
      * @param {Object} scope
      */
-    constructor: function(success, failure, scope) {
+    constructor: function (success, failure, scope) {
         this.callParent(arguments);
 
         this.success = success;
@@ -65,9 +63,8 @@ Ext.define(&#39;SU.locale.LocaleDelegate&#39;, {
      *
      * @param {String} url - Адрес файла для загрузки
      */
-    loadPropertiesFile: function(url) {
-        if(!this.success || !this.scope)
-            return;
+    loadPropertiesFile: function (url) {
+        if (!this.success || !this.scope) return;
 
         Ext.Ajax.request({
             url: url,
@@ -83,8 +80,8 @@ Ext.define(&#39;SU.locale.LocaleDelegate&#39;, {
      * @private
      * @param {Object} response
      */
-    ajaxSuccess: function(response) {
-        this.success.call( this.scope, response.responseText );
+    ajaxSuccess: function (response) {
+        this.success.call(this.scope, response.responseText);
     },
 
 <span id='SU-locale-LocaleDelegate-method-ajaxFailure'>    /**
@@ -93,8 +90,8 @@ Ext.define(&#39;SU.locale.LocaleDelegate&#39;, {
      * @private
      * @param {Object} response
      */
-    ajaxFailure: function(response) {
-		this.failure.call( this.scope, response );
+    ajaxFailure: function (response) {
+        this.failure.call(this.scope, response);
     }
 });
 </pre>

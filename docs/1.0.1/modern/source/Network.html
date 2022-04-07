@@ -17,91 +17,98 @@
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='SU-native-Network'>/**
 </span> * Нативная проверка состояния интернет соединения
- * 
+ *
  * Переопределяет метод Ext.isOnline
  *
  * Плагин: [cordova-plugin-network-information](https://cordova.apache.org/docs/en/latest/reference/cordova-plugin-network-information/)
  */
-Ext.define(&#39;SU.native.Network&#39;, {
-    alternateClassName: [&#39;SU.Network&#39;],
-    singleton: true,
+Ext.define(
+    &#39;SU.native.Network&#39;,
+    {
+        alternateClassName: [&#39;SU.Network&#39;],
+        singleton: true,
 
-    requires: [
-        &#39;Ext.Toast&#39;
-    ],
+        requires: [&#39;Ext.Toast&#39;],
 
-    config: {
-<span id='SU-native-Network-cfg-signalling'>        signalling: true
-</span>    },
-    
-<span id='SU-native-Network-property-UNKNOWN'>    UNKNOWN: &#39;unknown&#39;,
-</span><span id='SU-native-Network-property-ETHERNET'>    ETHERNET: &#39;enternet&#39;,
-</span><span id='SU-native-Network-property-WIFI'>    WIFI: &#39;wifi&#39;,
-</span><span id='SU-native-Network-property-CELL_2G'>    CELL_2G: &#39;2g&#39;,
-</span><span id='SU-native-Network-property-CELL_3G'>    CELL_3G: &#39;3g&#39;,
-</span><span id='SU-native-Network-property-CELL_4G'>    CELL_4G: &#39;4g&#39;,
-</span><span id='SU-native-Network-property-CELL'>    CELL: &#39;cellular&#39;,
-</span><span id='SU-native-Network-property-NONE'>    NONE: &#39;none&#39;,
+        config: {
+<span id='SU-native-Network-cfg-signalling'>            signalling: true
+</span>        },
+
+<span id='SU-native-Network-property-UNKNOWN'>        UNKNOWN: &#39;unknown&#39;,
+</span><span id='SU-native-Network-property-ETHERNET'>        ETHERNET: &#39;enternet&#39;,
+</span><span id='SU-native-Network-property-WIFI'>        WIFI: &#39;wifi&#39;,
+</span><span id='SU-native-Network-property-CELL_2G'>        CELL_2G: &#39;2g&#39;,
+</span><span id='SU-native-Network-property-CELL_3G'>        CELL_3G: &#39;3g&#39;,
+</span><span id='SU-native-Network-property-CELL_4G'>        CELL_4G: &#39;4g&#39;,
+</span><span id='SU-native-Network-property-CELL'>        CELL: &#39;cellular&#39;,
+</span><span id='SU-native-Network-property-NONE'>        NONE: &#39;none&#39;,
 </span>
-<span id='SU-native-Network-method-connectionType'>    connectionType: function () {
-</span>        if (window.Connection) {
-            return navigator.connection.type || navigator.connection.effectiveType;
-        } else {
-            return navigator.connection.effectiveType || navigator.onLine;
+<span id='SU-native-Network-method-connectionType'>        connectionType: function () {
+</span>            if (window.Connection) {
+                return navigator.connection.type || navigator.connection.effectiveType;
+            } else {
+                return navigator.connection.effectiveType || navigator.onLine;
+            }
+        },
+
+<span id='SU-native-Network-method-connectionTypeName'>        connectionTypeName: function () {
+</span>            var networkState = this.connectionType();
+            var states = {};
+
+            states[this.UNKNOWN] = &#39;Unknown connection&#39;;
+            states[this.ETHERNET] = &#39;Ethernet connection&#39;;
+            states[this.WIFI] = &#39;WiFi connection&#39;;
+            states[this.CELL_2G] = &#39;Cell 2G connection&#39;;
+            states[this.CELL_3G] = &#39;Cell 3G connection&#39;;
+            states[this.CELL_4G] = &#39;Cell 4G connection&#39;;
+            states[this.CELL] = &#39;Cell generic connection&#39;;
+            states[this.NONE] = &#39;No network connection&#39;;
+
+            return networkState === true ? states[this.UNKNOWN] : states[networkState];
+        },
+
+<span id='SU-native-Network-method-isOnline'>        isOnline: function () {
+</span>            var networkState = this.connectionType();
+            return networkState === true ? true : networkState !== this.NONE;
+        },
+
+<span id='SU-native-Network-method-onOnlineChange'>        onOnlineChange: function (e) {
+</span>            //&lt;debug&gt;
+            console.log(&#39;online change&#39;);
+            //&lt;/debug&gt;
+            if (this.getSignalling()) {
+                Ext.toast({
+                    message: SU.Network.connectionTypeName(),
+                    styling: {
+                        backgroundColor: this.connectionType() === this.NONE ? &#39;#FF0000&#39; : &#39;#00FF00&#39;
+                    }
+                });
+            }
+            Ext.fireEvent(&#39;onlinechange&#39;, this.isOnline());
         }
     },
+    function () {
+        Ext.onReady(function () {
+            if (window.Connection) {
+                document.addEventListener(
+                    &#39;offline&#39;,
+                    Ext.bind(SU.native.Network.onOnlineChange, SU.native.Network),
+                    false
+                );
+                document.addEventListener(
+                    &#39;online&#39;,
+                    Ext.bind(SU.native.Network.onOnlineChange, SU.native.Network),
+                    false
+                );
+            }
 
-<span id='SU-native-Network-method-connectionTypeName'>    connectionTypeName: function () {
-</span>        var networkState = this.connectionType();
-        var states = {};
+            window.addEventListener(&#39;offline&#39;, Ext.bind(SU.native.Network.onOnlineChange, SU.native.Network), false);
+            window.addEventListener(&#39;online&#39;, Ext.bind(SU.native.Network.onOnlineChange, SU.native.Network), false);
 
-        states[this.UNKNOWN] = &#39;Unknown connection&#39;;
-        states[this.ETHERNET] = &#39;Ethernet connection&#39;;
-        states[this.WIFI] = &#39;WiFi connection&#39;;
-        states[this.CELL_2G] = &#39;Cell 2G connection&#39;;
-        states[this.CELL_3G] = &#39;Cell 3G connection&#39;;
-        states[this.CELL_4G] = &#39;Cell 4G connection&#39;;
-        states[this.CELL] = &#39;Cell generic connection&#39;;
-        states[this.NONE] = &#39;No network connection&#39;;
-
-        return (networkState === true) ? states[this.UNKNOWN] : states[networkState];
-    },
-
-<span id='SU-native-Network-method-isOnline'>    isOnline: function () {
-</span>        var networkState = this.connectionType();
-        return (networkState === true) ? true : (networkState !== this.NONE); 
-    },
-
-<span id='SU-native-Network-method-onOnlineChange'>    onOnlineChange: function (e) {
-</span>        //&lt;debug&gt;
-        console.log(&#39;online change&#39;);
-        //&lt;/debug&gt;
-        if(this.getSignalling()){
-            Ext.toast({
-                message: SU.Network.connectionTypeName(),
-                styling: {
-                    backgroundColor: this.connectionType() === this.NONE ? &#39;#FF0000&#39; : &#39;#00FF00&#39;
-                }
-            });
-        }
-        Ext.fireEvent(&#39;onlinechange&#39;, this.isOnline());
+            Ext.isOnline = Ext.bind(SU.native.Network.isOnline, SU.native.Network);
+        });
     }
-
-}, function () {
-
-    Ext.onReady(function () {
-        if (window.Connection) {
-            document.addEventListener(&#39;offline&#39;, Ext.bind(SU.native.Network.onOnlineChange, SU.native.Network), false);
-            document.addEventListener(&#39;online&#39;, Ext.bind(SU.native.Network.onOnlineChange, SU.native.Network), false);
-        }
-
-        window.addEventListener(&#39;offline&#39;, Ext.bind(SU.native.Network.onOnlineChange, SU.native.Network), false);
-        window.addEventListener(&#39;online&#39;, Ext.bind(SU.native.Network.onOnlineChange, SU.native.Network), false);
-
-        Ext.isOnline = Ext.bind(SU.native.Network.isOnline, SU.native.Network);
-    });
-
-});
+);
 </pre>
 </body>
 </html>
