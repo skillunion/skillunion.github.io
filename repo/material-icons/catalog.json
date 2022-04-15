@@ -194,6 +194,60 @@
       "name": "material-icons",
       "namespace": "Ext",
       "format": "1",
+      "version": "1.0.1.208",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package wrapper for Material Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for Google\u0027s Material Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-15T22:06:43Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "lu7KldHD6Qg\u003d",
+          "signature": "FwRlecS2KfxgDR+czQe/JGPZYaShlO6eTctHLipy2x0zPJi0e8FdcCxeehVkqEBzKhJVv2wqrYEL7SDySP/I3MfGXhmGJv2xPO6bf+AQO22eWdlszMcGT5fTdspHIcrrbi2p9NtxdTS3Uv3LdGsClZF+rUAPaHxBwj7QqgMf7or9enuxHug/oj7nHQ/PgB0uZ/z7sRhZq/3k5RfP1FV5w2Sam6mXSPgGRfnMIudkCUdz/JKMS4GA9fHCVV/CfWLmQzwzfYrfLnbk9Wnjr0decfoJe4iYz6fHIHL8VZbF8jWGe8lItwSbVMc5Ti0B5zpttwLYneP18onBMa8h24iguQ\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    },
+    {
+      "name": "material-icons",
+      "namespace": "Ext",
+      "format": "1",
+      "version": "1.0.1.209",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package wrapper for Material Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for Google\u0027s Material Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-15T23:19:59Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "0QHyRDZv4CM\u003d",
+          "signature": "DQcXCK55CkkaWCSLDmb0aD6MEL39mf9icKUluKabOcKA7mQu+DHs6SDH8D7DCsPGQ+xgbDsxb3zEs0WrrA4QtXqWU80tG0+QeXo1ygn5ZGsGHeLrqA6hBg63ILJSZA0/WHMtm+YCgGimGuh5LXR5XL8LwZsRcJnqPoEckF3rXOQOeghU8uFevp/rfPQq1pd1yRs3ewjoV051DeaGhTTxRu/4SfM6DBxPiD/T0ygkbH/m12tJ+04puH5UzVbHPWBztm6vXlEzvZpBxngeOejhelg19FkSGrTBex4JTH/BAs4O43hE7u09Q5IEmFk0++UGzmD+0Kp6n02s2ASjO5viAQ\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    },
+    {
+      "name": "material-icons",
+      "namespace": "Ext",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",

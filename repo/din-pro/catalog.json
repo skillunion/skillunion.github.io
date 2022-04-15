@@ -194,6 +194,60 @@
       "name": "din-pro",
       "namespace": "Ext",
       "format": "1",
+      "version": "1.0.1.208",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package wrapper for DINPro Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for DINPro Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-15T22:06:35Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "YqDbOnz1fDw\u003d",
+          "signature": "WmAOlq4xfle+qh+xbVdCPit0OHbhWDrySw2TFUpEfTtjsBFrqelQd2qeoljnSAIQnDYzytYCdklRGXUtGPsynF7maP1g/KcF2Rp8tE7A00RKAmMrWjF+SdfytU9At4Yt03+8uYgABXsB69cFGjWKhqo4wwfXO+2mRLamrpifVXq/WQV5ND0m205Y80ZlSOE64Tw3t7qB3AsLmrJ0Y6YS4O6AggrUjWtTzNuamUFKY008zY4OfS+33PYeoTl4376uoMrPEnI2YhsKypVDOfoMyOWlVva6ODGXiuAVUD0XtrxNnLkpfNgt0lUgEEIXluiJEu2MQtIKgN7VR5e/uEtqFw\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    },
+    {
+      "name": "din-pro",
+      "namespace": "Ext",
+      "format": "1",
+      "version": "1.0.1.209",
+      "compatVersion": "1.0.1",
+      "creator": "skillunion",
+      "summary": "Package wrapper for DINPro Fonts",
+      "detailedDescription": "Sencha Cmd package wrapper for DINPro Fonts",
+      "type": "code",
+      "signatures": [
+        {
+          "name": "skillunion",
+          "uuid": "ad38e9c2-f0a3-4cab-bf5d-9544d79c1b58",
+          "created": "2022-04-15T23:19:51Z",
+          "algorithm": "SHA1withRSA",
+          "nonce": "pFSRMoR22RY\u003d",
+          "signature": "NnsRnnfye8aXU2rkH0dbvwIF1WI9/Mu7OXW+YPsygKleI49ngtTztEBlTNnbkkuV9ifoooNAxr4x4jWGiPrbSZ8ChzOefUcO0+hN2DJkAN5RCNNZa9mUHMq4NMP5HGe4HONovKVlMfqjEL+zn6btQATbA1I7ljn8Sqp3jXZ7iElAw4zdO4yKE5Aiyxq1WCReKiN5oD/cx2qbsoK8tOvxKYQ/JmPfzoU+TNJwEKUGm9ZD2EY59+sewkwED0tjtLntvjxTsMQPSPnmItd/Gb1YN/hiLRZGan2DVWLZwe/sRu2E5QkKPwlgcCP5FzOtJNsPDanwxzegLvSHOW11vBnHLg\u003d\u003d"
+        }
+      ],
+      "resources": [
+        {
+          "path": "${package.dir}/resources",
+          "output": "shared"
+        }
+      ]
+    },
+    {
+      "name": "din-pro",
+      "namespace": "Ext",
+      "format": "1",
       "version": "1.0.2.3",
       "compatVersion": "1.0.2",
       "creator": "skillunion",
